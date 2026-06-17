@@ -176,5 +176,8 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('persona:build', projectPath),
 
   personaGet: (projectPath: string) =>
-    ipcRenderer.invoke('persona:get', projectPath)
+    ipcRenderer.invoke('persona:get', projectPath),
+
+  personaClear: (projectPath: string) =>
+    ipcRenderer.invoke('persona:clear', projectPath)
 })

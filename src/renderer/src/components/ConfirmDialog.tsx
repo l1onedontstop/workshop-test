@@ -9,7 +9,7 @@ interface ConfirmDialogProps {
   onPrimary: () => void
   onSecondary?: () => void
   onClose: () => void
-  variant?: 'default' | 'warning' | 'success'
+  variant?: 'default' | 'warning' | 'success' | 'danger'
 }
 
 export default function ConfirmDialog({
@@ -28,7 +28,8 @@ export default function ConfirmDialog({
   const variantStyles = {
     default: 'bg-brand-600 hover:bg-brand-500',
     warning: 'bg-yellow-600 hover:bg-yellow-500',
-    success: 'bg-green-600 hover:bg-green-500'
+    success: 'bg-green-600 hover:bg-green-500',
+    danger: 'bg-red-600 hover:bg-red-500'
   }
 
   return (

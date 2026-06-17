@@ -11,7 +11,8 @@ import {
   TrendingUp,
   Brain,
   Clock,
-  Layout
+  Layout,
+  Trash2
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -194,10 +195,11 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
 
   // Pipeline confirmation flow
   const [confirmDialog, setConfirmDialog] = useState<{
-    type: 'shoot' | 'publish'
+    type: 'shoot' | 'publish' | 'reset'
     title: string
     message: string
   } | null>(null)
+  const [resetLoading, setResetLoading] = useState(false)
 
   const handleConfirmShoot = () => {
     setConfirmDialog({
@@ -205,6 +207,20 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
       title: '确认拍摄状态',
       message: `这条脚本已经写好了 —— 你拍了吗？\n\n拍完告诉 AI，它会帮你生成发布资料包（标题 + 话题 + 封面文案）。`
     })
+  }
+
+  const handleResetAll = async () => {
+    if (!activeProject) return
+    setResetLoading(true)
+    try {
+      await window.api.resetProject(activeProject.path)
+      await refreshActiveProject()
+      setConfirmDialog(null)
+    } catch (err) {
+      console.error('Reset failed:', err)
+    } finally {
+      setResetLoading(false)
+    }
   }
 
   const handleConfirmPublish = () => {
@@ -524,6 +540,23 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
             <p className="text-white/15 text-xs mt-1">保存第一条脚本后，这里会显示你的创作时间线</p>
           </div>
         )}
+
+        {/* Reset button */}
+        {(activeProject.state.totalPredicted > 0 || activities.length > 0) && (
+          <div className="mt-6 pt-4 border-t border-white/[0.04]">
+            <button
+              onClick={() => setConfirmDialog({
+                type: 'reset',
+                title: '清空项目数据',
+                message: `确定要清空「${activeProject.name}」的所有数据吗？\n\n这将删除：\n· 所有已保存的脚本\n· 所有预测记录和报告\n· 所有活动历史\n\n此操作不可撤销。`
+              })}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 text-red-400/70 hover:text-red-400 text-xs transition-colors"
+            >
+              <Trash2 size={13} />
+              清空所有脚本和记录
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Pipeline confirmation dialogs */}
@@ -533,15 +566,19 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         message={confirmDialog?.message || ''}
         primaryLabel={
           confirmDialog?.type === 'shoot' ? '已拍摄，生成发布资料包' :
-          confirmDialog?.type === 'publish' ? '已发布，去登记链接' : '确认'
+          confirmDialog?.type === 'publish' ? '已发布，去登记链接' :
+          confirmDialog?.type === 'reset' ? (resetLoading ? '清空中...' : '确认清空') : '确认'
         }
-        secondaryLabel="还没呢"
-        variant={confirmDialog?.type === 'shoot' ? 'warning' : 'success'}
+        secondaryLabel={confirmDialog?.type === 'reset' ? '取消' : '还没呢'}
+        variant={confirmDialog?.type === 'shoot' ? 'warning' : confirmDialog?.type === 'reset' ? 'danger' : 'success'}
         onPrimary={() => {
           if (confirmDialog?.type === 'shoot') {
             onPublish?.()
           } else if (confirmDialog?.type === 'publish') {
             onRetro?.()
+          } else if (confirmDialog?.type === 'reset') {
+            handleResetAll()
+            return
           }
           setConfirmDialog(null)
         }}

@@ -45,12 +45,17 @@
     "mac": {
       "category": "public.app-category.productivity",
       "icon": "resources/icon.icns",
-      "target": ["dmg", "zip"],
+      "target": [
+        "dmg",
+        "zip"
+      ],
       "artifactName": "IP工坊-${version}-mac-${arch}.${ext}"
     },
     "win": {
       "icon": "resources/icon-256.png",
-      "target": ["nsis"],
+      "target": [
+        "nsis"
+      ],
       "artifactName": "IP工坊-${version}-win-${arch}.${ext}"
     },
     "nsis": {
@@ -63,7 +68,7 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "autoprefixer": "^10.4.20",
-    "electron": "^33.2.0",
+    "electron": "^33.4.11",
     "electron-builder": "^25.1.0",
     "electron-vite": "^2.3.0",
     "postcss": "^8.4.49",

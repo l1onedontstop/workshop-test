@@ -301,15 +301,7 @@ export function registerProjectHandlers(): void {
       state.state.totalPredicted = 0
       state.state.totalPublished = 0
       state.state.bufferCount = 0
-      state.state.activities.unshift({
-        type: 'script_saved',
-        timestamp: new Date().toISOString(),
-        label: '🔄 项目数据已重置',
-        detail: '已清空所有脚本和预测数据'
-      })
-      if (state.state.activities.length > 50) {
-        state.state.activities = state.state.activities.slice(0, 50)
-      }
+      state.state.activities = []
       writeProjectState(projectPath, state)
     }
 

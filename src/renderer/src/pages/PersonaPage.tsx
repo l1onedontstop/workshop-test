@@ -3,7 +3,7 @@ import { useAppStore } from '../stores/appStore'
 import {
   ArrowLeft, Users, Loader2, Sparkles, AlertCircle,
   CheckCircle2, Target, Lightbulb, TrendingUp, Shield,
-  BarChart3, ChevronRight
+  BarChart3, ChevronRight, Trash2
 } from 'lucide-react'
 
 interface PersonaData {
@@ -43,6 +43,13 @@ export default function PersonaPage({ onBack }: { onBack: () => void }) {
       if (data) setPersona(data as PersonaData)
     })
   }, [activeProject])
+
+  const handleClear = async () => {
+    if (!activeProject) return
+    await window.api.personaClear(activeProject.path)
+    setPersona(null)
+    setError('')
+  }
 
   const handleBuild = async () => {
     if (!activeProject) return
@@ -84,6 +91,7 @@ export default function PersonaPage({ onBack }: { onBack: () => void }) {
             </p>
           </div>
         </div>
+        <div className="flex items-center gap-2">
         <button
           onClick={handleBuild}
           disabled={loading}
@@ -92,6 +100,16 @@ export default function PersonaPage({ onBack }: { onBack: () => void }) {
           {loading ? <Loader2 size={14} className="animate-spin" /> : <Sparkles size={14} />}
           {persona ? '更新画像' : '构建画像'}
         </button>
+        {persona && (
+          <button
+            onClick={handleClear}
+            className="px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 text-red-400/70 hover:text-red-400 text-sm transition-colors flex items-center gap-1.5"
+          >
+            <Trash2 size={14} />
+            清除
+          </button>
+        )}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-6">

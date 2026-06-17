@@ -131,6 +131,16 @@ export function registerPersonaHandlers(): void {
     }
     return null
   })
+
+  // ── Clear persona ────────────────────────────────────
+  ipcMain.handle('persona:clear', async (_event, projectPath: string) => {
+    const path = join(projectPath, 'audience.json')
+    if (existsSync(path)) {
+      const { rmSync } = await import('fs')
+      rmSync(path)
+    }
+    return { success: true }
+  })
 }
 
 function extractJSON(raw: string): Record<string, unknown> | null {

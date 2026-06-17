@@ -61,6 +61,11 @@ interface Window {
 
     resetAIClient: () => Promise<void>
 
+    // Persona
+    personaBuild: (projectPath: string) => Promise<unknown>
+    personaGet: (projectPath: string) => Promise<unknown | null>
+    personaClear: (projectPath: string) => Promise<unknown>
+
     // Settings
     getSetting: (key: string) => Promise<unknown>
     setSetting: (key: string, value: unknown) => Promise<boolean>

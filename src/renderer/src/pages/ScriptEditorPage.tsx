@@ -18,7 +18,13 @@ import {
   Trash2,
   FileText,
   ChevronDown,
-  X
+  X,
+  Palette,
+  Wrench,
+  Camera,
+  Scissors,
+  Share2,
+  Eye
 } from 'lucide-react'
 
 interface RubricScores {
@@ -110,6 +116,135 @@ function extractScript(raw: string): string {
   return ''
 }
 
+// ── Script Section Parser ─────────────────────────────────
+
+interface ScriptSections {
+  voiceover: string
+  style: string
+  storyboard: string
+  equipment: string
+  scene: string
+  postProduction: string
+  cover: string
+  rawJson: string
+}
+
+function parseFullScript(raw: string): ScriptSections | null {
+  // Replace table header-separator rows (|---|...|) with placeholder
+  // so they don't get mistaken for section dividers
+  const safeLines: string[] = []
+  let inTable = false
+  for (const line of raw.split('\n')) {
+    const trimmed = line.trim()
+    // Detect table separator row: starts with |, contains only |-: and spaces
+    if (trimmed.startsWith('|') && /^\|[\-: |]+\|$/.test(trimmed)) {
+      safeLines.push('<!TS>')
+      inTable = true
+      continue
+    }
+    // Exit table on non-table line
+    if (inTable && !trimmed.startsWith('|')) {
+      inTable = false
+    }
+    safeLines.push(line)
+  }
+  const safe = safeLines.join('\n')
+  
+  const parts = safe.split(/\r?\n---\r?\n/)
+  if (parts.length < 3) return null
+  
+  return buildSections(parts.map(p => p.replace(/<!TS>/g, '')))
+}function buildSections(parts: string[]): ScriptSections {
+  const result: ScriptSections = {
+    voiceover: parts[0].trim(),
+    style: '',
+    storyboard: '',
+    equipment: '',
+    scene: '',
+    postProduction: '',
+    cover: '',
+    rawJson: ''
+  }
+  const keys = ['style', 'storyboard', 'equipment', 'scene', 'postProduction', 'cover'] as const
+  for (let i = 1; i < parts.length - 1 && i <= keys.length; i++) {
+    result[keys[i - 1]] = parts[i].trim()
+  }
+  result.rawJson = parts[parts.length - 1].trim()
+  return result
+}
+
+// ── Section Card Component ────────────────────────────────
+
+function SectionCard({
+  icon,
+  title,
+  color,
+  fullWidth,
+  children
+}: {
+  icon: React.ReactNode
+  title: string
+  color: 'purple' | 'blue' | 'green' | 'orange' | 'red' | 'yellow' | 'cyan'
+  fullWidth?: boolean
+  children: React.ReactNode
+}) {
+  const colorMap: Record<string, string> = {
+    purple: 'border-purple-500/20 bg-purple-500/[0.03]',
+    blue: 'border-blue-500/20 bg-blue-500/[0.03]',
+    green: 'border-green-500/20 bg-green-500/[0.03]',
+    orange: 'border-orange-500/20 bg-orange-500/[0.03]',
+    red: 'border-red-500/20 bg-red-500/[0.03]',
+    yellow: 'border-yellow-500/20 bg-yellow-500/[0.03]',
+    cyan: 'border-cyan-500/20 bg-cyan-500/[0.03]'
+  }
+  const textColorMap: Record<string, string> = {
+    purple: 'text-purple-400',
+    blue: 'text-blue-400',
+    green: 'text-green-400',
+    orange: 'text-orange-400',
+    red: 'text-red-400',
+    yellow: 'text-yellow-400',
+    cyan: 'text-cyan-400'
+  }
+  return (
+    <div className={`rounded-xl border p-4 ${colorMap[color]} ${fullWidth ? 'col-span-2' : ''}`}>
+      <div className={`flex items-center gap-2 mb-2 ${textColorMap[color]}`}>
+        {icon}
+        <span className="text-xs font-medium">{title}</span>
+      </div>
+      {children}
+    </div>
+  )
+}
+
+// ── Markdown Table → HTML ─────────────────────────────────
+
+function renderMarkdownTable(md: string): string {
+  const lines = md.trim().split('\n')
+  let html = '<table class="w-full text-[11px] border-collapse">'
+  let inHeader = true
+  for (const line of lines) {
+    if (!line.startsWith('|')) continue
+    const cells = line.split('|').filter((c) => c.trim() !== '')
+    if (cells.length === 0) continue
+    if (line.includes('---')) {
+      inHeader = false
+      continue
+    }
+    const tag = inHeader ? 'th' : 'td'
+    const cellClass = inHeader
+      ? 'border border-white/10 px-2 py-1 text-white/60 font-medium bg-white/[0.02] whitespace-nowrap'
+      : 'border border-white/5 px-2 py-1 text-white/40'
+    html += '<tr>'
+    for (const cell of cells) {
+      html += '<' + tag + ' class="' + cellClass + '">' + cell.trim() + '</' + tag + '>'
+    }
+    html += '</tr>'
+  }
+  html += '</table>'
+  return html
+}
+
 function translateAIError(err: unknown, context: string): string {
   const msg = err instanceof Error ? err.message : String(err)
   const lower = msg.toLowerCase()
@@ -158,6 +293,8 @@ export default function ScriptEditorPage({
   const [scriptList, setScriptList] = useState<Array<{ name: string; path: string }>>([])
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
   const [predictionData, setPredictionData] = useState<Record<string, unknown> | null>(null)
+  const [scriptSections, setScriptSections] = useState<ScriptSections | null>(null)
+  const [showFullPlan, setShowFullPlan] = useState(false)
   const [currentScriptFile, setCurrentScriptFile] = useState<string | null>(null)
 
   const loadScriptList = useCallback(async () => {
@@ -211,6 +348,9 @@ export default function ScriptEditorPage({
 
       setScript(scriptText)
       if (scores) setScoreResult(scores)
+      // Parse full production plan sections
+      const sections = parseFullScript(raw)
+      if (sections) setScriptSections(sections)
     } catch (err) {
       setError(translateAIError(err, 'AI 生成'))
     } finally {
@@ -701,6 +841,60 @@ export default function ScriptEditorPage({
             </div>
           )}
         </div>
+
+        {/* Full production plan (expandable) */}
+        {scriptSections && (
+          <div className="px-6 pb-3">
+            <button
+              onClick={() => setShowFullPlan(!showFullPlan)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/70 text-xs transition-colors mb-3"
+            >
+              <Eye size={14} />
+              {showFullPlan ? '收起完整方案' : '查看完整方案（分镜·风格·工具·后期·封面）'}
+              <ChevronDown size={12} className={`transition-transform ${showFullPlan ? 'rotate-180' : ''}`} />
+            </button>
+
+            {showFullPlan && (
+              <div className="grid grid-cols-2 gap-3 max-h-[420px] overflow-y-auto pr-2">
+                {scriptSections.style && (
+                  <SectionCard icon={<Palette size={14} />} title="风格定义" color="purple">
+                    <div className="text-xs text-white/50 leading-relaxed whitespace-pre-wrap">{scriptSections.style}</div>
+                  </SectionCard>
+                )}
+
+                {scriptSections.storyboard && (
+                  <SectionCard icon={<Layout size={14} />} title="分镜脚本" color="blue" fullWidth>
+                    <div className="overflow-x-auto" dangerouslySetInnerHTML={{ __html: renderMarkdownTable(scriptSections.storyboard) }} />
+                  </SectionCard>
+                )}
+
+                {scriptSections.equipment && (
+                  <SectionCard icon={<Wrench size={14} />} title="拍摄工具" color="green">
+                    <div className="text-xs text-white/50 leading-relaxed whitespace-pre-wrap">{scriptSections.equipment}</div>
+                  </SectionCard>
+                )}
+
+                {scriptSections.scene && (
+                  <SectionCard icon={<Camera size={14} />} title="场景与造型" color="orange">
+                    <div className="text-xs text-white/50 leading-relaxed whitespace-pre-wrap">{scriptSections.scene}</div>
+                  </SectionCard>
+                )}
+
+                {scriptSections.postProduction && (
+                  <SectionCard icon={<Scissors size={14} />} title="后期制作" color="red">
+                    <div className="text-xs text-white/50 leading-relaxed whitespace-pre-wrap">{scriptSections.postProduction}</div>
+                  </SectionCard>
+                )}
+
+                {scriptSections.cover && (
+                  <SectionCard icon={<Share2 size={14} />} title="封面与发布" color="yellow">
+                    <div className="text-xs text-white/50 leading-relaxed whitespace-pre-wrap">{scriptSections.cover}</div>
+                  </SectionCard>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Right: Score panel */}
         <div className="w-80 border-l border-white/5 p-6 overflow-y-auto shrink-0">
