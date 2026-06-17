@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a8a"/>
+      <stop offset="100%" style="stop-color:#2563eb"/>
+    </linearGradient>
+    <linearGradient id="playGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff"/>
+      <stop offset="100%" style="stop-color:#bfdbfe"/>
+    </linearGradient>
+    <!-- Inner shadow for depth -->
+    <filter id="innerGlow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur"/>
+      <feOffset dx="0" dy="-4" result="offsetBlur"/>
+      <feComposite in="SourceGraphic" in2="offsetBlur" operator="over"/>
+    </filter>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect x="64" y="64" width="896" height="896" rx="200" ry="200" fill="url(#bgGrad)"/>
+
+  <!-- Subtle inner highlight ring -->
+  <rect x="64" y="64" width="896" height="896" rx="200" ry="200" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.12"/>
+  <rect x="68" y="68" width="888" height="888" rx="196" ry="196" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.06"/>
+
+  <!-- Play triangle — geometric center slightly left for visual balance -->
+  <polygon points="370,300 370,724 710,512" fill="url(#playGrad)" opacity="0.95"/>
+
+  <!-- Subtle shine on play button -->
+  <polygon points="370,300 370,512 540,420" fill="#ffffff" opacity="0.12"/>
+
+  <!-- Three accent dots representing the pipeline: 写→发→复盘 -->
+  <circle cx="780" cy="350" r="28" fill="#60a5fa" opacity="0.9"/>
+  <circle cx="780" cy="430" r="16" fill="#93c5fd" opacity="0.6"/>
+  <circle cx="780" cy="490" r="10" fill="#bfdbfe" opacity="0.4"/>
+</svg>

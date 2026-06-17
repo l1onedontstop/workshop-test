@@ -1,0 +1,160 @@
+import { useState, useEffect, useRef } from 'react'
+import Sidebar from './components/layout/Sidebar'
+import TitleBar from './components/layout/TitleBar'
+import WelcomePage from './pages/WelcomePage'
+import ProjectPage from './pages/ProjectPage'
+import ScriptEditorPage from './pages/ScriptEditorPage'
+import TopicInspirationPage from './pages/TopicInspirationPage'
+import PublishPage from './pages/PublishPage'
+import RetroPage from './pages/RetroPage'
+import SettingsPage from './pages/SettingsPage'
+import PlanListPage from './pages/PlanListPage'
+import PlanEditorPage from './pages/PlanEditorPage'
+import BenchmarkPage from './pages/BenchmarkPage'
+import TopicPoolPage from './pages/TopicPoolPage'
+import PersonaPage from './pages/PersonaPage'
+import { useAppStore } from './stores/appStore'
+
+type Page =
+  | 'welcome'
+  | 'project'
+  | 'script-editor'
+  | 'topic-inspiration'
+  | 'publish'
+  | 'retro'
+  | 'settings'
+  | 'plan-list'
+  | 'plan-editor'
+  | 'benchmark'
+  | 'topic-pool'
+  | 'persona'
+
+export default function App() {
+  const [page, setPage] = useState<Page>('welcome')
+  const [pendingTopic, setPendingTopic] = useState<string | undefined>(undefined)
+  const [pendingPlanId, setPendingPlanId] = useState<string | undefined>(undefined)
+  const [pendingScriptFile, setPendingScriptFile] = useState<string | undefined>(undefined)
+  const [scriptEditorReturnTo, setScriptEditorReturnTo] = useState<'project' | 'plan-editor'>('project')
+  const { projects, loadProjects, activeProject, setActiveProject } = useAppStore()
+  const prevPage = useRef<Page>('welcome')
+  const suppressAutoNavRef = useRef(false)
+
+  useEffect(() => { prevPage.current = page }, [page])
+
+  useEffect(() => { loadProjects() }, [])
+
+  // Auto-navigate: only when coming from welcome and NOT suppressed
+  useEffect(() => {
+    if (suppressAutoNavRef.current) return
+    if (projects.length === 0) {
+      setPage('welcome')
+    } else if (prevPage.current === 'welcome') {
+      if (!activeProject) setActiveProject(projects[0].id)
+      setPage('project')
+    }
+  }, [projects, activeProject])
+
+  const handleNavigate = (target: Page) => {
+    // Navigate to existing project pages requires activeProject check
+    if (target === 'project') suppressAutoNavRef.current = false
+    setPage(target)
+  }
+
+  const handleNewProject = () => {
+    suppressAutoNavRef.current = true
+    setPage('welcome')
+  }
+
+  const showSidebar =
+    page !== 'welcome' &&
+    page !== 'script-editor' &&
+    page !== 'topic-inspiration' &&
+    page !== 'publish' &&
+    page !== 'retro' &&
+    page !== 'plan-editor' &&
+    page !== 'benchmark' &&
+    page !== 'topic-pool' &&
+    page !== 'persona'
+
+  return (
+    <div className="flex h-screen bg-[#0f0f13] text-white overflow-hidden">
+      <TitleBar />
+      <div className="flex flex-1 pt-10">
+        {showSidebar && (
+          <Sidebar currentPage={page} onNavigate={handleNavigate} onNewProject={handleNewProject} />
+        )}
+        <main className="flex-1 overflow-hidden">
+          {page === 'welcome' && (
+            <WelcomePage
+              onCreated={() => { suppressAutoNavRef.current = true }}
+              onBack={projects.length > 0 ? () => { suppressAutoNavRef.current = false; setPage('project') } : undefined}
+              onSkip={() => { suppressAutoNavRef.current = false; setPage('project') }}
+              onNavigateToBenchmark={() => { suppressAutoNavRef.current = false; setPage('benchmark') }}
+              onNavigateToScript={() => { suppressAutoNavRef.current = false; setPage('script-editor') }}
+              onNavigateToPlan={() => { suppressAutoNavRef.current = false; setPage('plan-list') }}
+              onNavigateToTopics={() => { suppressAutoNavRef.current = false; setPage('topic-inspiration') }}
+            />
+          )}
+          {page === 'project' && (
+            <ProjectPage
+              onNewScript={() => setPage('script-editor')}
+              onTopicInspiration={() => setPage('topic-inspiration')}
+              onPublish={() => setPage('publish')}
+              onRetro={() => setPage('retro')}
+              onPlans={() => setPage('plan-list')}
+              onNewProject={handleNewProject}
+              onNavigateToPlan={(planId) => { setPendingPlanId(planId); setPage('plan-editor') }}
+              onNavigateToScript={() => setPage('script-editor')}
+              onNavigateToRetro={() => setPage('retro')}
+            />
+          )}
+          {page === 'script-editor' && (
+            <ScriptEditorPage
+              onBack={() => {
+                setPendingTopic(undefined)
+                setPendingScriptFile(undefined)
+                setPage(scriptEditorReturnTo)
+              }}
+              initialTopic={pendingTopic}
+              initialScriptFile={pendingScriptFile}
+            />
+          )}
+          {page === 'topic-inspiration' && (
+            <TopicInspirationPage
+              onBack={() => setPage('project')}
+              onWriteScript={(topic) => { setPendingTopic(topic); setScriptEditorReturnTo('project'); setPage('script-editor') }}
+            />
+          )}
+          {page === 'publish' && <PublishPage onBack={() => setPage('project')} />}
+          {page === 'retro' && <RetroPage onBack={() => setPage('project')} />}
+          {page === 'plan-list' && (
+            <PlanListPage
+              onBack={() => setPage('project')}
+              onOpenPlan={(planId) => { setPendingPlanId(planId); setPage('plan-editor') }}
+            />
+          )}
+          {page === 'plan-editor' && pendingPlanId && (
+            <PlanEditorPage
+              onBack={() => { setPendingPlanId(undefined); setPage('plan-list') }}
+              planId={pendingPlanId}
+              onNavigateToScript={(scriptFile?: string) => {
+                setPendingScriptFile(scriptFile)
+                setScriptEditorReturnTo('plan-editor')
+                setPage('script-editor')
+              }}
+            />
+          )}
+          {page === 'benchmark' && <BenchmarkPage onBack={() => setPage('project')} />}
+          {page === 'topic-pool' && (
+            <TopicPoolPage
+              onBack={() => setPage('project')}
+              onWriteScript={(topic) => { setPendingTopic(topic); setScriptEditorReturnTo('project'); setPage('script-editor') }}
+            />
+          )}
+          {page === 'persona' && <PersonaPage onBack={() => setPage('project')} />}
+          {page === 'settings' && <SettingsPage />}
+        </main>
+      </div>
+    </div>
+  )
+}
