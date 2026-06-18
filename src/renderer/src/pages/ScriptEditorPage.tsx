@@ -300,6 +300,8 @@ export default function ScriptEditorPage({
   const [scriptSections, setScriptSections] = useState<ScriptSections | null>(null)
   const [showFullPlan, setShowFullPlan] = useState(false)
   const [currentScriptFile, setCurrentScriptFile] = useState<string | null>(null)
+  const [coverResult, setCoverResult] = useState<any>(null)
+  const [showCoverModal, setShowCoverModal] = useState(false)
 
   const loadScriptList = useCallback(async () => {
     if (!activeProject) return
@@ -798,7 +800,7 @@ export default function ScriptEditorPage({
           <button onClick={async () => { try { const r = await window.api.ttsGenerate(script, {}); if (r.success) alert('TTS 语音已生成：' + r.filepath); else alert('TTS 失败：' + r.error) } catch(e: any) { alert('TTS 错误：' + e.message) } }} disabled={!script.trim()} title="文字转语音" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-purple-400 transition-colors disabled:opacity-20">
             <Volume2 size={16} />
           </button>
-          <button onClick={async () => { try { const r = await window.api.coverGeneratePrompt({ script, topic, style: '' }); if (r.success) { await navigator.clipboard.writeText(r.mainPrompt || ''); alert('封面图 Prompt 已复制！可粘贴到 Midjourney/DALL-E 使用') } } catch {} }} disabled={!script.trim()} title="AI 封面图" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-yellow-400 transition-colors disabled:opacity-20">
+          <button onClick={async () => { try { setLoading('generate'); const r = await window.api.coverGeneratePrompt({ script, topic, style: '' }); if (r.success) { setCoverResult(r); setShowCoverModal(true) } } catch {} finally { setLoading(null) } }} disabled={!script.trim() || loading !== null} title="AI 封面图" className={`p-2 rounded-lg hover:bg-white/5 transition-colors disabled:opacity-20 ${loading === 'generate' ? 'text-yellow-400 animate-pulse' : 'text-white/30 hover:text-yellow-400'}`}>
             <Image size={16} />
           </button>
         </div>
@@ -1112,6 +1114,47 @@ export default function ScriptEditorPage({
             <p className="text-xs text-white/15 text-center mt-3">
               至少确认第 1 项（脚本已定稿）才能继续
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Cover image modal */}
+      {showCoverModal && coverResult && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60">
+          <div className="bg-[#1a1a24] border border-white/10 rounded-2xl w-full max-w-lg mx-4 p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-white">🎨 AI 封面图方案</h3>
+              <button onClick={() => setShowCoverModal(false)} className="text-white/30 hover:text-white/60"><X size={18} /></button>
+            </div>
+            {coverResult.textOverlay && (
+              <div className="p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20 mb-4 text-center">
+                <p className="text-xs text-yellow-400/60 mb-1">推荐封面大字</p>
+                <p className="text-xl font-bold text-yellow-300">{coverResult.textOverlay}</p>
+              </div>
+            )}
+            <div className="space-y-3">
+              <div className="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                <p className="text-xs text-white/30 mb-1">英文 Prompt（Midjourney / DALL-E）</p>
+                <p className="text-xs text-white/60 break-all leading-relaxed">{coverResult.mainPrompt}</p>
+                <button onClick={() => { navigator.clipboard.writeText(coverResult.mainPrompt || ''); alert('已复制英文 Prompt') }} className="mt-2 text-xs px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white/60 transition-colors">📋 复制英文</button>
+              </div>
+              {coverResult.mainPromptCN && (
+                <div className="p-3 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+                  <p className="text-xs text-white/30 mb-1">中文 Prompt</p>
+                  <p className="text-xs text-white/60">{coverResult.mainPromptCN}</p>
+                  <button onClick={() => { navigator.clipboard.writeText(coverResult.mainPromptCN || ''); alert('已复制中文 Prompt') }} className="mt-2 text-xs px-3 py-1 rounded bg-white/10 hover:bg-white/20 text-white/60 transition-colors">📋 复制中文</button>
+                </div>
+              )}
+            </div>
+            {coverResult.designNotes?.length > 0 && (
+              <div className="mt-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+                <p className="text-xs text-white/30 mb-1">设计要点</p>
+                <ul className="text-xs text-white/50 space-y-0.5">
+                  {coverResult.designNotes.map((n: string, i: number) => <li key={i}>• {n}</li>)}
+                </ul>
+              </div>
+            )}
+            <button onClick={() => setShowCoverModal(false)} className="w-full mt-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 text-sm transition-colors">关闭</button>
           </div>
         </div>
       )}
