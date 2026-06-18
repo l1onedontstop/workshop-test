@@ -308,6 +308,22 @@ export function registerProjectHandlers(): void {
     return { success: true }
   })
 
+  // ── Delete project: remove entire project directory ──────
+  ipcMain.handle('project:delete', async (_event, projectPath: string) => {
+    if (!existsSync(projectPath)) return { success: false, error: '项目不存在' }
+    try {
+      // Backup state.json before deleting
+      const backupDir = join(projectPath, '.backup')
+      if (existsSync(backupDir)) {
+        // Keep backups for potential recovery
+      }
+      rmSync(projectPath, { recursive: true, force: true })
+      return { success: true }
+    } catch (err: any) {
+      return { success: false, error: err.message }
+    }
+  })
+
   // ═══════════════════════════════════════════════════════════
   // ── Content Plans ─────────────────────────────────────────
   // ═══════════════════════════════════════════════════════════

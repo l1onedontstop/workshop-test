@@ -175,6 +175,7 @@ const VARIANT_STYLES: Record<CoachSuggestion['variant'], { gradient: string; bor
 export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish, onRetro, onPlans, onNewProject, onNavigateToPlan, onNavigateToScript, onNavigateToRetro }: ProjectPageProps) {
   const activeProject = useAppStore((s) => s.activeProject)
   const refreshActiveProject = useAppStore((s) => s.refreshActiveProject)
+  const { loadProjects, setActiveProject } = useAppStore()
 
   if (!activeProject) {
     return (
@@ -195,7 +196,7 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
 
   // Pipeline confirmation flow
   const [confirmDialog, setConfirmDialog] = useState<{
-    type: 'shoot' | 'publish' | 'reset'
+    type: 'shoot' | 'publish' | 'reset' | 'delete'
     title: string
     message: string
   } | null>(null)
@@ -218,6 +219,20 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
       setConfirmDialog(null)
     } catch (err) {
       console.error('Reset failed:', err)
+    } finally {
+      setResetLoading(false)
+    }
+  }
+
+  const handleDeleteProject = async () => {
+    if (!activeProject) return
+    setResetLoading(true)
+    try {
+      await window.api.deleteProject(activeProject.path)
+      await loadProjects(true)
+      setConfirmDialog(null)
+    } catch (err) {
+      console.error('Delete failed:', err)
     } finally {
       setResetLoading(false)
     }
@@ -555,6 +570,19 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
               <Trash2 size={13} />
               清空所有脚本和记录
             </button>
+
+            {/* Delete project button */}
+            <button
+              onClick={() => setConfirmDialog({
+                type: 'delete',
+                title: '删除项目',
+                message: `确定要删除「${activeProject.name}」吗？\n\n这将永久删除：\n· 所有脚本、预测、报告\n· 评分规则进化记录\n· 对标分析数据\n· 整个项目目录\n\n此操作不可撤销！`
+              })}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-600/10 border border-red-500/20 hover:bg-red-600/20 text-red-500/80 hover:text-red-400 text-xs transition-colors mt-2 w-full"
+            >
+              <Trash2 size={13} />
+              删除整个项目
+            </button>
           </div>
         )}
       </div>
@@ -567,10 +595,11 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         primaryLabel={
           confirmDialog?.type === 'shoot' ? '已拍摄，生成发布资料包' :
           confirmDialog?.type === 'publish' ? '已发布，去登记链接' :
-          confirmDialog?.type === 'reset' ? (resetLoading ? '清空中...' : '确认清空') : '确认'
+          confirmDialog?.type === 'reset' ? (resetLoading ? '清空中...' : '确认清空') :
+          confirmDialog?.type === 'delete' ? '确认删除' : '确认'
         }
-        secondaryLabel={confirmDialog?.type === 'reset' ? '取消' : '还没呢'}
-        variant={confirmDialog?.type === 'shoot' ? 'warning' : confirmDialog?.type === 'reset' ? 'danger' : 'success'}
+        secondaryLabel={(confirmDialog?.type === 'reset' || confirmDialog?.type === 'delete') ? '取消' : '还没呢'}
+        variant={confirmDialog?.type === 'shoot' ? 'warning' : (confirmDialog?.type === 'reset' || confirmDialog?.type === 'delete') ? 'danger' : 'success'}
         onPrimary={() => {
           if (confirmDialog?.type === 'shoot') {
             onPublish?.()
@@ -578,6 +607,9 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
             onRetro?.()
           } else if (confirmDialog?.type === 'reset') {
             handleResetAll()
+            return
+          } else if (confirmDialog?.type === 'delete') {
+            handleDeleteProject()
             return
           }
           setConfirmDialog(null)

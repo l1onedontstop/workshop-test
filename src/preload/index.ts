@@ -42,6 +42,9 @@ contextBridge.exposeInMainWorld('api', {
   resetProject: (projectPath: string) =>
     ipcRenderer.invoke('project:resetProject', projectPath),
 
+  deleteProject: (projectPath: string) =>
+    ipcRenderer.invoke('project:delete', projectPath),
+
   // Plan management
   createPlan: (projectPath: string, name: string) =>
     ipcRenderer.invoke('project:createPlan', projectPath, name),
