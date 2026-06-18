@@ -556,35 +556,36 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
           </div>
         )}
 
-        {/* Reset button */}
-        {(activeProject.state.totalPredicted > 0 || activities.length > 0) && (
-          <div className="mt-6 pt-4 border-t border-white/[0.04]">
+        {/* Danger zone */}
+        <div className="mt-6 pt-4 border-t border-white/[0.04]">
+          {/* Reset button — only when there's data */}
+          {(activeProject.state.totalPredicted > 0 || activities.length > 0) && (
             <button
               onClick={() => setConfirmDialog({
                 type: 'reset',
                 title: '清空项目数据',
                 message: `确定要清空「${activeProject.name}」的所有数据吗？\n\n这将删除：\n· 所有已保存的脚本\n· 所有预测记录和报告\n· 所有活动历史\n\n此操作不可撤销。`
               })}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 text-red-400/70 hover:text-red-400 text-xs transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 text-red-400/70 hover:text-red-400 text-xs transition-colors w-full"
             >
               <Trash2 size={13} />
               清空所有脚本和记录
             </button>
+          )}
 
-            {/* Delete project button */}
-            <button
-              onClick={() => setConfirmDialog({
-                type: 'delete',
-                title: '删除项目',
-                message: `确定要删除「${activeProject.name}」吗？\n\n这将永久删除：\n· 所有脚本、预测、报告\n· 评分规则进化记录\n· 对标分析数据\n· 整个项目目录\n\n此操作不可撤销！`
-              })}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-600/10 border border-red-500/20 hover:bg-red-600/20 text-red-500/80 hover:text-red-400 text-xs transition-colors mt-2 w-full"
-            >
-              <Trash2 size={13} />
-              删除整个项目
-            </button>
-          </div>
-        )}
+          {/* Delete project button — always visible */}
+          <button
+            onClick={() => setConfirmDialog({
+              type: 'delete',
+              title: '删除项目',
+              message: `确定要删除「${activeProject.name}」吗？\n\n这将永久删除：\n· 所有脚本、预测、报告\n· 评分规则进化记录\n· 对标分析数据\n· 整个项目目录\n\n此操作不可撤销！`
+            })}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-red-600/10 border border-red-500/20 hover:bg-red-600/20 text-red-500/80 hover:text-red-400 text-xs transition-colors mt-2 w-full"
+          >
+            <Trash2 size={13} />
+            删除整个项目
+          </button>
+        </div>
       </div>
 
       {/* Pipeline confirmation dialogs */}
