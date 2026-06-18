@@ -230,5 +230,13 @@ contextBridge.exposeInMainWorld('api', {
   coverGeneratePrompt: (data: unknown) => ipcRenderer.invoke('cover:generatePrompt', data),
   subtitleGenerate: (data: unknown) => ipcRenderer.invoke('subtitle:generate', data),
   videoInfo: () => ipcRenderer.invoke('video:info'),
-  videoCompose: (data: unknown) => ipcRenderer.invoke('video:compose', data)
+  videoCompose: (data: unknown) => ipcRenderer.invoke('video:compose', data),
+  // ── Cadence / Buffer ──
+  cadenceBuffer: (projectPath: string) => ipcRenderer.invoke('cadence:buffer', projectPath),
+  cadenceShoot: (projectPath: string, videoId: string, scriptFile: string) => ipcRenderer.invoke('cadence:shoot', projectPath, videoId, scriptFile),
+  cadencePublish: (projectPath: string, videoId: string, publishData: unknown) => ipcRenderer.invoke('cadence:publish', projectPath, videoId, publishData),
+  cadenceReport: () => ipcRenderer.invoke('cadence:report'),
+  // ── Prediction Guard ──
+  predictionDetectMode: (projectPath: string) => ipcRenderer.invoke('prediction:detectMode', projectPath),
+  predictionValidate: (path: string, data: unknown) => ipcRenderer.invoke('prediction:validate', path, data)
 })

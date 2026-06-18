@@ -4,9 +4,9 @@ import { join, basename } from 'path'
 import { homedir } from 'os'
 import { mkdirSync, existsSync, readFileSync, writeFileSync, readdirSync, rmSync } from 'fs'
 
-const WORKSPACE_ROOT = join(homedir(), 'IP工坊', 'projects')
+export const WORKSPACE_ROOT = join(homedir(), 'IP工坊', 'projects')
 
-function ensureDir(path: string): void {
+export function ensureDir(path: string): void {
   if (!existsSync(path)) {
     mkdirSync(path, { recursive: true })
   }
@@ -44,7 +44,7 @@ interface ActivityEntry {
   navTarget?: 'script-editor' | 'retro' | 'plan-editor' | 'publish'
 }
 
-function readProjectState(projectPath: string): ProjectState | null {
+export function readProjectState(projectPath: string): ProjectState | null {
   const statePath = join(projectPath, 'state.json')
   if (!existsSync(statePath)) return null
   try {
@@ -54,7 +54,7 @@ function readProjectState(projectPath: string): ProjectState | null {
   }
 }
 
-function writeProjectState(projectPath: string, state: ProjectState): void {
+export function writeProjectState(projectPath: string, state: ProjectState): void {
   writeFileSync(join(projectPath, 'state.json'), JSON.stringify(state, null, 2), 'utf-8')
 }
 
