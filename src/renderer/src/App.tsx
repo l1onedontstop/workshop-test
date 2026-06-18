@@ -13,6 +13,7 @@ import PlanEditorPage from './pages/PlanEditorPage'
 import BenchmarkPage from './pages/BenchmarkPage'
 import TopicPoolPage from './pages/TopicPoolPage'
 import PersonaPage from './pages/PersonaPage'
+import DashboardPage from './pages/DashboardPage'
 import { useAppStore } from './stores/appStore'
 
 type Page =
@@ -28,6 +29,7 @@ type Page =
   | 'benchmark'
   | 'topic-pool'
   | 'persona'
+  | 'dashboard'
 
 export default function App() {
   const [page, setPage] = useState<Page>('welcome')
@@ -74,7 +76,8 @@ export default function App() {
     page !== 'plan-editor' &&
     page !== 'benchmark' &&
     page !== 'topic-pool' &&
-    page !== 'persona'
+    page !== 'persona' &&
+    page !== 'dashboard'
 
   return (
     <div className="flex h-screen bg-[#0f0f13] text-white overflow-hidden">
@@ -152,6 +155,7 @@ export default function App() {
             />
           )}
           {page === 'persona' && <PersonaPage onBack={() => setPage('project')} />}
+          {page === 'dashboard' && <DashboardPage onBack={() => setPage('project')} />}
           {page === 'settings' && <SettingsPage />}
         </main>
       </div>

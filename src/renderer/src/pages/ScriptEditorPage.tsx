@@ -24,7 +24,11 @@ import {
   Camera,
   Scissors,
   Share2,
-  Eye
+  Eye,
+  Download,
+  Volume2,
+  Image,
+  FileSpreadsheet
 } from 'lucide-react'
 
 interface RubricScores {
@@ -783,6 +787,21 @@ export default function ScriptEditorPage({
             </>
           )}
         </button>
+        {/* Tool buttons */}
+        <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-white/10">
+          <button onClick={async () => { try { const r = await window.api.exportChecklist({ script, topic, storyboard: [], style: {}, equipment: {} }); if (r.success) { await navigator.clipboard.writeText(r.markdown); alert('拍摄清单已复制到剪贴板！') } } catch {} }} disabled={!script.trim()} title="导出拍摄清单" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-green-400 transition-colors disabled:opacity-20">
+            <Download size={16} />
+          </button>
+          <button onClick={async () => { try { const r = await window.api.exportTeleprompter(script); if (r.success) { await navigator.clipboard.writeText(r.text); alert('提词器文本已复制！') } } catch {} }} disabled={!script.trim()} title="导出提词器" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-blue-400 transition-colors disabled:opacity-20">
+            <FileText size={16} />
+          </button>
+          <button onClick={async () => { try { const r = await window.api.ttsGenerate(script, {}); if (r.success) alert('TTS 语音已生成：' + r.filepath); else alert('TTS 失败：' + r.error) } catch(e: any) { alert('TTS 错误：' + e.message) } }} disabled={!script.trim()} title="文字转语音" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-purple-400 transition-colors disabled:opacity-20">
+            <Volume2 size={16} />
+          </button>
+          <button onClick={async () => { try { const r = await window.api.coverGeneratePrompt({ script, topic, style: '' }); if (r.success) { await navigator.clipboard.writeText(r.mainPrompt || ''); alert('封面图 Prompt 已复制！可粘贴到 Midjourney/DALL-E 使用') } } catch {} }} disabled={!script.trim()} title="AI 封面图" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-yellow-400 transition-colors disabled:opacity-20">
+            <Image size={16} />
+          </button>
+        </div>
       </div>
 
       {/* Main content */}
