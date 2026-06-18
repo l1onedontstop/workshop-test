@@ -47,13 +47,14 @@ const STEPS = [
 ]
 
 interface WelcomePageProps {
-  onCreated?: () => void
+  onCreated?: (projectId?: string) => void
   onBack?: () => void
   onSkip?: () => void
   onNavigateToBenchmark?: () => void
   onNavigateToScript?: () => void
   onNavigateToPlan?: () => void
   onNavigateToTopics?: () => void
+  onNavigateToBlueprint?: (answers: Record<number, string>) => void
 }
 
 export default function WelcomePage({
@@ -155,7 +156,7 @@ export default function WelcomePage({
     }
   }
 
-  // ── Post-creation guide ──
+  // ── Post-creation: generate IP Blueprint ──
   if (created) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
@@ -163,98 +164,36 @@ export default function WelcomePage({
           <div className="mb-8">
             <CheckCircle size={48} className="text-green-400 mx-auto mb-4" />
             <h1 className="text-2xl font-bold text-white mb-2">项目创建成功！</h1>
-            <p className="text-white/40 text-sm">
-              你的 IP 打造之旅正式开始。建议按以下顺序推进：
+            <p className="text-white/40 text-sm mb-6">
+              AI 正在为你生成 IP 打造蓝图——包含定位、内容策略、第一步行动计划
             </p>
+            <div className="flex justify-center mb-6">
+              <Loader2 size={24} className="animate-spin text-brand-400" />
+            </div>
           </div>
 
-          <div className="space-y-3 mb-8">
-            <button
-              onClick={onNavigateToBenchmark}
-              className="w-full text-left p-5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-brand-500/30 hover:bg-brand-500/[0.03] transition-all group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 rounded-lg bg-yellow-500/10 shrink-0">
-                  <Target size={22} className="text-yellow-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium mb-1 group-hover:text-brand-300 transition-colors">
-                    🎯 导入对标账号
-                  </h3>
-                  <p className="text-white/35 text-sm">
-                    让 AI 分析你欣赏的账号，提取内容 pattern，作为后续打分的参照系
-                  </p>
-                </div>
-                <ArrowRight size={16} className="text-white/15 group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-              </div>
-            </button>
-
-            <button
-              onClick={onNavigateToScript}
-              className="w-full text-left p-5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-brand-500/30 hover:bg-brand-500/[0.03] transition-all group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 rounded-lg bg-blue-500/10 shrink-0">
-                  <PenLine size={22} className="text-blue-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium mb-1 group-hover:text-brand-300 transition-colors">
-                    ✍️ 写第一条脚本
-                  </h3>
-                  <p className="text-white/35 text-sm">
-                    万事开头难——AI 帮你写出第一条脚本，拍出来才是真正的开始
-                  </p>
-                </div>
-                <ArrowRight size={16} className="text-white/15 group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-              </div>
-            </button>
-
-            <button
-              onClick={onNavigateToPlan}
-              className="w-full text-left p-5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-brand-500/30 hover:bg-brand-500/[0.03] transition-all group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 rounded-lg bg-purple-500/10 shrink-0">
-                  <Layout size={22} className="text-purple-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium mb-1 group-hover:text-brand-300 transition-colors">
-                    📋 创建 IP 方案
-                  </h3>
-                  <p className="text-white/35 text-sm">
-                    系统化规划你的人设、选题、策略和排期——5 步生成完整内容方案
-                  </p>
-                </div>
-                <ArrowRight size={16} className="text-white/15 group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-              </div>
-            </button>
-
-            <button
-              onClick={onNavigateToTopics}
-              className="w-full text-left p-5 rounded-xl bg-white/[0.03] border border-white/[0.06] hover:border-brand-500/30 hover:bg-brand-500/[0.03] transition-all group"
-            >
-              <div className="flex items-start gap-4">
-                <div className="p-2.5 rounded-lg bg-green-500/10 shrink-0">
-                  <Lightbulb size={22} className="text-green-400" />
-                </div>
-                <div>
-                  <h3 className="text-white font-medium mb-1 group-hover:text-brand-300 transition-colors">
-                    🔍 选题灵感
-                  </h3>
-                  <p className="text-white/35 text-sm">
-                    让 AI 根据你的行业和受众，挖掘第一批有爆款潜力的选题
-                  </p>
-                </div>
-                <ArrowRight size={16} className="text-white/15 group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-1" />
-              </div>
-            </button>
-          </div>
+          <button
+            onClick={async () => {
+              // Generate blueprint from answers
+              const a: Record<string, string> = {}
+              for (let i = 0; i < STEPS.length; i++) {
+                const k = STEPS[i].description
+                a[k] = answers[i] || ''
+              }
+              // Signal to parent to navigate to blueprint
+              onNavigateToBlueprint?.(a)
+            }}
+            className="w-full py-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-base font-medium transition-colors flex items-center justify-center gap-2 mb-4"
+          >
+            <Sparkles size={20} />
+            生成我的 IP 蓝图
+          </button>
 
           <button
             onClick={onSkip || (() => setCreated(false))}
             className="text-sm text-white/25 hover:text-white/40 transition-colors"
           >
-            跳过引导，进入工作台
+            跳过，进入工作台
           </button>
         </div>
       </div>
