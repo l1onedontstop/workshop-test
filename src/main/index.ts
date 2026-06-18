@@ -10,6 +10,20 @@ import { registerCalibrationHandlers } from './services/calibration'
 import { registerPoolHandlers } from './services/pool'
 import { registerTrendHandlers } from './services/trend'
 import { registerPersonaHandlers } from './services/persona'
+import { registerQueueHandlers } from './services/ai-queue'
+import { registerBackupHandlers } from './services/backup'
+import { registerErrorHandlers, registerErrorIPC } from './services/error-handler'
+import { registerOfflineHandlers } from './services/offline'
+import { registerDashboardHandlers } from './services/dashboard'
+import { registerTemplateHandlers } from './services/template'
+import { registerOnboardingHandlers } from './services/onboarding'
+import { registerFeedbackHandlers } from './services/feedback'
+import { registerExportHandlers } from './services/export-service'
+import { registerTTSHandlers } from './services/tts'
+import { registerCoverHandlers } from './services/cover-image'
+import { registerSubtitleHandlers } from './services/subtitle'
+import { registerVideoHandlers } from './services/video'
+import { info as logInfo } from './services/logger'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -63,9 +77,24 @@ function registerHandlers(): void {
   registerPoolHandlers()
   registerTrendHandlers()
   registerPersonaHandlers()
+  registerQueueHandlers()
+  registerBackupHandlers()
+  registerErrorIPC()
+  registerOfflineHandlers()
+  registerDashboardHandlers()
+  registerTemplateHandlers()
+  registerOnboardingHandlers()
+  registerFeedbackHandlers()
+  registerExportHandlers()
+  registerTTSHandlers()
+  registerCoverHandlers()
+  registerSubtitleHandlers()
+  registerVideoHandlers()
 }
 
 app.whenReady().then(() => {
+  registerErrorHandlers()
+  logInfo('main', 'IP工坊 starting', { version: app.getVersion() })
   electronApp.setAppUserModelId('com.ipstudio.app')
 
   app.on('browser-window-created', (_, window) => {

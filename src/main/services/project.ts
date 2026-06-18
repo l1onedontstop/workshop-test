@@ -372,10 +372,34 @@ export function registerProjectHandlers(): void {
 
   ipcMain.handle('project:deletePlan', async (_event, projectPath: string, planId: string) => {
     const planPath = join(projectPath, 'plans', `${planId}.json`)
-    if (existsSync(planPath)) {
-      rmSync(planPath)
-    }
+    if (existsSync(planPath)) rmSync(planPath)
     return { success: true, deleted: planId }
+  })
+
+  ipcMain.handle('project:search', async (_event, query: string) => {
+    ensureDir(WORKSPACE_ROOT)
+    const results: Record<string, unknown>[] = []
+    for (const dir of readdirSync(WORKSPACE_ROOT, { withFileTypes: true })) {
+      if (!dir.isDirectory()) continue
+      const s = readProjectState(join(WORKSPACE_ROOT, dir.name))
+      if (!s) continue
+      if ((s.name || '').toLowerCase().includes(query.toLowerCase()) || (s.state?.phase || '').toLowerCase().includes(query.toLowerCase())) results.push(s)
+    }
+    return results
+  })
+
+  ipcMain.handle('project:archive', async (_event, projectPath: string) => { const s = readProjectState(projectPath); if (!s) throw new Error('Not found'); s.state.archived = true; s.state.archivedAt = new Date().toISOString(); writeProjectState(projectPath, s); return { success: true } })
+  ipcMain.handle('project:unarchive', async (_event, projectPath: string) => { const s = readProjectState(projectPath); if (!s) throw new Error('Not found'); s.state.archived = false; delete s.state.archivedAt; writeProjectState(projectPath, s); return { success: true } })
+  ipcMain.handle('project:setTags', async (_event, projectPath: string, tags: string[]) => { const s = readProjectState(projectPath); if (!s) throw new Error('Not found'); s.state.tags = tags; writeProjectState(projectPath, s); return { success: true, tags } })
+  ipcMain.handle('project:getTags', async (_event, projectPath: string) => { const s = readProjectState(projectPath); return s?.state?.tags || [] })
+
+  ipcMain.handle('project:batchStats', async (_event, projectPath: string) => {
+    const s = readProjectState(projectPath)
+    if (!s) return null
+    const predDir = join(projectPath, 'predictions')
+    let predicted = 0, published = 0, plays = 0
+    if (existsSync(predDir)) for (const f of readdirSync(predDir).filter(f => f.endsWith('.json'))) { try { const d = JSON.parse(readFileSync(join(predDir, f), 'utf-8')); if (d.status === 'scored' || d.status === 'retro_completed') predicted++; if (d.status === 'retro_completed') { published++; plays += d.actualData?.plays || 0 } } catch {} }
+    return { ...s.state, predicted, published, totalPlays: plays }
   })
 }
 

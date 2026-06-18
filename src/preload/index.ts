@@ -179,5 +179,53 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('persona:get', projectPath),
 
   personaClear: (projectPath: string) =>
-    ipcRenderer.invoke('persona:clear', projectPath)
+    ipcRenderer.invoke('persona:clear', projectPath),
+
+  // ── New APIs (v0.5+) ──
+  searchProjects: (query: string) => ipcRenderer.invoke('project:search', query),
+  archiveProject: (projectPath: string) => ipcRenderer.invoke('project:archive', projectPath),
+  unarchiveProject: (projectPath: string) => ipcRenderer.invoke('project:unarchive', projectPath),
+  setTags: (projectPath: string, tags: string[]) => ipcRenderer.invoke('project:setTags', projectPath, tags),
+  getTags: (projectPath: string) => ipcRenderer.invoke('project:getTags', projectPath),
+  batchStats: (projectPath: string) => ipcRenderer.invoke('project:batchStats', projectPath),
+
+  backupList: (projectPath: string, filename: string) => ipcRenderer.invoke('backup:list', projectPath, filename),
+  backupRestore: (projectPath: string, bf: string, of: string) => ipcRenderer.invoke('backup:restore', projectPath, bf, of),
+  aiQueueStatus: () => ipcRenderer.invoke('ai:queueStatus'),
+  aiQueueReset: () => ipcRenderer.invoke('ai:queueReset'),
+  reportError: (data: unknown) => ipcRenderer.invoke('error:report', data),
+  classifyError: (msg: string) => ipcRenderer.invoke('error:classify', msg),
+
+  offlineScoreScript: (script: string) => ipcRenderer.invoke('offline:scoreScript', script),
+  offlineTopicTemplates: () => ipcRenderer.invoke('offline:topicTemplates'),
+  offlinePublishPack: (script: string) => ipcRenderer.invoke('offline:publishPackTemplate', script),
+  offlineHealthCheck: () => ipcRenderer.invoke('offline:healthCheck'),
+
+  dashboardOverview: () => ipcRenderer.invoke('dashboard:overview'),
+  dashboardTrends: (projectPath: string) => ipcRenderer.invoke('dashboard:trends', projectPath),
+  dashboardWeekly: () => ipcRenderer.invoke('dashboard:weekly'),
+
+  templateList: () => ipcRenderer.invoke('template:list'),
+  templateGet: (id: string) => ipcRenderer.invoke('template:get', id),
+  templateApply: (projectPath: string, templateId: string) => ipcRenderer.invoke('template:apply', projectPath, templateId),
+
+  onboardingStatus: () => ipcRenderer.invoke('onboarding:status'),
+  onboardingComplete: (projectId: string) => ipcRenderer.invoke('onboarding:complete', projectId),
+  onboardingSteps: () => ipcRenderer.invoke('onboarding:steps'),
+
+  feedbackSubmit: (data: unknown) => ipcRenderer.invoke('feedback:submit', data),
+  feedbackFAQ: (category?: string) => ipcRenderer.invoke('feedback:faq', category),
+  feedbackReport: (data: unknown) => ipcRenderer.invoke('feedback:report', data),
+
+  exportChecklist: (data: unknown) => ipcRenderer.invoke('export:checklist', data),
+  exportTeleprompter: (script: string) => ipcRenderer.invoke('export:teleprompter', script),
+  exportCSV: (predictions: unknown[]) => ipcRenderer.invoke('export:csv', predictions),
+
+  ttsGenerate: (text: string, opts?: unknown) => ipcRenderer.invoke('tts:generate', text, opts || {}),
+  ttsVoices: () => ipcRenderer.invoke('tts:voices'),
+  coverTemplates: () => ipcRenderer.invoke('cover:templates'),
+  coverGeneratePrompt: (data: unknown) => ipcRenderer.invoke('cover:generatePrompt', data),
+  subtitleGenerate: (data: unknown) => ipcRenderer.invoke('subtitle:generate', data),
+  videoInfo: () => ipcRenderer.invoke('video:info'),
+  videoCompose: (data: unknown) => ipcRenderer.invoke('video:compose', data)
 })
