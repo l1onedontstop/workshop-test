@@ -186,5 +186,6 @@ interface Window {
     ipStrategyGenerate: (answers: Record<string, string>) => Promise<unknown>
     ipStrategyGet: (projectPath: string) => Promise<unknown>
     ipStrategySave: (projectPath: string, blueprint: unknown) => Promise<unknown>
+    ipStrategyRefine: (blueprint: unknown, feedback: string, answers?: Record<string, string>) => Promise<unknown>
   }
 }

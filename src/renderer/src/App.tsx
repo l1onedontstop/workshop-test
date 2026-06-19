@@ -38,6 +38,7 @@ type Page =
 export default function App() {
   const [page, setPage] = useState<Page>('welcome')
   const [pendingTopic, setPendingTopic] = useState<string | undefined>(undefined)
+  const [pendingHook, setPendingHook] = useState<string | undefined>(undefined)
   const [pendingPlanId, setPendingPlanId] = useState<string | undefined>(undefined)
   const [pendingScriptFile, setPendingScriptFile] = useState<string | undefined>(undefined)
   const [scriptEditorReturnTo, setScriptEditorReturnTo] = useState<'project' | 'plan-editor'>('project')
@@ -137,10 +138,12 @@ export default function App() {
             <ScriptEditorPage
               onBack={() => {
                 setPendingTopic(undefined)
+                setPendingHook(undefined)
                 setPendingScriptFile(undefined)
                 setPage(scriptEditorReturnTo)
               }}
               initialTopic={pendingTopic}
+              initialHook={pendingHook}
               initialScriptFile={pendingScriptFile}
             />
           )}
@@ -185,6 +188,12 @@ export default function App() {
               onNavigate={(target) => {
                 suppressAutoNavRef.current = false
                 setPage(target as Page)
+              }}
+              onWriteScript={(topic, hook) => {
+                setPendingTopic(topic)
+                setPendingHook(hook)
+                setScriptEditorReturnTo('project')
+                setPage('script-editor')
               }}
             />
           )}

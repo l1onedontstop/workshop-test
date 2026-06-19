@@ -275,15 +275,18 @@ function translateAIError(err: unknown, context: string): string {
 export default function ScriptEditorPage({
   onBack,
   initialTopic,
+  initialHook,
   initialScriptFile
 }: {
   onBack: () => void
   initialTopic?: string
+  initialHook?: string
   initialScriptFile?: string
 }) {
   const activeProject = useAppStore((s) => s.activeProject)
   const refreshActiveProject = useAppStore((s) => s.refreshActiveProject)
   const [topic, setTopic] = useState(initialTopic || '')
+  const [hook, setHook] = useState(initialHook || '')
   const [script, setScript] = useState('')
   const [scoreResult, setScoreResult] = useState<ScoreResult | null>(null)
   const [loading, setLoading] = useState<'generate' | 'score' | 'delete' | null>(null)
@@ -811,7 +814,7 @@ export default function ScriptEditorPage({
         {/* Left: Editor */}
         <div className="flex-1 flex flex-col p-6 overflow-y-auto">
           {/* Topic input */}
-          <div className="mb-4">
+          <div className="mb-4 space-y-3">
             <div className="flex gap-3">
               <div className="flex-1">
                 <input
@@ -836,6 +839,21 @@ export default function ScriptEditorPage({
                 AI 生成脚本
               </button>
             </div>
+            {hook && (
+              <div className="bg-brand-500/5 border border-brand-500/10 rounded-xl px-4 py-3">
+                <p className="text-xs text-brand-300/60 mb-1">开场钩子（来自蓝图）</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-white/80 flex-1">「{hook}」</p>
+                  <button
+                    onClick={() => { setScript(prev => prev ? `【开场钩子】\n${hook}\n\n${prev}` : `【开场钩子】\n${hook}`) }}
+                    className="text-xs px-2 py-1 rounded bg-brand-500/20 hover:bg-brand-500/30 text-brand-300 transition-colors shrink-0"
+                    title="将钩子插入脚本开头"
+                  >
+                    插入脚本
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Script editor */}

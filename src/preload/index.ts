@@ -242,5 +242,6 @@ contextBridge.exposeInMainWorld('api', {
   // ── IP Strategy ──
   ipStrategyGenerate: (answers: Record<string, string>) => ipcRenderer.invoke('ip-strategy:generate', answers),
   ipStrategyGet: (projectPath: string) => ipcRenderer.invoke('ip-strategy:get', projectPath),
-  ipStrategySave: (projectPath: string, blueprint: unknown) => ipcRenderer.invoke('ip-strategy:save', projectPath, blueprint)
+  ipStrategySave: (projectPath: string, blueprint: unknown) => ipcRenderer.invoke('ip-strategy:save', projectPath, blueprint),
+  ipStrategyRefine: (blueprint: unknown, feedback: string, answers?: Record<string, string>) => ipcRenderer.invoke('ip-strategy:refine', blueprint, feedback, answers || {})
 })

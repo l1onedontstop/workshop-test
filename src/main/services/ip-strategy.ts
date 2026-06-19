@@ -116,6 +116,30 @@ export function loadBlueprint(projectPath: string): any | null {
   return null
 }
 
+export async function refineBlueprint(
+  originalBlueprint: any,
+  feedback: string,
+  originalAnswers: Record<string, string>
+): Promise<any> {
+  info('ip-strategy', 'Refining blueprint with user feedback')
+  const blueprintJson = JSON.stringify(originalBlueprint, null, 2)
+  const prompt = `当前IP蓝图如下：\n${blueprintJson}\n\n用户反馈：${feedback}\n\n请根据反馈优化蓝图，只修改用户提到的部分，保持其他不变。输出完整蓝图JSON。`
+  const messages = [
+    { role: 'system' as const, content: IP_BLUEPRINT_PROMPT },
+    { role: 'user' as const, content: buildBlueprintPrompt(originalAnswers) },
+    { role: 'assistant' as const, content: blueprintJson },
+    { role: 'user' as const, content: prompt }
+  ]
+  try {
+    const raw = await doChat(messages, { temperature: 0.7, maxTokens: 3072 })
+    const parsed = extractJSON(raw, { label: 'ip-blueprint-refine' })
+    if (parsed && parsed.positioning) return { success: true, ...parsed }
+    return { success: false, error: '优化后的蓝图解析失败，请重试' }
+  } catch {
+    return { success: false, error: '优化生成失败，请稍后重试' }
+  }
+}
+
 export function registerIPStrategyHandlers(): void {
   ipcMain.handle('ip-strategy:generate', async (_e, answers: Record<string, string>) => {
     return generateBlueprint(answers)
@@ -126,5 +150,8 @@ export function registerIPStrategyHandlers(): void {
   ipcMain.handle('ip-strategy:save', async (_e, projectPath: string, blueprint: any) => {
     saveBlueprint(projectPath, blueprint)
     return { success: true }
+  })
+  ipcMain.handle('ip-strategy:refine', async (_e, blueprint: any, feedback: string, answers: Record<string, string>) => {
+    return refineBlueprint(blueprint, feedback, answers || {})
   })
 }
