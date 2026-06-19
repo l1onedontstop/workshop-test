@@ -14,7 +14,7 @@ import {
   Layout,
   Trash2
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useCallback } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 interface ProjectPageProps {
@@ -247,6 +247,22 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
     })
   }
 
+  const [scriptsList, setScriptsList] = useState<Array<{ name: string; path: string }>>([])
+  const [scriptsLoading, setScriptsLoading] = useState(false)
+
+  const handleManageScripts = useCallback(async () => {
+    if (!activeProject) return
+    setScriptsLoading(true)
+    try {
+      const scripts = await window.api.listScripts(activeProject.path)
+      setScriptsList(scripts)
+    } catch (err) {
+      console.error('Failed to list scripts:', err)
+    } finally {
+      setScriptsLoading(false)
+    }
+  }, [activeProject])
+
   const coachSuggestion = useMemo(
     () =>
       getCoachSuggestion(
@@ -282,11 +298,11 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
     {
       icon: FileText,
       label: '管理脚本',
-      description: '查看、编辑、删除已有脚本',
+      description: `查看、编辑、删除已有脚本${scriptsList.length > 0 ? `（共 ${scriptsList.length} 条）` : ''}`,
       color: 'text-yellow-400',
       bg: 'bg-yellow-500/10',
       border: 'border-yellow-500/20',
-      action: onNewScript
+      action: handleManageScripts
     },
     {
       icon: Lightbulb,
@@ -441,6 +457,48 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
           )
         })}
       </div>
+
+      {/* Inline script list — shown after clicking 管理脚本 */}
+      {scriptsList.length > 0 && (
+        <div className="mt-6 p-5 rounded-xl bg-white/[0.02] border border-white/[0.06]">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-white/60">
+              已有脚本 · {scriptsList.length} 条
+            </h3>
+            <button
+              onClick={() => setScriptsList([])}
+              className="text-xs text-white/20 hover:text-white/40 transition-colors"
+            >
+              收起
+            </button>
+          </div>
+          <div className="space-y-2 mb-3">
+            {scriptsList.slice(0, 10).map((s) => (
+              <button
+                key={s.name}
+                onClick={() => onNavigateToScript?.()}
+                className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white/[0.02] hover:bg-white/[0.06] transition-colors text-left"
+              >
+                <span className="text-sm text-white/70 truncate">{s.name.replace('.md', '')}</span>
+                <ArrowRight size={14} className="text-white/20 shrink-0" />
+              </button>
+            ))}
+          </div>
+          {scriptsList.length > 0 && (
+            <button
+              onClick={() => onNavigateToScript?.()}
+              className="text-xs text-brand-400 hover:text-brand-300 transition-colors flex items-center gap-1"
+            >
+              打开最近脚本 <ArrowRight size={12} />
+            </button>
+          )}
+        </div>
+      )}
+      {scriptsLoading && (
+        <div className="mt-6 p-5 rounded-xl bg-white/[0.02] border border-white/[0.06] text-center">
+          <p className="text-sm text-white/30">加载脚本列表中...</p>
+        </div>
+      )}
 
       {/* Pipeline status */}
       {activeProject.state.totalPredicted > 0 && (
@@ -611,10 +669,24 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         }
         secondaryLabel={(confirmDialog?.type === 'reset' || confirmDialog?.type === 'delete') ? '取消' : '还没呢'}
         variant={confirmDialog?.type === 'shoot' ? 'warning' : (confirmDialog?.type === 'reset' || confirmDialog?.type === 'delete') ? 'danger' : 'success'}
-        onPrimary={() => {
+        onPrimary={async () => {
           if (confirmDialog?.type === 'shoot') {
+            await window.api.logActivity(activeProject.path, {
+              type: 'script_published',
+              timestamp: new Date().toISOString(),
+              label: '确认拍摄',
+              detail: '管线标记为已拍摄'
+            })
+            await refreshActiveProject()
             onPublish?.()
           } else if (confirmDialog?.type === 'publish') {
+            await window.api.logActivity(activeProject.path, {
+              type: 'script_published',
+              timestamp: new Date().toISOString(),
+              label: '确认发布',
+              detail: '管线标记为已发布'
+            })
+            await refreshActiveProject()
             onRetro?.()
           } else if (confirmDialog?.type === 'reset') {
             handleResetAll()

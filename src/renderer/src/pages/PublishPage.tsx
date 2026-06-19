@@ -86,8 +86,8 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
         await window.api.logActivity(activeProject.path, {
           type: 'script_published',
           timestamp: new Date().toISOString(),
-          label: `生成发布资料：${selectedScript?.name || '未知脚本'}`,
-          detail: '已生成标题、简介、标签、封面文案',
+          label: '发布内容包已生成',
+          detail: selectedScript?.name || '未知脚本',
           scriptFile: selectedScript?.name,
           navTarget: 'publish'
         })

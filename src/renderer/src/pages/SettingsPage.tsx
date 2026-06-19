@@ -12,6 +12,24 @@ import {
 import { useEffect, useState } from 'react'
 import { useAppStore } from '../stores/appStore'
 
+function PipelineParamValue({ settingKey, defaultValue }: { settingKey: string; defaultValue: string }) {
+  const [value, setValue] = useState(defaultValue)
+
+  useEffect(() => {
+    let cancelled = false
+    window.api.getSetting(settingKey).then((v) => {
+      if (!cancelled && v != null) setValue(String(v))
+    }).catch(() => { /* use default */ })
+    return () => { cancelled = true }
+  }, [settingKey])
+
+  return (
+    <span className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-sm text-white/60 font-mono">
+      {value}
+    </span>
+  )
+}
+
 const PROVIDERS = [
   { id: 'deepseek', label: 'DeepSeek', desc: '性价比极高，中文能力强，约 ¥1/百万token' },
   { id: 'openai', label: 'OpenAI', desc: '综合能力最强，约 ¥15/百万token' },
@@ -42,6 +60,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false)
   const [resetConfirm, setResetConfirm] = useState(false)
   const [resetting, setResetting] = useState(false)
+  const [crossModelAudit, setCrossModelAudit] = useState(false)
 
   const activeProject = useAppStore((s) => s.activeProject)
   const refreshActiveProject = useAppStore((s) => s.refreshActiveProject)
@@ -94,6 +113,9 @@ export default function SettingsPage() {
 
   useEffect(() => {
     loadSettings()
+    window.api.getSetting('cross_model_audit').then((v) => {
+      if (typeof v === 'boolean') setCrossModelAudit(v)
+    }).catch(() => {})
   }, [])
 
   useEffect(() => {
@@ -282,7 +304,16 @@ export default function SettingsPage() {
                 <p className="text-xs text-white/25 mt-0.5">用不同 AI 模型独立打分，减少单模型偏差</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked={false} />
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={crossModelAudit}
+                  onChange={async () => {
+                    const next = !crossModelAudit
+                    setCrossModelAudit(next)
+                    await window.api.setSetting('cross_model_audit', next)
+                  }}
+                />
                 <div className="w-9 h-5 bg-white/[0.06] peer-checked:bg-brand-500 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" />
               </label>
             </div>
@@ -291,21 +322,21 @@ export default function SettingsPage() {
                 <p className="text-sm text-white/60">复盘等待天数 (RETRO_WINDOW_DAYS)</p>
                 <p className="text-xs text-white/25 mt-0.5">发布后多少天才能进行复盘，默认 3 天</p>
               </div>
-              <span className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-sm text-white/60 font-mono">3</span>
+              <PipelineParamValue settingKey="retro_window_days" defaultValue="3" />
             </div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-white/60">Buffer 黄色预警 (BUFFER_WARNING_LOW)</p>
                 <p className="text-xs text-white/25 mt-0.5">库存低于此值显示黄色警告，默认 2</p>
               </div>
-              <span className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-sm text-white/60 font-mono">2</span>
+              <PipelineParamValue settingKey="buffer_warning_low" defaultValue="2" />
             </div>
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-white/60">最小校准样本 (MIN_SAMPLES_FOR_BUMP)</p>
                 <p className="text-xs text-white/25 mt-0.5">至少需要多少次复盘才能升级 rubric，默认 5</p>
               </div>
-              <span className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-sm text-white/60 font-mono">5</span>
+              <PipelineParamValue settingKey="min_samples_for_bump" defaultValue="5" />
             </div>
           </div>
         </div>

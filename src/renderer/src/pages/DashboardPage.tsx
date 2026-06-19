@@ -1,20 +1,49 @@
 import { useEffect, useState } from 'react'
-import { BarChart3, TrendingUp, FileText, Play, Heart, MessageCircle, Target, Loader2 } from 'lucide-react'
+import { BarChart3, TrendingUp, FileText, Play, Heart, MessageCircle, Target, Loader2, AlertTriangle } from 'lucide-react'
 
 export default function DashboardPage({ onBack }: { onBack: () => void }) {
   const [overview, setOverview] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   useEffect(() => { loadData() }, [])
 
   async function loadData() {
+    setError('')
+    setLoading(true)
     try {
       const ov = await window.api.dashboardOverview()
       setOverview(ov)
-    } catch {} finally { setLoading(false) }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '加载看板数据失败')
+    } finally { setLoading(false) }
   }
 
   if (loading) return <div className="h-full flex items-center justify-center"><Loader2 className="animate-spin text-white/20" size={32} /></div>
+
+  if (error) {
+    return (
+      <div className="h-full flex flex-col p-6 overflow-y-auto">
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/5 text-white/40">←</button>
+          <h1 className="text-xl font-bold text-white">数据看板</h1>
+        </div>
+        <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
+          <AlertTriangle size={32} className="text-red-400/60" />
+          <div>
+            <p className="text-white/60 text-sm mb-1">加载失败</p>
+            <p className="text-white/30 text-xs max-w-md">{error}</p>
+          </div>
+          <button
+            onClick={loadData}
+            className="px-4 py-2 rounded-lg bg-white/10 hover:bg-white/15 text-white/70 text-sm transition-colors"
+          >
+            重试
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="h-full flex flex-col p-6 overflow-y-auto">

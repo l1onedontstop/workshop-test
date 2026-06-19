@@ -3,7 +3,7 @@ import { useAppStore } from '../stores/appStore'
 import {
   ArrowLeft, Target, Plus, Loader2, Search, ExternalLink,
   ChevronRight, CheckCircle2, AlertCircle, TrendingUp,
-  Lightbulb, Zap, BookOpen, Shield, Trash2, Eye, Sparkles
+  Lightbulb, Zap, BookOpen, Shield, Trash2, Eye, Sparkles, Users
 } from 'lucide-react'
 
 interface AccountMeta {
@@ -454,23 +454,3 @@ export default function BenchmarkPage({ onBack }: { onBack: () => void }) {
   )
 }
 
-function Users({ size, className }: { size?: number; className?: string }) {
-  return (
-    <svg
-      width={size || 24}
-      height={size || 24}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  )
-}

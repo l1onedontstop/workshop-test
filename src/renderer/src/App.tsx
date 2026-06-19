@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
+import { Loader2 } from 'lucide-react'
 import Sidebar from './components/layout/Sidebar'
 import TitleBar from './components/layout/TitleBar'
+import ErrorBoundary from './components/ErrorBoundary'
 import WelcomePage from './pages/WelcomePage'
 import ProjectPage from './pages/ProjectPage'
 import ScriptEditorPage from './pages/ScriptEditorPage'
@@ -43,10 +45,13 @@ export default function App() {
   const { projects, loadProjects, activeProject, setActiveProject } = useAppStore()
   const prevPage = useRef<Page>('welcome')
   const suppressAutoNavRef = useRef(false)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   useEffect(() => { prevPage.current = page }, [page])
 
-  useEffect(() => { loadProjects() }, [])
+  useEffect(() => {
+    loadProjects().finally(() => setInitialLoading(false))
+  }, [])
 
   // Auto-navigate: only when coming from welcome and NOT suppressed
   useEffect(() => {
@@ -82,6 +87,17 @@ export default function App() {
     page !== 'persona' &&
     page !== 'dashboard'
 
+  if (initialLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-[#0f0f13]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 size={32} className="animate-spin text-white/20" />
+          <p className="text-white/30 text-sm">加载中...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex h-screen bg-[#0f0f13] text-white overflow-hidden">
       <TitleBar />
@@ -89,7 +105,8 @@ export default function App() {
         {showSidebar && (
           <Sidebar currentPage={page} onNavigate={handleNavigate} onNewProject={handleNewProject} />
         )}
-        <main className="flex-1 overflow-hidden">
+        <ErrorBoundary>
+          <main className="flex-1 overflow-hidden">
           {page === 'welcome' && (
             <WelcomePage
               onCreated={() => { suppressAutoNavRef.current = true }}
@@ -173,6 +190,7 @@ export default function App() {
           )}
           {page === 'settings' && <SettingsPage />}
         </main>
+        </ErrorBoundary>
       </div>
     </div>
   )
