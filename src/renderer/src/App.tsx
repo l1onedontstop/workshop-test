@@ -17,6 +17,7 @@ import TopicPoolPage from './pages/TopicPoolPage'
 import PersonaPage from './pages/PersonaPage'
 import DashboardPage from './pages/DashboardPage'
 import BlueprintPage from './pages/BlueprintPage'
+import TrendMatchPage from './pages/TrendMatchPage'
 import { useAppStore } from './stores/appStore'
 
 type Page =
@@ -34,6 +35,7 @@ type Page =
   | 'persona'
   | 'dashboard'
   | 'blueprint'
+  | 'trend-match'
 
 export default function App() {
   const [page, setPage] = useState<Page>('welcome')
@@ -86,7 +88,8 @@ export default function App() {
     page !== 'benchmark' &&
     page !== 'topic-pool' &&
     page !== 'persona' &&
-    page !== 'dashboard'
+    page !== 'dashboard' &&
+    page !== 'trend-match'
 
   if (initialLoading) {
     return (
@@ -181,6 +184,12 @@ export default function App() {
           )}
           {page === 'persona' && <PersonaPage onBack={() => setPage('project')} />}
           {page === 'dashboard' && <DashboardPage onBack={() => setPage('project')} />}
+          {page === 'trend-match' && (
+            <TrendMatchPage
+              onBack={() => setPage('project')}
+              onWriteScript={(topic) => { setPendingTopic(topic); setScriptEditorReturnTo('project'); setPage('script-editor') }}
+            />
+          )}
           {page === 'blueprint' && (
             <BlueprintPage
               answers={blueprintAnswers}

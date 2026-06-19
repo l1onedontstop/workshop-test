@@ -10,7 +10,8 @@ import {
   Plus,
   BarChart3,
   MessageSquare,
-  Sparkles
+  Sparkles,
+  TrendingUp
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 
@@ -24,6 +25,7 @@ const navItems = [
   { id: 'project', label: '工作台', icon: Home },
   { id: 'blueprint', label: 'IP蓝图', icon: Sparkles },
   { id: 'dashboard', label: '看板', icon: BarChart3 },
+  { id: 'trend-match', label: '热点', icon: TrendingUp },
   { id: 'topic-pool', label: '选题池', icon: Lightbulb },
   { id: 'benchmark', label: '对标', icon: Target },
   { id: 'persona', label: '受众', icon: Users },
