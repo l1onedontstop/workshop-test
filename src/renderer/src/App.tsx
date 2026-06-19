@@ -14,6 +14,7 @@ import BenchmarkPage from './pages/BenchmarkPage'
 import TopicPoolPage from './pages/TopicPoolPage'
 import PersonaPage from './pages/PersonaPage'
 import DashboardPage from './pages/DashboardPage'
+import BlueprintPage from './pages/BlueprintPage'
 import { useAppStore } from './stores/appStore'
 
 type Page =
@@ -30,6 +31,7 @@ type Page =
   | 'topic-pool'
   | 'persona'
   | 'dashboard'
+  | 'blueprint'
 
 export default function App() {
   const [page, setPage] = useState<Page>('welcome')
@@ -37,6 +39,7 @@ export default function App() {
   const [pendingPlanId, setPendingPlanId] = useState<string | undefined>(undefined)
   const [pendingScriptFile, setPendingScriptFile] = useState<string | undefined>(undefined)
   const [scriptEditorReturnTo, setScriptEditorReturnTo] = useState<'project' | 'plan-editor'>('project')
+  const [blueprintAnswers, setBlueprintAnswers] = useState<Record<string, string> | undefined>(undefined)
   const { projects, loadProjects, activeProject, setActiveProject } = useAppStore()
   const prevPage = useRef<Page>('welcome')
   const suppressAutoNavRef = useRef(false)
@@ -77,7 +80,8 @@ export default function App() {
     page !== 'benchmark' &&
     page !== 'topic-pool' &&
     page !== 'persona' &&
-    page !== 'dashboard'
+    page !== 'dashboard' &&
+    page !== 'blueprint'
 
   return (
     <div className="flex h-screen bg-[#0f0f13] text-white overflow-hidden">
@@ -96,6 +100,7 @@ export default function App() {
               onNavigateToScript={() => { suppressAutoNavRef.current = false; setPage('script-editor') }}
               onNavigateToPlan={() => { suppressAutoNavRef.current = false; setPage('plan-list') }}
               onNavigateToTopics={() => { suppressAutoNavRef.current = false; setPage('topic-inspiration') }}
+              onNavigateToBlueprint={(answers) => { setBlueprintAnswers(answers); setPage('blueprint') }}
             />
           )}
           {page === 'project' && (
@@ -156,6 +161,12 @@ export default function App() {
           )}
           {page === 'persona' && <PersonaPage onBack={() => setPage('project')} />}
           {page === 'dashboard' && <DashboardPage onBack={() => setPage('project')} />}
+          {page === 'blueprint' && (
+            <BlueprintPage
+              answers={blueprintAnswers}
+              onBack={() => { setBlueprintAnswers(undefined); setPage('project') }}
+            />
+          )}
           {page === 'settings' && <SettingsPage />}
         </main>
       </div>

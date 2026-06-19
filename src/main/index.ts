@@ -25,6 +25,7 @@ import { registerSubtitleHandlers } from './services/subtitle'
 import { registerVideoHandlers } from './services/video'
 import { registerCadenceHandlers, generateSessionReport } from './services/cadence'
 import { registerPredictionGuardHandlers } from './services/prediction-guard'
+import { registerIPStrategyHandlers } from './services/ip-strategy'
 import { info as logInfo } from './services/logger'
 
 let mainWindow: BrowserWindow | null = null
@@ -94,6 +95,7 @@ function registerHandlers(): void {
   registerVideoHandlers()
   registerCadenceHandlers()
   registerPredictionGuardHandlers()
+  registerIPStrategyHandlers()
   // SessionStart cadence report
   const report = generateSessionReport()
   logInfo('main', 'SessionStart', { summary: report.summary })

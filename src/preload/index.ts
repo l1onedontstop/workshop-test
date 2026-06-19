@@ -238,5 +238,9 @@ contextBridge.exposeInMainWorld('api', {
   cadenceReport: () => ipcRenderer.invoke('cadence:report'),
   // ── Prediction Guard ──
   predictionDetectMode: (projectPath: string) => ipcRenderer.invoke('prediction:detectMode', projectPath),
-  predictionValidate: (path: string, data: unknown) => ipcRenderer.invoke('prediction:validate', path, data)
+  predictionValidate: (path: string, data: unknown) => ipcRenderer.invoke('prediction:validate', path, data),
+  // ── IP Strategy ──
+  ipStrategyGenerate: (answers: Record<string, string>) => ipcRenderer.invoke('ip-strategy:generate', answers),
+  ipStrategyGet: (projectPath: string) => ipcRenderer.invoke('ip-strategy:get', projectPath),
+  ipStrategySave: (projectPath: string, blueprint: unknown) => ipcRenderer.invoke('ip-strategy:save', projectPath, blueprint)
 })

@@ -70,5 +70,10 @@ interface Window {
     getSetting: (key: string) => Promise<unknown>
     setSetting: (key: string, value: unknown) => Promise<boolean>
     getAllSettings: () => Promise<Record<string, unknown>>
+
+    // IP Strategy Blueprint
+    ipStrategyGenerate: (answers: Record<string, string>) => Promise<unknown>
+    ipStrategyGet: (projectPath: string) => Promise<unknown>
+    ipStrategySave: (projectPath: string, blueprint: unknown) => Promise<unknown>
   }
 }
