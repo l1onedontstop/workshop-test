@@ -265,17 +265,49 @@ export default function BlueprintPage({
   }
 
   if (!blueprint) {
+    // Try to build profile from project opts for regeneration
+    let canGenerate = false
+    const profileAnswers: Record<string, string> = {}
+    if (activeProject?.opts) {
+      const o = activeProject.opts as Record<string, string>
+      if (o.industry || o.targetAudience) {
+        profileAnswers.industry = o.industry || ''
+        profileAnswers.audience = o.targetAudience || ''
+        profileAnswers.experience = o.contentExperience || ''
+        profileAnswers.time = o.weeklyTime || ''
+        profileAnswers.benchmark = o.benchmark || ''
+        profileAnswers.contentType = o.contentType || ''
+        profileAnswers.identity = o.identity || ''
+        canGenerate = true
+      }
+    }
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-center">
+        <div className="text-center max-w-sm">
           <Sparkles size={40} className="text-white/15 mx-auto mb-3" />
-          <p className="text-white/40 text-sm">暂无 IP 蓝图</p>
-          <button
-            onClick={onBack}
-            className="mt-3 text-sm text-brand-400 hover:text-brand-300"
-          >
-            返回工作台
-          </button>
+          <p className="text-white/40 text-sm mb-1">暂无 IP 蓝图</p>
+          <p className="text-white/20 text-xs mb-6">
+            {canGenerate
+              ? '你的项目信息已就绪，点击下方按钮为该项目生成 IP 蓝图'
+              : '通过新建项目回答6个问题，AI将为你定制专属IP方案'}
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={onBack}
+              className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 text-sm"
+            >
+              <ChevronLeft size={14} className="inline mr-1" />返回工作台
+            </button>
+            {canGenerate && (
+              <button
+                onClick={() => generateBlueprint(profileAnswers)}
+                className="px-4 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm flex items-center gap-2"
+              >
+                <Sparkles size={14} />
+                生成蓝图
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );

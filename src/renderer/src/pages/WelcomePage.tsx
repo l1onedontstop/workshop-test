@@ -277,7 +277,7 @@ export default function WelcomePage({
         </div>
       )}
 
-      <div className="flex-1 flex items-center justify-center px-4">
+      <div className="flex-1 flex items-start justify-center px-4 pt-8 pb-16 overflow-y-auto">
       <div className="w-full max-w-lg">
         {/* Header */}
         <div className="text-center mb-10">
