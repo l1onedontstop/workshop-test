@@ -357,9 +357,15 @@ export default function ScriptEditorPage({
 
       setScript(scriptText)
       if (scores) setScoreResult(scores)
-      // Parse full production plan sections
+      // Parse full production plan sections and auto-expand
       const sections = parseFullScript(raw)
-      if (sections) setScriptSections(sections)
+      if (sections) {
+        setScriptSections(sections)
+        setShowFullPlan(true) // Auto-show full plan on generation
+      } else {
+        setScriptSections(null)
+        setShowFullPlan(false)
+      }
     } catch (err) {
       setError(translateAIError(err, 'AI 生成'))
     } finally {
@@ -886,11 +892,15 @@ export default function ScriptEditorPage({
           <div className="px-6 pb-3">
             <button
               onClick={() => setShowFullPlan(!showFullPlan)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/70 text-xs transition-colors mb-3"
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all mb-3 ${
+                showFullPlan
+                  ? 'bg-brand-500/10 border-brand-500/20 text-brand-300 hover:bg-brand-500/15'
+                  : 'bg-gradient-to-r from-purple-500/10 to-cyan-500/10 border-purple-500/20 text-purple-300 hover:from-purple-500/15 hover:to-cyan-500/15'
+              }`}
             >
-              <Eye size={14} />
-              {showFullPlan ? '收起完整方案' : '查看完整方案（分镜·风格·工具·后期·封面）'}
-              <ChevronDown size={12} className={`transition-transform ${showFullPlan ? 'rotate-180' : ''}`} />
+              <Eye size={15} />
+              {showFullPlan ? '收起完整方案' : '🎬 查看完整拍摄方案（分镜表 · 设备清单 · 场景 · 后期 · 封面）'}
+              <ChevronDown size={14} className={`transition-transform ml-auto ${showFullPlan ? 'rotate-180' : ''}`} />
             </button>
 
             {showFullPlan && (
