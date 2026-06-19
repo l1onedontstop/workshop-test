@@ -9,7 +9,8 @@ import {
   ChevronLeft,
   Plus,
   BarChart3,
-  MessageSquare
+  MessageSquare,
+  Sparkles
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 
@@ -21,6 +22,7 @@ interface SidebarProps {
 
 const navItems = [
   { id: 'project', label: '工作台', icon: Home },
+  { id: 'blueprint', label: 'IP蓝图', icon: Sparkles },
   { id: 'dashboard', label: '看板', icon: BarChart3 },
   { id: 'topic-pool', label: '选题池', icon: Lightbulb },
   { id: 'benchmark', label: '对标', icon: Target },

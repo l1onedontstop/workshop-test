@@ -5,10 +5,6 @@ import {
   ArrowRight,
   CheckCircle,
   AlertCircle,
-  Target,
-  PenLine,
-  Layout,
-  Lightbulb,
   ChevronLeft,
   Loader2
 } from 'lucide-react'
@@ -54,17 +50,14 @@ interface WelcomePageProps {
   onNavigateToScript?: () => void
   onNavigateToPlan?: () => void
   onNavigateToTopics?: () => void
-  onNavigateToBlueprint?: (answers: Record<number, string>) => void
+  onNavigateToBlueprint?: (answers: Record<string, string>) => void
 }
 
 export default function WelcomePage({
   onCreated,
   onBack,
   onSkip,
-  onNavigateToBenchmark,
-  onNavigateToScript,
-  onNavigateToPlan,
-  onNavigateToTopics
+  onNavigateToBlueprint
 }: WelcomePageProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
@@ -168,20 +161,25 @@ export default function WelcomePage({
               AI 正在为你生成 IP 打造蓝图——包含定位、内容策略、第一步行动计划
             </p>
             <div className="flex justify-center mb-6">
-              <Loader2 size={24} className="animate-spin text-brand-400" />
+              <Sparkles size={24} className="text-brand-400/70" />
             </div>
           </div>
 
           <button
             onClick={async () => {
-              // Generate blueprint from answers
-              const a: Record<string, string> = {}
-              for (let i = 0; i < STEPS.length; i++) {
-                const k = STEPS[i].description
-                a[k] = answers[i] || ''
+              // Map step answers to the keys expected by ip-strategy
+              const industry = answers[0] || ''
+              const experience = answers[2] || ''
+              const blueprintInput: Record<string, string> = {
+                industry,
+                audience: answers[1] || '',
+                experience,
+                time: answers[3] || '',
+                benchmark: answers[4] || '',
+                contentType: answers[5] || '',
+                identity: [industry, experience].filter(Boolean).join(' | ') || '新手创作者'
               }
-              // Signal to parent to navigate to blueprint
-              onNavigateToBlueprint?.(a)
+              onNavigateToBlueprint?.(blueprintInput)
             }}
             className="w-full py-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-base font-medium transition-colors flex items-center justify-center gap-2 mb-4"
           >
@@ -190,7 +188,7 @@ export default function WelcomePage({
           </button>
 
           <button
-            onClick={onSkip || (() => setCreated(false))}
+            onClick={onSkip || (() => { onBack?.() || setCreated(false) })}
             className="text-sm text-white/25 hover:text-white/40 transition-colors"
           >
             跳过，进入工作台

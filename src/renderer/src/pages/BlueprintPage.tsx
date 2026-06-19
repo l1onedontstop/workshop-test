@@ -49,9 +49,10 @@ interface BlueprintData {
 interface BlueprintPageProps {
   answers?: Record<string, string>
   onBack: () => void
+  onNavigate?: (page: string) => void
 }
 
-export default function BlueprintPage({ answers, onBack }: BlueprintPageProps) {
+export default function BlueprintPage({ answers, onBack, onNavigate }: BlueprintPageProps) {
   const [blueprint, setBlueprint] = useState<BlueprintData | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -75,6 +76,10 @@ export default function BlueprintPage({ answers, onBack }: BlueprintPageProps) {
       const data = result as BlueprintData & { success?: boolean; error?: string }
       if (data && (data.success !== false)) {
         setBlueprint(data)
+        // Auto-save after successful generation
+        if (activeProject) {
+          try { await window.api.ipStrategySave(activeProject.path, data) } catch {}
+        }
       } else {
         setError((data as any)?.error || '生成蓝图失败')
       }
@@ -89,11 +94,9 @@ export default function BlueprintPage({ answers, onBack }: BlueprintPageProps) {
     if (!activeProject) return
     setLoading(true)
     try {
-      const result = await window.api.ipStrategyGet(activeProject.id)
-      const data = result as BlueprintData & { blueprint?: BlueprintData }
-      if (data?.blueprint) {
-        setBlueprint(data.blueprint)
-      } else if (data?.positioning) {
+      const result = await window.api.ipStrategyGet(activeProject.path)
+      const data = result as BlueprintData
+      if (data?.positioning) {
         setBlueprint(data)
       }
     } catch {} finally {
@@ -105,7 +108,7 @@ export default function BlueprintPage({ answers, onBack }: BlueprintPageProps) {
     if (!activeProject || !blueprint) return
     setSaving(true)
     try {
-      await window.api.ipStrategySave(activeProject.id, blueprint)
+      await window.api.ipStrategySave(activeProject.path, blueprint)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch {} finally {
@@ -322,27 +325,41 @@ export default function BlueprintPage({ answers, onBack }: BlueprintPageProps) {
         {nextActions && nextActions.length > 0 && (
           <Section icon={<Lightbulb size={18} />} title="下一步行动" color="text-green-400">
             <div className="space-y-2">
-              {nextActions.map((action, i) => (
-                <div
-                  key={i}
-                  className={`flex items-center gap-3 rounded-xl p-4 border transition-colors ${
-                    action.priority === 'high'
-                      ? 'bg-green-500/5 border-green-500/10'
-                      : 'bg-white/[0.02] border-white/[0.04]'
-                  }`}
-                >
-                  <ArrowRight size={16} className={action.priority === 'high' ? 'text-green-400' : 'text-white/30'} />
-                  <div className="flex-1">
-                    <p className="text-sm text-white/80">{action.action}</p>
-                    <p className="text-xs text-white/25 mt-0.5">
-                      功能模块：{action.link}
-                      {action.priority === 'high' && (
-                        <span className="ml-2 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 text-[10px]">优先</span>
-                      )}
-                    </p>
-                  </div>
-                </div>
-              ))}
+              {nextActions.map((item, i) => {
+                const handleClick = () => {
+                  if (!onNavigate || !item.link) return
+                  const linkMap: Record<string, string> = {
+                    'script-editor': 'script-editor',
+                    'benchmark': 'benchmark',
+                    'topic-inspiration': 'topic-inspiration',
+                    'plan-list': 'plan-list'
+                  }
+                  const target = linkMap[item.link]
+                  if (target) onNavigate(target)
+                }
+                return (
+                  <button
+                    key={i}
+                    onClick={handleClick}
+                    className={`w-full text-left flex items-center gap-3 rounded-xl p-4 border transition-colors hover:brightness-110 ${
+                      item.priority === 'high'
+                        ? 'bg-green-500/5 border-green-500/10'
+                        : 'bg-white/[0.02] border-white/[0.04]'
+                    }`}
+                  >
+                    <ArrowRight size={16} className={item.priority === 'high' ? 'text-green-400' : 'text-white/30'} />
+                    <div className="flex-1">
+                      <p className="text-sm text-white/80">{item.action}</p>
+                      <p className="text-xs text-white/25 mt-0.5">
+                        点击前往：{item.link}
+                        {item.priority === 'high' && (
+                          <span className="ml-2 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 text-[10px]">优先</span>
+                        )}
+                      </p>
+                    </div>
+                  </button>
+                )
+              })}
             </div>
           </Section>
         )}

@@ -6,7 +6,7 @@
  */
 
 import { ipcMain } from 'electron'
-import { join } from 'path'
+import { join, dirname } from 'path'
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 import { doChat } from './ai'
 import { extractJSON } from './json-parser'
@@ -104,6 +104,7 @@ export async function generateBlueprint(answers: Record<string, string>): Promis
 
 export function saveBlueprint(projectPath: string, blueprint: any): void {
   const blueprintPath = join(projectPath, 'ip-blueprint.json')
+  mkdirSync(dirname(blueprintPath), { recursive: true })
   writeFileSync(blueprintPath, JSON.stringify(blueprint, null, 2), 'utf-8')
 }
 
@@ -120,7 +121,7 @@ export function registerIPStrategyHandlers(): void {
     return generateBlueprint(answers)
   })
   ipcMain.handle('ip-strategy:get', async (_e, projectPath: string) => {
-    return loadBlueprint(projectPath) || { blueprint: null }
+    return loadBlueprint(projectPath)
   })
   ipcMain.handle('ip-strategy:save', async (_e, projectPath: string, blueprint: any) => {
     saveBlueprint(projectPath, blueprint)

@@ -80,8 +80,7 @@ export default function App() {
     page !== 'benchmark' &&
     page !== 'topic-pool' &&
     page !== 'persona' &&
-    page !== 'dashboard' &&
-    page !== 'blueprint'
+    page !== 'dashboard'
 
   return (
     <div className="flex h-screen bg-[#0f0f13] text-white overflow-hidden">
@@ -114,6 +113,7 @@ export default function App() {
               onNavigateToPlan={(planId) => { setPendingPlanId(planId); setPage('plan-editor') }}
               onNavigateToScript={() => setPage('script-editor')}
               onNavigateToRetro={() => setPage('retro')}
+              onNavigateToBlueprint={() => { setBlueprintAnswers(undefined); setPage('blueprint') }}
             />
           )}
           {page === 'script-editor' && (
@@ -165,6 +165,10 @@ export default function App() {
             <BlueprintPage
               answers={blueprintAnswers}
               onBack={() => { setBlueprintAnswers(undefined); setPage('project') }}
+              onNavigate={(target) => {
+                suppressAutoNavRef.current = false
+                setPage(target as Page)
+              }}
             />
           )}
           {page === 'settings' && <SettingsPage />}

@@ -27,6 +27,7 @@ interface ProjectPageProps {
   onNavigateToPlan?: (planId: string) => void
   onNavigateToScript?: () => void
   onNavigateToRetro?: () => void
+  onNavigateToBlueprint?: () => void
 }
 
 interface CoachSuggestion {
@@ -172,7 +173,7 @@ const VARIANT_STYLES: Record<CoachSuggestion['variant'], { gradient: string; bor
   }
 }
 
-export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish, onRetro, onPlans, onNewProject, onNavigateToPlan, onNavigateToScript, onNavigateToRetro }: ProjectPageProps) {
+export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish, onRetro, onPlans, onNewProject, onNavigateToPlan, onNavigateToScript, onNavigateToRetro, onNavigateToBlueprint }: ProjectPageProps) {
   const activeProject = useAppStore((s) => s.activeProject)
   const refreshActiveProject = useAppStore((s) => s.refreshActiveProject)
   const { loadProjects, setActiveProject } = useAppStore()
@@ -260,6 +261,15 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
   const styles = VARIANT_STYLES[coachSuggestion.variant]
 
   const quickActions = [
+    {
+      icon: Sparkles,
+      label: 'IP 蓝图',
+      description: '打造定位、内容策略与行动计划',
+      color: 'text-brand-400',
+      bg: 'bg-brand-500/10',
+      border: 'border-brand-500/20',
+      action: onNavigateToBlueprint
+    },
     {
       icon: PenLine,
       label: '写新脚本',
