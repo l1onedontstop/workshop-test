@@ -10,7 +10,7 @@ export default function TitleBar() {
   }, [])
 
   return (
-    <div className="drag-region fixed top-0 left-0 right-0 h-12 bg-app-bg/90 backdrop-blur-xl border-b border-white/[0.04] z-50 flex items-center px-4">
+    <div className="drag-region fixed top-0 left-0 right-0 h-12 bg-app-bg/90 backdrop-blur-xl border-b border-white/[0.04] z-50 flex items-center pl-[80px] pr-4">
       <div className="flex items-center gap-2">
         {activeProject ? (
           <div className="flex items-center gap-2 text-sm">
