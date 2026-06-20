@@ -8,6 +8,9 @@ import {
   ChevronLeft,
   Loader2
 } from 'lucide-react'
+import Button from '../components/ui/Button'
+import BackButton from '../components/ui/BackButton'
+import Card from '../components/ui/Card'
 
 const STEPS = [
   {
@@ -170,7 +173,10 @@ export default function WelcomePage({
           </p>
 
           <div className="flex gap-3 justify-center">
-            <button
+            <Button
+              variant="primary"
+              size="lg"
+              icon={<Sparkles size={16} />}
               onClick={async () => {
                 const industry = answers[0] || ''
                 const experience = answers[2] || ''
@@ -184,17 +190,16 @@ export default function WelcomePage({
                   identity: [industry, experience].filter(Boolean).join(' | ') || '新手创作者'
                 })
               }}
-              className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-all duration-150 hover:shadow-md active:scale-[0.98] flex items-center gap-2"
             >
-              <Sparkles size={16} />
               生成我的 IP 蓝图
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="lg"
               onClick={onSkip || (() => { onBack?.() || setCreated(false) })}
-              className="px-6 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-white/50 hover:text-white/70 text-sm font-medium transition-all duration-150"
             >
               进入工作台
-            </button>
+            </Button>
           </div>
           <p className="text-xs text-white/25 mt-4">推荐先生成蓝图，AI 将根据你的回答定制完整方案</p>
         </div>
@@ -215,7 +220,7 @@ export default function WelcomePage({
             </p>
           </div>
 
-          <div className="bg-app-surface border border-white/[0.06] rounded-2xl p-6 space-y-4 shadow-sm">
+          <Card level="default" className="p-6 space-y-4">
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-white/45">项目名称</label>
               <input
@@ -231,31 +236,25 @@ export default function WelcomePage({
               />
             </div>
 
-            <button
+            <Button
+              variant="primary"
+              className="w-full"
               onClick={handleCreateProject}
               disabled={isCreating}
-              className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 hover:shadow-md disabled:opacity-40 disabled:hover:bg-brand-600 text-white text-sm font-medium transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
+              loading={isCreating}
+              icon={isCreating ? undefined : <CheckCircle size={16} />}
             >
-              {isCreating ? (
-                <>
-                  <Loader2 size={16} className="animate-spin" />
-                  创建中...
-                </>
-              ) : (
-                <>
-                  <CheckCircle size={16} />
-                  创建项目
-                </>
-              )}
-            </button>
+              {isCreating ? '创建中...' : '创建项目'}
+            </Button>
 
-            <button
+            <Button
+              variant="ghost"
+              className="w-full"
               onClick={() => setShowNameInput(false)}
-              className="w-full py-2 text-sm text-white/30 hover:text-white/50 transition-colors"
             >
               返回修改回答
-            </button>
-          </div>
+            </Button>
+          </Card>
 
           {error && (
             <div className="mt-4 flex items-center gap-2 text-danger-text text-sm bg-danger-surface border border-danger-border rounded-lg px-4 py-2.5">
@@ -274,13 +273,7 @@ export default function WelcomePage({
       {/* Top-left back button */}
       {onBack && (
         <div className="p-4">
-          <button
-            onClick={onBack}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-white/[0.05] text-white/30 hover:text-white/50 transition-colors text-sm"
-          >
-            <ChevronLeft size={16} />
-            返回工作台
-          </button>
+          <BackButton onClick={onBack} label="返回工作台" />
         </div>
       )}
 
@@ -323,7 +316,7 @@ export default function WelcomePage({
         </div>
 
         {/* Question card */}
-        <div className="bg-app-surface border border-white/[0.06] rounded-2xl p-8 shadow-sm animate-fade-in">
+        <Card level="default" className="p-8 animate-fade-in">
           <p className="text-xs text-white/30 mb-1">
             问题 {currentStep + 1} / {STEPS.length}
           </p>
@@ -343,18 +336,12 @@ export default function WelcomePage({
                 autoFocus
               />
               <div className="flex gap-3">
-                <button
-                  onClick={handleOtherSubmit}
-                  className="flex-1 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-all duration-150 active:scale-[0.98]"
-                >
+                <Button variant="primary" className="flex-1" onClick={handleOtherSubmit}>
                   确认
-                </button>
-                <button
-                  onClick={() => setShowOtherInput(false)}
-                  className="px-4 py-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-white/50 hover:text-white/70 text-sm font-medium transition-all duration-150"
-                >
+                </Button>
+                <Button variant="ghost" onClick={() => setShowOtherInput(false)}>
                   取消
-                </button>
+                </Button>
               </div>
             </div>
           ) : isFreeTextStep ? (
@@ -371,19 +358,12 @@ export default function WelcomePage({
                 className="w-full h-24 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-white/90 placeholder:text-white/20 resize-none transition-all duration-150 focus:outline-none focus:border-brand-500/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-brand-500/20"
               />
               <div className="flex gap-3">
-                <button
-                  onClick={handleFreeTextNext}
-                  className="flex-1 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
-                >
+                <Button variant="primary" className="flex-1" onClick={handleFreeTextNext} icon={<ArrowRight size={16} />}>
                   继续
-                  <ArrowRight size={16} />
-                </button>
-                <button
-                  onClick={handleFreeTextNext}
-                  className="px-4 py-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-white/50 hover:text-white/70 text-sm font-medium transition-all duration-150"
-                >
+                </Button>
+                <Button variant="ghost" onClick={handleFreeTextNext}>
                   跳过
-                </button>
+                </Button>
               </div>
               <p className="text-white/20 text-xs text-center">Cmd+Enter 快捷提交</p>
             </div>
@@ -410,14 +390,13 @@ export default function WelcomePage({
               })}
             </div>
           )}
-
           {error && (
             <div className="mt-4 flex items-center gap-2 text-danger-text text-sm bg-danger-surface border border-danger-border rounded-lg px-4 py-2.5">
               <AlertCircle size={14} />
               {error}
             </div>
           )}
-        </div>
+        </Card>
 
         {/* Back button */}
         {!isCreating && (

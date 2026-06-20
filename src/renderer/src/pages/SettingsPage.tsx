@@ -7,11 +7,11 @@ import {
   ExternalLink,
   Trash2,
   AlertTriangle,
-  BarChart3 as BarChartIcon,
-  ArrowLeft
+  BarChart3 as BarChartIcon
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAppStore } from '../stores/appStore'
+import BackButton from '../components/ui/BackButton'
 
 function PipelineParamValue({ settingKey, defaultValue }: { settingKey: string; defaultValue: string }) {
   const [value, setValue] = useState(defaultValue)
@@ -132,13 +132,7 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
   return (
     <div className="p-8 max-w-2xl mx-auto">
       {onBack && (
-        <button
-          onClick={onBack}
-          className="flex items-center gap-1.5 px-3 py-2 -ml-3 mb-4 rounded-lg hover:bg-white/[0.05] text-white/30 hover:text-white/50 transition-colors text-sm"
-        >
-          <ArrowLeft size={16} />
-          返回
-        </button>
+        <BackButton onClick={onBack} />
       )}
       <h1 className="text-2xl font-bold text-white mb-2">设置</h1>
       <p className="text-white/40 text-sm mb-8">配置 AI 引擎和 API 密钥</p>

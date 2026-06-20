@@ -44,7 +44,7 @@ export default function Sidebar({ currentPage, onNavigate, onNewProject }: Sideb
       {/* Brand / collapse toggle */}
       <button
         onClick={toggleSidebar}
-        className="mx-2 mt-2 p-3 rounded-xl hover:bg-white/[0.05] text-white/30 hover:text-white/60 transition-colors flex items-center gap-2.5"
+        className="mx-2 mt-2 p-3 rounded-xl hover:bg-white/[0.05] text-white/30 hover:text-white/60 transition-colors flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-1 focus-visible:ring-offset-app-bg"
       >
         <ChevronLeft
           size={18}
@@ -65,7 +65,7 @@ export default function Sidebar({ currentPage, onNavigate, onNewProject }: Sideb
               key={item.id}
               onClick={() => onNavigate(item.id)}
               title={sidebarCollapsed ? item.label : undefined}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 relative ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-1 focus-visible:ring-offset-app-bg ${
                 isActive
                   ? 'bg-brand-500/8 text-brand-400 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-5 before:bg-brand-500 before:rounded-full'
                   : 'text-white/45 hover:text-white/70 hover:bg-white/[0.04] hover:translate-x-[2px]'

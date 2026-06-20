@@ -110,7 +110,7 @@ export default function App() {
           <Sidebar currentPage={page} onNavigate={handleNavigate} onNewProject={handleNewProject} />
         )}
         <ErrorBoundary>
-          <main className="flex-1 overflow-hidden">
+          <main className="flex-1 overflow-auto animate-fade-in">
           {page === 'welcome' && (
             <WelcomePage
               onCreated={() => { suppressAutoNavRef.current = true }}

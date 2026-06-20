@@ -16,6 +16,8 @@ import {
 } from 'lucide-react'
 import { useMemo, useState, useCallback } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
 
 interface ProjectPageProps {
   onNewScript?: () => void
@@ -48,7 +50,7 @@ const ACTIVITY_ICONS: Record<string, React.ComponentType<{ size?: number; classN
 }
 
 const ACTIVITY_COLORS: Record<string, string> = {
-  script_saved: 'text-blue-400',
+  script_saved: 'text-info-text',
   script_published: 'text-success-text',
   retro_completed: 'text-warning-text',
   rubric_evolved: 'text-brand-400',
@@ -198,9 +200,13 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
           </div>
         </div>
         {coachSuggestion.action && (
-          <button onClick={coachSuggestion.action} className={`inline-flex items-center gap-2 px-4 py-2 ${styles.button} rounded-lg text-white text-sm font-medium transition-all duration-150 active:scale-[0.98]`}>
-            {coachSuggestion.actionLabel} <ArrowRight size={15} />
-          </button>
+          <Button
+            variant={coachSuggestion.variant === 'secondary' ? 'secondary' : 'primary'}
+            onClick={coachSuggestion.action}
+            icon={<ArrowRight size={15} />}
+          >
+            {coachSuggestion.actionLabel}
+          </Button>
         )}
       </div>
 
@@ -209,14 +215,13 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         {quickActions.slice(0, 4).map((a) => {
           const Icon = a.icon
           return (
-            <button key={a.label} onClick={a.action} disabled={!a.action}
-              className={`flex flex-col items-center gap-3 p-4 rounded-xl border ${a.border} ${a.bg} transition-all duration-150 text-center ${!a.action ? 'opacity-40 cursor-not-allowed' : 'hover:scale-[1.03] hover:shadow-glow active:scale-[0.98]'}`}>
+            <Card key={a.label} level="subtle" interactive={!!a.action} onClick={a.action} className={`flex flex-col items-center gap-3 p-4 text-center ${!a.action ? 'opacity-40 cursor-not-allowed' : ''}`}>
               <div className={`p-2.5 rounded-lg ${a.bg}`}><Icon size={22} className={a.color} /></div>
               <div>
                 <div className="text-sm font-medium text-white/80">{a.label}</div>
                 <div className="text-[11px] text-white/35 mt-0.5">{a.desc}</div>
               </div>
-            </button>
+            </Card>
           )
         })}
       </div>
@@ -224,14 +229,13 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         {quickActions.slice(4).map((a) => {
           const Icon = a.icon
           return (
-            <button key={a.label} onClick={a.action} disabled={!a.action}
-              className={`flex flex-col items-center gap-3 p-4 rounded-xl border ${a.border} ${a.bg} transition-all duration-150 text-center ${!a.action ? 'opacity-40 cursor-not-allowed' : 'hover:scale-[1.03] hover:shadow-glow active:scale-[0.98]'}`}>
+            <Card key={a.label} level="subtle" interactive={!!a.action} onClick={a.action} className={`flex flex-col items-center gap-3 p-4 text-center ${!a.action ? 'opacity-40 cursor-not-allowed' : ''}`}>
               <div className={`p-2.5 rounded-lg ${a.bg}`}><Icon size={22} className={a.color} /></div>
               <div>
                 <div className="text-sm font-medium text-white/80">{a.label}</div>
                 <div className="text-[11px] text-white/35 mt-0.5">{a.desc}</div>
               </div>
-            </button>
+            </Card>
           )
         })}
       </div>
@@ -288,15 +292,13 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         <div className="mb-8 p-4 rounded-xl bg-app-surface border border-white/[0.04]">
           <h3 className="text-sm font-medium text-white/50 mb-3">管道推进</h3>
           <div className="flex items-center gap-3 flex-wrap">
-            <button onClick={() => setConfirmDialog({ type: 'shoot', title: '确认拍摄状态', message: '这条脚本已经写好了 —— 你拍了吗？拍完告诉 AI，它会帮你生成发布资料包。' })}
-              className="px-4 py-2 rounded-lg bg-warning-surface border border-warning-border hover:bg-amber-500/20 text-amber-400 text-sm font-medium transition-colors">
+            <Button variant="secondary" onClick={() => setConfirmDialog({ type: 'shoot', title: '确认拍摄状态', message: '这条脚本已经写好了 —— 你拍了吗？拍完告诉 AI，它会帮你生成发布资料包。' })}>
               确认拍摄
-            </button>
+            </Button>
             <span className="text-white/10 text-xs">→</span>
-            <button onClick={() => setConfirmDialog({ type: 'publish', title: '确认发布状态', message: '视频已经发布了吗？发布后记得登记链接，T+3 天后 AI 会提醒你复盘数据。' })}
-              className="px-4 py-2 rounded-lg bg-success-surface border border-success-border hover:bg-success-surface text-success-text text-sm font-medium transition-colors">
+            <Button variant="secondary" onClick={() => setConfirmDialog({ type: 'publish', title: '确认发布状态', message: '视频已经发布了吗？发布后记得登记链接，T+3 天后 AI 会提醒你复盘数据。' })}>
               确认发布
-            </button>
+            </Button>
           </div>
         </div>
       )}

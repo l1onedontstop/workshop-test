@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
-import { BarChart3, TrendingUp, FileText, Play, Heart, MessageCircle, Target, Loader2, AlertTriangle } from 'lucide-react'
+import { BarChart3, TrendingUp, FileText, Play, Heart, MessageCircle, Loader2, AlertTriangle } from 'lucide-react'
+import BackButton from '../components/ui/BackButton'
+import Card from '../components/ui/Card'
 
 export default function DashboardPage({ onBack }: { onBack: () => void }) {
   const [overview, setOverview] = useState<any>(null)
@@ -25,7 +27,7 @@ export default function DashboardPage({ onBack }: { onBack: () => void }) {
     return (
       <div className="h-full flex flex-col p-6 overflow-y-auto">
         <div className="flex items-center gap-4 mb-8">
-          <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/5 text-white/40">←</button>
+          <BackButton onClick={onBack} />
           <h1 className="text-xl font-bold text-white">数据看板</h1>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
@@ -48,7 +50,7 @@ export default function DashboardPage({ onBack }: { onBack: () => void }) {
   return (
     <div className="h-full flex flex-col p-6 overflow-y-auto">
       <div className="flex items-center gap-4 mb-8">
-        <button onClick={onBack} className="p-2 rounded-lg hover:bg-white/5 text-white/40">←</button>
+        <BackButton onClick={onBack} />
         <h1 className="text-xl font-bold text-white">数据看板</h1>
         <span className="text-xs text-white/30">自动聚合所有项目数据</span>
       </div>
@@ -58,14 +60,14 @@ export default function DashboardPage({ onBack }: { onBack: () => void }) {
           <div className="grid grid-cols-4 gap-4 mb-6">
             {[
               { label: '项目数', value: overview.totalProjects, icon: FileText, color: 'text-blue-400' },
-              { label: '脚本数', value: overview.totalScripts, icon: Target, color: 'text-success-text' },
+              { label: '脚本数', value: overview.totalScripts, icon: FileText, color: 'text-success-text' },
               { label: '已发布', value: overview.totalPublished, icon: Play, color: 'text-brand-400' },
               { label: '总播放', value: overview.totalPlays?.toLocaleString(), icon: TrendingUp, color: 'text-warning-text' }
             ].map(c => (
-              <div key={c.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+              <Card key={c.label} level="default" className="p-4">
                 <div className="flex items-center gap-2 mb-2"><c.icon size={16} className={c.color} /><span className="text-xs text-white/40">{c.label}</span></div>
                 <div className="text-2xl font-bold text-white">{c.value || 0}</div>
-              </div>
+              </Card>
             ))}
           </div>
           <div className="grid grid-cols-3 gap-4">
@@ -74,10 +76,10 @@ export default function DashboardPage({ onBack }: { onBack: () => void }) {
               { label: '评论', value: overview.totalComments?.toLocaleString(), icon: MessageCircle, color: 'text-cyan-400' },
               { label: '平均分', value: overview.avgPredictedScore?.toFixed(1) + '/10', icon: BarChart3, color: 'text-warning-text' }
             ].map(c => (
-              <div key={c.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+              <Card key={c.label} level="default" className="p-4">
                 <div className="flex items-center gap-2 mb-2"><c.icon size={16} className={c.color} /><span className="text-xs text-white/40">{c.label}</span></div>
                 <div className="text-xl font-bold text-white">{c.value || 0}</div>
-              </div>
+              </Card>
             ))}
           </div>
           {overview.projects?.length > 0 && (
