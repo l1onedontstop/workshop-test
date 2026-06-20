@@ -28,6 +28,9 @@ import { registerPredictionGuardHandlers } from './services/prediction-guard'
 import { registerIPStrategyHandlers } from './services/ip-strategy'
 import { info as logInfo } from './services/logger'
 
+// Expose app version to renderer
+ipcMain.handle('app:getVersion', () => app.getVersion())
+
 let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {

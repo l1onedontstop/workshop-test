@@ -187,5 +187,8 @@ interface Window {
     ipStrategyGet: (projectPath: string) => Promise<unknown>
     ipStrategySave: (projectPath: string, blueprint: unknown) => Promise<unknown>
     ipStrategyRefine: (blueprint: unknown, feedback: string, answers?: Record<string, string>) => Promise<unknown>
+
+    // App version
+    getVersion: () => Promise<string>
   }
 }
