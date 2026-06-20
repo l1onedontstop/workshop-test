@@ -240,7 +240,7 @@ export default function BlueprintPage({
     return (
       <div className="h-full flex items-center justify-center p-6">
         <div className="text-center max-w-md">
-          <AlertTriangle size={40} className="text-red-400/60 mx-auto mb-4" />
+          <AlertTriangle size={40} className="text-danger-text/60 mx-auto mb-4" />
           <p className="text-white/60 text-sm mb-4">{error}</p>
           <div className="flex gap-3 justify-center">
             <button
@@ -327,7 +327,7 @@ export default function BlueprintPage({
   return (
     <div className="h-full flex flex-col overflow-y-auto">
       {/* Header */}
-      <div className="sticky top-0 z-10 bg-[#0f0f13]/95 backdrop-blur-sm border-b border-white/[0.06] px-6 py-4">
+      <div className="sticky top-0 z-10 bg-app-bg/95 backdrop-blur-sm border-b border-white/[0.06] px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
@@ -380,7 +380,7 @@ export default function BlueprintPage({
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-brand-600/20 hover:bg-brand-600/30 border border-brand-500/20 text-brand-300 text-sm disabled:opacity-40 transition-colors"
                 >
                   {saved ? (
-                    <CheckCircle2 size={16} className="text-green-400" />
+                    <CheckCircle2 size={16} className="text-success-text" />
                   ) : (
                     <Save size={16} />
                   )}
@@ -431,7 +431,7 @@ export default function BlueprintPage({
           <Section
             icon={<BarChart3 size={18} />}
             title="内容策略"
-            color="text-green-400"
+            color="text-success-text"
           >
             <div className="space-y-3">
               {editing ? (
@@ -566,7 +566,7 @@ export default function BlueprintPage({
           <Section
             icon={<Play size={18} />}
             title="第一条视频"
-            color="text-purple-400"
+            color="text-brand-400"
             highlight
           >
             <div className="space-y-3">
@@ -622,7 +622,7 @@ export default function BlueprintPage({
                         key={i}
                         className={
                           i < firstVideo.difficulty
-                            ? "text-yellow-400"
+                            ? "text-warning-text"
                             : "text-white/15"
                         }
                       >
@@ -767,10 +767,10 @@ export default function BlueprintPage({
           <Section
             icon={<BarChart3 size={18} />}
             title="关键指标"
-            color="text-yellow-400"
+            color="text-warning-text"
           >
             <div className="grid grid-cols-1 gap-3">
-              <div className="bg-yellow-500/5 border border-yellow-500/10 rounded-xl p-4">
+              <div className="bg-warning-surface border border-warning-border rounded-xl p-4">
                 <p className="text-xs text-white/30 mb-1">北极星指标</p>
                 {editing ? (
                   <input
@@ -824,7 +824,7 @@ export default function BlueprintPage({
           <Section
             icon={<AlertTriangle size={18} />}
             title="注意事项"
-            color="text-orange-400"
+            color="text-warning-text"
           >
             <div className="space-y-2">
               {risks.map((risk, i) => (
@@ -834,7 +834,7 @@ export default function BlueprintPage({
                 >
                   <AlertTriangle
                     size={14}
-                    className="text-orange-400/50 mt-0.5 shrink-0"
+                    className="text-warning-text/50 mt-0.5 shrink-0"
                   />
                   {editing ? (
                     <div className="flex-1 flex gap-2">
@@ -848,7 +848,7 @@ export default function BlueprintPage({
                         }}
                       />
                       <button
-                        className="p-1.5 rounded text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                        className="p-1.5 rounded text-danger-text/50 hover:text-danger-text hover:bg-danger-surface transition-colors"
                         onClick={() => {
                           const next = risks.filter((_, j) => j !== i);
                           updateDraft("risks", next);
@@ -882,7 +882,7 @@ export default function BlueprintPage({
           <Section
             icon={<Lightbulb size={18} />}
             title="下一步行动"
-            color="text-green-400"
+            color="text-success-text"
           >
             <div className="space-y-2">
               {nextActions.map((item, i) => {
@@ -906,7 +906,7 @@ export default function BlueprintPage({
                       editing ? "cursor-default" : "hover:brightness-110"
                     } ${
                       item.priority === "high"
-                        ? "bg-green-500/5 border-green-500/10"
+                        ? "bg-success-surface border-success-border"
                         : "bg-white/[0.02] border-white/[0.04]"
                     }`}
                   >
@@ -914,7 +914,7 @@ export default function BlueprintPage({
                       size={16}
                       className={
                         item.priority === "high"
-                          ? "text-green-400"
+                          ? "text-success-text"
                           : "text-white/30"
                       }
                     />
@@ -959,7 +959,7 @@ export default function BlueprintPage({
                               <option value="low">一般</option>
                             </select>
                             <button
-                              className="p-1 rounded text-red-400/50 hover:text-red-400 hover:bg-red-500/10 transition-colors text-xs"
+                              className="p-1 rounded text-danger-text/50 hover:text-danger-text hover:bg-danger-surface transition-colors text-xs"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 const next = nextActions.filter(
@@ -978,7 +978,7 @@ export default function BlueprintPage({
                           <p className="text-xs text-white/25 mt-0.5">
                             点击前往：{item.link}
                             {item.priority === "high" && (
-                              <span className="ml-2 px-1.5 py-0.5 rounded bg-green-500/10 text-green-400 text-[10px]">
+                              <span className="ml-2 px-1.5 py-0.5 rounded bg-success-surface text-success-text text-[10px]">
                                 优先
                               </span>
                             )}
@@ -1045,7 +1045,7 @@ export default function BlueprintPage({
                 )}
               </button>
             </div>
-            {error && <p className="text-xs text-red-400/60 mt-2">{error}</p>}
+            {error && <p className="text-xs text-danger-text/60 mt-2">{error}</p>}
           </div>
         )}
 

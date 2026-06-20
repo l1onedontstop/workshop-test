@@ -93,7 +93,7 @@ export default function App() {
 
   if (initialLoading) {
     return (
-      <div className="h-screen flex items-center justify-center bg-[#0f0f13]">
+      <div className="h-screen flex items-center justify-center bg-app-bg">
         <div className="flex flex-col items-center gap-4">
           <Loader2 size={32} className="animate-spin text-white/20" />
           <p className="text-white/30 text-sm">加载中...</p>
@@ -206,7 +206,7 @@ export default function App() {
               }}
             />
           )}
-          {page === 'settings' && <SettingsPage />}
+          {page === 'settings' && <SettingsPage onBack={() => setPage('project')} />}
         </main>
         </ErrorBoundary>
       </div>

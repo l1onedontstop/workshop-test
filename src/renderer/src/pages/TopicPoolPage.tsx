@@ -23,15 +23,15 @@ interface PoolTopic {
 }
 
 const CATEGORY_META: Record<string, { icon: typeof Lightbulb; color: string; label: string }> = {
-  '观点输出': { icon: Zap, color: 'text-yellow-400 border-yellow-500/20 bg-yellow-500/5', label: '观点输出' },
+  '观点输出': { icon: Zap, color: 'text-warning-text border-warning-border bg-warning-surface', label: '观点输出' },
   '经验分享': { icon: BookOpen, color: 'text-blue-400 border-blue-500/20 bg-blue-500/5', label: '经验分享' },
-  '趋势解读': { icon: TrendingUp, color: 'text-purple-400 border-purple-500/20 bg-purple-500/5', label: '趋势解读' },
-  '避坑指南': { icon: Shield, color: 'text-red-400 border-red-500/20 bg-red-500/5', label: '避坑指南' }
+  '趋势解读': { icon: TrendingUp, color: 'text-brand-400 border-brand-500/20 bg-brand-500/5', label: '趋势解读' },
+  '避坑指南': { icon: Shield, color: 'text-danger-text border-danger-border bg-danger-surface', label: '避坑指南' }
 }
 
 const STATUS_META: Record<string, { label: string; icon: typeof CheckCircle2; className: string }> = {
-  candidate: { label: '候选', icon: Lightbulb, className: 'text-yellow-400' },
-  used: { label: '已使用', icon: CheckCircle2, className: 'text-green-400' },
+  candidate: { label: '候选', icon: Lightbulb, className: 'text-warning-text' },
+  used: { label: '已使用', icon: CheckCircle2, className: 'text-success-text' },
   archived: { label: '已弃用', icon: Archive, className: 'text-white/20' }
 }
 
@@ -136,7 +136,7 @@ export default function TopicPoolPage({
           <button
             onClick={handleRecommend}
             disabled={loading || stats.candidate === 0}
-            className="px-4 py-2 rounded-lg bg-purple-600/20 border border-purple-500/20 hover:bg-purple-600/30 text-purple-300 text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-30"
+            className="px-4 py-2 rounded-lg bg-brand-600/20 border border-brand-500/20 hover:bg-brand-600/30 text-brand-300 text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-30"
           >
             <Sparkles size={14} /> AI 推荐排序
           </button>
@@ -290,7 +290,7 @@ export default function TopicPoolPage({
                               </button>
                               <button
                                 onClick={(e) => { e.stopPropagation(); handleStatusChange(t.id, 'used') }}
-                                className="px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 hover:bg-green-500/20 text-green-400 text-xs transition-colors flex items-center gap-1.5"
+                                className="px-3 py-1.5 rounded-lg bg-success-surface border border-success-border hover:bg-success-surface text-success-text text-xs transition-colors flex items-center gap-1.5"
                               >
                                 <CheckCircle2 size={10} /> 标记已用
                               </button>
@@ -305,7 +305,7 @@ export default function TopicPoolPage({
                           {t.status === 'archived' && (
                             <button
                               onClick={(e) => { e.stopPropagation(); handleStatusChange(t.id, 'candidate') }}
-                              className="px-3 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20 hover:bg-yellow-500/20 text-yellow-400 text-xs transition-colors flex items-center gap-1.5"
+                              className="px-3 py-1.5 rounded-lg bg-warning-surface border border-warning-border hover:bg-yellow-500/20 text-warning-text text-xs transition-colors flex items-center gap-1.5"
                             >
                               恢复为候选
                             </button>
@@ -325,7 +325,7 @@ export default function TopicPoolPage({
           <div className="w-72 border-l border-white/5 p-4 overflow-y-auto shrink-0">
             <div className="flex items-center justify-between mb-3">
               <h3 className="text-sm font-medium text-white/60 flex items-center gap-1.5">
-                <Sparkles size={12} className="text-purple-400" /> AI 推荐
+                <Sparkles size={12} className="text-brand-400" /> AI 推荐
               </h3>
               <button
                 onClick={() => setRecommendations(null)}
@@ -342,7 +342,7 @@ export default function TopicPoolPage({
                     <span className={`text-[10px] px-1.5 py-0.5 rounded ${
                       r.strategy === 'stable'
                         ? 'bg-blue-500/10 text-blue-400'
-                        : 'bg-purple-500/10 text-purple-400'
+                        : 'bg-brand-500/10 text-brand-400'
                     }`}>
                       {r.strategy === 'stable' ? '稳妥' : '实验'}
                     </span>

@@ -194,7 +194,7 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
               </div>
 
               {error && (
-                <div className="flex items-center gap-2 text-red-400 text-sm">
+                <div className="flex items-center gap-2 text-danger-text text-sm">
                   <AlertCircle size={14} />
                   {error}
                 </div>
@@ -205,14 +205,14 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
               {/* Titles */}
               <section>
                 <h3 className="text-sm font-medium text-white/70 mb-3 flex items-center gap-2">
-                  <ExternalLink size={14} className="text-green-400" />
+                  <ExternalLink size={14} className="text-success-text" />
                   备选标题（5个）
                 </h3>
                 <div className="space-y-2">
                   {pack.titles.map((t, i) => (
                     <div
                       key={i}
-                      className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.04] group hover:border-green-500/20 transition-colors"
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.04] group hover:border-success-border transition-colors"
                     >
                       <span className="text-[10px] text-white/20 font-mono w-4 shrink-0">
                         {i + 1}
@@ -223,7 +223,7 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
                         className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-white/60 transition-colors shrink-0"
                       >
                         {copiedIndex === i ? (
-                          <CheckCircle2 size={14} className="text-green-400" />
+                          <CheckCircle2 size={14} className="text-success-text" />
                         ) : (
                           <Copy size={14} />
                         )}
@@ -274,7 +274,7 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
               {/* Tags */}
               <section>
                 <h3 className="text-sm font-medium text-white/70 mb-3 flex items-center gap-2">
-                  <Tag size={14} className="text-yellow-400" />
+                  <Tag size={14} className="text-warning-text" />
                   高热话题标签
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -293,7 +293,7 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
                 >
                   {copiedIndex === -3 ? (
                     <>
-                      <CheckCircle2 size={12} className="text-green-400" /> 已复制
+                      <CheckCircle2 size={12} className="text-success-text" /> 已复制
                     </>
                   ) : (
                     <>
@@ -306,7 +306,7 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
               {/* Best publish time */}
               <section>
                 <h3 className="text-sm font-medium text-white/70 mb-2 flex items-center gap-2">
-                  <Clock size={14} className="text-purple-400" />
+                  <Clock size={14} className="text-brand-400" />
                   最佳发布时间
                 </h3>
                 <p className="text-sm text-white/50 bg-white/[0.02] border border-white/[0.04] rounded-lg px-4 py-3">
@@ -335,7 +335,7 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
                         className="p-1.5 rounded-md hover:bg-white/5 text-white/20 hover:text-white/60 transition-colors shrink-0"
                       >
                         {copiedIndex === i + 100 ? (
-                          <CheckCircle2 size={14} className="text-green-400" />
+                          <CheckCircle2 size={14} className="text-success-text" />
                         ) : (
                           <Copy size={14} />
                         )}

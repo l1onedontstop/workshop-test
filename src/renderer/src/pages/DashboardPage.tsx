@@ -29,7 +29,7 @@ export default function DashboardPage({ onBack }: { onBack: () => void }) {
           <h1 className="text-xl font-bold text-white">数据看板</h1>
         </div>
         <div className="flex-1 flex flex-col items-center justify-center text-center gap-4">
-          <AlertTriangle size={32} className="text-red-400/60" />
+          <AlertTriangle size={32} className="text-danger-text/60" />
           <div>
             <p className="text-white/60 text-sm mb-1">加载失败</p>
             <p className="text-white/30 text-xs max-w-md">{error}</p>
@@ -58,9 +58,9 @@ export default function DashboardPage({ onBack }: { onBack: () => void }) {
           <div className="grid grid-cols-4 gap-4 mb-6">
             {[
               { label: '项目数', value: overview.totalProjects, icon: FileText, color: 'text-blue-400' },
-              { label: '脚本数', value: overview.totalScripts, icon: Target, color: 'text-green-400' },
-              { label: '已发布', value: overview.totalPublished, icon: Play, color: 'text-purple-400' },
-              { label: '总播放', value: overview.totalPlays?.toLocaleString(), icon: TrendingUp, color: 'text-orange-400' }
+              { label: '脚本数', value: overview.totalScripts, icon: Target, color: 'text-success-text' },
+              { label: '已发布', value: overview.totalPublished, icon: Play, color: 'text-brand-400' },
+              { label: '总播放', value: overview.totalPlays?.toLocaleString(), icon: TrendingUp, color: 'text-warning-text' }
             ].map(c => (
               <div key={c.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2"><c.icon size={16} className={c.color} /><span className="text-xs text-white/40">{c.label}</span></div>
@@ -70,9 +70,9 @@ export default function DashboardPage({ onBack }: { onBack: () => void }) {
           </div>
           <div className="grid grid-cols-3 gap-4">
             {[
-              { label: '点赞', value: overview.totalLikes?.toLocaleString(), icon: Heart, color: 'text-red-400' },
+              { label: '点赞', value: overview.totalLikes?.toLocaleString(), icon: Heart, color: 'text-danger-text' },
               { label: '评论', value: overview.totalComments?.toLocaleString(), icon: MessageCircle, color: 'text-cyan-400' },
-              { label: '平均分', value: overview.avgPredictedScore?.toFixed(1) + '/10', icon: BarChart3, color: 'text-yellow-400' }
+              { label: '平均分', value: overview.avgPredictedScore?.toFixed(1) + '/10', icon: BarChart3, color: 'text-warning-text' }
             ].map(c => (
               <div key={c.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2"><c.icon size={16} className={c.color} /><span className="text-xs text-white/40">{c.label}</span></div>

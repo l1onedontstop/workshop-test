@@ -38,10 +38,10 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number; classN
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  '观点输出': 'text-yellow-400 border-yellow-500/20 bg-yellow-500/5',
+  '观点输出': 'text-warning-text border-warning-border bg-warning-surface',
   '经验分享': 'text-blue-400 border-blue-500/20 bg-blue-500/5',
-  '趋势解读': 'text-purple-400 border-purple-500/20 bg-purple-500/5',
-  '避坑指南': 'text-red-400 border-red-500/20 bg-red-500/5'
+  '趋势解读': 'text-brand-400 border-brand-500/20 bg-brand-500/5',
+  '避坑指南': 'text-danger-text border-danger-border bg-danger-surface'
 }
 
 // ── Parsers ──────────────────────────────────────────────
@@ -476,7 +476,7 @@ export default function PlanEditorPage({
                   i + 1 === step
                     ? 'bg-brand-500/20 text-brand-400'
                     : i + 1 < step
-                      ? 'text-green-400/60'
+                      ? 'text-success-text/60'
                       : 'text-white/15'
                 }`}
               >
@@ -490,7 +490,7 @@ export default function PlanEditorPage({
           ))}
         </div>
         <div className="flex-1" />
-        {saved && <span className="text-xs text-green-400">已保存</span>}
+        {saved && <span className="text-xs text-success-text">已保存</span>}
       </div>
 
       {/* Step content */}
@@ -660,7 +660,7 @@ export default function PlanEditorPage({
           {step === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <Lightbulb size={36} className="text-purple-400/50 mx-auto mb-3" />
+                <Lightbulb size={36} className="text-brand-400/50 mx-auto mb-3" />
                 <h2 className="text-xl font-semibold text-white mb-2">选题组盘</h2>
                 <p className="text-sm text-white/40">
                   AI 会根据你的人设生成选题建议。勾选你想拍的选题，组成你的内容计划。
@@ -672,7 +672,7 @@ export default function PlanEditorPage({
                   <button
                     onClick={handleGenerateTopics}
                     disabled={loading}
-                    className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2 mx-auto"
+                    className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2 mx-auto"
                   >
                     {loading ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -697,7 +697,7 @@ export default function PlanEditorPage({
                           onClick={() => toggleTopic(i)}
                           className={`w-full text-left p-4 rounded-xl border transition-all ${
                             isSelected
-                              ? 'border-purple-500/30 bg-purple-500/5'
+                              ? 'border-brand-500/30 bg-brand-500/5'
                               : 'border-white/[0.04] bg-white/[0.02] hover:border-white/10'
                           }`}
                         >
@@ -705,7 +705,7 @@ export default function PlanEditorPage({
                             <div
                               className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
                                 isSelected
-                                  ? 'border-purple-500 bg-purple-500'
+                                  ? 'border-brand-500 bg-brand-500'
                                   : 'border-white/15'
                               }`}
                             >
@@ -732,7 +732,7 @@ export default function PlanEditorPage({
                                 </span>
                               </div>
                               <p className="text-xs text-white/40">{topic.angle}</p>
-                              <p className="text-xs text-purple-400/60 italic mt-1">
+                              <p className="text-xs text-brand-400/60 italic mt-1">
                                 "{topic.hook}"
                               </p>
                             </div>
@@ -774,7 +774,7 @@ export default function PlanEditorPage({
           {step === 3 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <Brain size={36} className="text-purple-400/50 mx-auto mb-3" />
+                <Brain size={36} className="text-brand-400/50 mx-auto mb-3" />
                 <h2 className="text-xl font-semibold text-white mb-2">策略生成</h2>
                 <p className="text-sm text-white/40">
                   AI 会根据你的人设和选题，生成系统化的内容策略
@@ -786,7 +786,7 @@ export default function PlanEditorPage({
                   <button
                     onClick={handleGenerateStrategy}
                     disabled={loading}
-                    className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2 mx-auto"
+                    className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2 mx-auto"
                   >
                     {loading ? (
                       <Loader2 size={16} className="animate-spin" />
@@ -831,7 +831,7 @@ export default function PlanEditorPage({
                   </div>
 
                   {/* Overall advice */}
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-brand-500/10 to-purple-500/10 border border-brand-500/20">
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-brand-500/10 to-brand-500/10 border border-brand-500/20">
                     <p className="text-sm text-white/60 leading-relaxed">
                       {strategy.overallAdvice}
                     </p>
@@ -839,11 +839,11 @@ export default function PlanEditorPage({
 
                   {/* Risk warnings */}
                   {strategy.riskWarnings.length > 0 && (
-                    <div className="p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/10">
-                      <h3 className="text-xs font-medium text-yellow-400/80 mb-2">⚠️ 风险提示</h3>
+                    <div className="p-4 rounded-xl bg-warning-surface border border-warning-border">
+                      <h3 className="text-xs font-medium text-warning-text/80 mb-2">⚠️ 风险提示</h3>
                       <ul className="space-y-1">
                         {strategy.riskWarnings.map((w, i) => (
-                          <li key={i} className="text-xs text-yellow-400/60 flex gap-1.5">
+                          <li key={i} className="text-xs text-warning-text/60 flex gap-1.5">
                             <span>•</span>
                             {w}
                           </li>
@@ -878,7 +878,7 @@ export default function PlanEditorPage({
           {step === 4 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <FileText size={36} className="text-green-400/50 mx-auto mb-3" />
+                <FileText size={36} className="text-success-text/50 mx-auto mb-3" />
                 <h2 className="text-xl font-semibold text-white mb-2">批量生成脚本</h2>
                 <p className="text-sm text-white/40">
                   为每个选题逐一生成脚本，保存到 scripts/ 目录。生成速度取决于你的 AI 引擎。
@@ -918,7 +918,7 @@ export default function PlanEditorPage({
                 </div>
               ) : (
                 <div className="space-y-4">
-                  <div className="flex items-center gap-2 text-green-400">
+                  <div className="flex items-center gap-2 text-success-text">
                     <CheckCircle2 size={16} />
                     <span className="text-sm font-medium">
                       已生成 {generatedScripts.length} 个脚本
@@ -967,7 +967,7 @@ export default function PlanEditorPage({
           {step === 5 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <Calendar size={36} className="text-yellow-400/50 mx-auto mb-3" />
+                <Calendar size={36} className="text-warning-text/50 mx-auto mb-3" />
                 <h2 className="text-xl font-semibold text-white mb-2">排期定稿</h2>
                 <p className="text-sm text-white/40">
                   为每条脚本分配发布日期，完成整个 IP 方案
@@ -1022,8 +1022,8 @@ export default function PlanEditorPage({
                   </button>
                 </div>
               ) : (
-                <div className="p-5 rounded-xl bg-green-500/5 border border-green-500/10 text-center">
-                  <CheckCircle2 size={32} className="text-green-400 mx-auto mb-3" />
+                <div className="p-5 rounded-xl bg-success-surface border border-success-border text-center">
+                  <CheckCircle2 size={32} className="text-success-text mx-auto mb-3" />
                   <h2 className="text-lg font-semibold text-white mb-2">方案已完成！</h2>
                   <p className="text-sm text-white/40 mb-4">
                     {selectedTopicList.filter((t) => t.scriptFile).length} 条脚本已保存到
@@ -1042,7 +1042,7 @@ export default function PlanEditorPage({
 
           {/* Error */}
           {error && (
-            <div className="mt-6 flex items-center gap-2 text-red-400 text-sm justify-center">
+            <div className="mt-6 flex items-center gap-2 text-danger-text text-sm justify-center">
               <AlertCircle size={14} />
               {error}
             </div>

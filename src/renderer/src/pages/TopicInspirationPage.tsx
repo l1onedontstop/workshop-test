@@ -39,10 +39,10 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number; classN
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
-  '观点输出': 'text-yellow-400 border-yellow-500/20 bg-yellow-500/5',
+  '观点输出': 'text-warning-text border-warning-border bg-warning-surface',
   '经验分享': 'text-blue-400 border-blue-500/20 bg-blue-500/5',
-  '趋势解读': 'text-purple-400 border-purple-500/20 bg-purple-500/5',
-  '避坑指南': 'text-red-400 border-red-500/20 bg-red-500/5'
+  '趋势解读': 'text-brand-400 border-brand-500/20 bg-brand-500/5',
+  '避坑指南': 'text-danger-text border-danger-border bg-danger-surface'
 }
 
 function parseTopicResult(raw: string): TopicResult | null {
@@ -145,7 +145,7 @@ export default function TopicInspirationPage({
             type="checkbox"
             checked={useRetroData}
             onChange={(e) => setUseRetroData(e.target.checked)}
-            className="rounded border-white/20 bg-white/5 text-purple-500 focus:ring-purple-500/30 cursor-pointer"
+            className="rounded border-white/20 bg-white/5 text-brand-500 focus:ring-brand-500/30 cursor-pointer"
           />
           参考往期复盘数据
         </label>
@@ -175,7 +175,7 @@ export default function TopicInspirationPage({
             <button
               onClick={handleGenerate}
               disabled={loading}
-              className="px-6 py-3 rounded-xl bg-purple-600 hover:bg-purple-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
             >
               <Lightbulb size={16} />
               为我生成选题
@@ -183,16 +183,16 @@ export default function TopicInspirationPage({
           </div>
         ) : loading ? (
           <div className="flex flex-col items-center justify-center h-full">
-            <Loader2 size={32} className="animate-spin text-purple-400/50 mb-4" />
+            <Loader2 size={32} className="animate-spin text-brand-400/50 mb-4" />
             <p className="text-white/40 text-sm">AI 正在分析你的受众画像...</p>
             <p className="text-white/20 text-xs mt-1">结合行业趋势和往期数据，生成选题建议</p>
           </div>
         ) : result ? (
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Overall advice */}
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-purple-500/10 to-brand-500/10 border border-purple-500/20">
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-brand-500/10 to-brand-500/10 border border-brand-500/20">
               <div className="flex items-center gap-2 mb-2">
-                <Target size={16} className="text-purple-400" />
+                <Target size={16} className="text-brand-400" />
                 <h3 className="text-sm font-medium text-white/80">AI 综合建议</h3>
               </div>
               <p className="text-sm text-white/60 leading-relaxed">{result.overallAdvice}</p>
@@ -207,7 +207,7 @@ export default function TopicInspirationPage({
                 return (
                   <div
                     key={i}
-                    className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-purple-500/20 transition-all group"
+                    className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-brand-500/20 transition-all group"
                   >
                     <div className="flex items-start gap-4">
                       {/* Number + category */}
@@ -236,7 +236,7 @@ export default function TopicInspirationPage({
                           </p>
                           <p className="text-xs text-white/40 flex gap-2">
                             <span className="text-white/20 shrink-0">钩子：</span>
-                            <span className="text-purple-400/70 italic">"{topic.hook}"</span>
+                            <span className="text-brand-400/70 italic">"{topic.hook}"</span>
                           </p>
                           <p className="text-xs text-white/40 flex gap-2">
                             <span className="text-white/20 shrink-0">共鸣：</span>
@@ -266,7 +266,7 @@ export default function TopicInspirationPage({
 
                           <button
                             onClick={() => onWriteScript(topic.title)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600/20 border border-purple-500/20 hover:bg-purple-600/30 text-purple-300 text-xs font-medium transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600/20 border border-brand-500/20 hover:bg-brand-600/30 text-brand-300 text-xs font-medium transition-colors"
                           >
                             用这个选题写脚本
                             <ArrowRight size={12} />
@@ -282,7 +282,7 @@ export default function TopicInspirationPage({
         ) : null}
 
         {error && (
-          <div className="flex items-center gap-2 text-red-400 text-sm justify-center mt-4">
+          <div className="flex items-center gap-2 text-danger-text text-sm justify-center mt-4">
             <AlertCircle size={14} />
             {error}
           </div>

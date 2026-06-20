@@ -7,7 +7,8 @@ import {
   ExternalLink,
   Trash2,
   AlertTriangle,
-  BarChart3 as BarChartIcon
+  BarChart3 as BarChartIcon,
+  ArrowLeft
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useAppStore } from '../stores/appStore'
@@ -40,7 +41,7 @@ const PROVIDERS = [
   { id: 'doubao', label: '豆包 (字节)', desc: '高并发低延迟，性价比好' }
 ] as const
 
-export default function SettingsPage() {
+export default function SettingsPage({ onBack }: { onBack?: () => void }) {
   const {
     aiProvider,
     deepseekKey,
@@ -130,14 +131,23 @@ export default function SettingsPage() {
 
   return (
     <div className="p-8 max-w-2xl mx-auto">
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="flex items-center gap-1.5 px-3 py-2 -ml-3 mb-4 rounded-lg hover:bg-white/[0.05] text-white/30 hover:text-white/50 transition-colors text-sm"
+        >
+          <ArrowLeft size={16} />
+          返回
+        </button>
+      )}
       <h1 className="text-2xl font-bold text-white mb-2">设置</h1>
       <p className="text-white/40 text-sm mb-8">配置 AI 引擎和 API 密钥</p>
 
       {/* Provider selection */}
       <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 mb-4">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-purple-500/10">
-            <Cpu size={20} className="text-purple-400" />
+          <div className="p-2 rounded-lg bg-brand-500/10">
+            <Cpu size={20} className="text-brand-400" />
           </div>
           <div>
             <h2 className="text-white font-medium">AI 引擎</h2>
@@ -242,8 +252,8 @@ export default function SettingsPage() {
       {activeProject && (
         <div className="mt-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-red-500/10">
-              <Trash2 size={20} className="text-red-400" />
+            <div className="p-2 rounded-lg bg-danger-surface">
+              <Trash2 size={20} className="text-danger-text" />
             </div>
             <div>
               <h2 className="text-white font-medium">数据管理</h2>
@@ -255,9 +265,9 @@ export default function SettingsPage() {
 
           {resetConfirm ? (
             <div className="space-y-3">
-              <div className="flex items-center gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
-                <AlertTriangle size={16} className="text-red-400 shrink-0" />
-                <p className="text-xs text-red-300">
+              <div className="flex items-center gap-2 p-3 rounded-lg bg-danger-surface border border-danger-border">
+                <AlertTriangle size={16} className="text-danger-text shrink-0" />
+                <p className="text-xs text-danger-text">
                   确认要清空「{activeProject.name}」的所有脚本和预测数据吗？此操作不可恢复。
                 </p>
               </div>
@@ -281,7 +291,7 @@ export default function SettingsPage() {
           ) : (
             <button
               onClick={() => setResetConfirm(true)}
-              className="px-4 py-2 rounded-lg bg-white/5 hover:bg-red-500/10 border border-white/[0.06] hover:border-red-500/20 text-white/40 hover:text-red-400 text-sm transition-all flex items-center gap-2"
+              className="px-4 py-2 rounded-lg bg-white/5 hover:bg-danger-surface border border-white/[0.06] hover:border-danger-border text-white/40 hover:text-danger-text text-sm transition-all flex items-center gap-2"
             >
               <Trash2 size={14} />
               重置项目数据

@@ -193,21 +193,21 @@ function SectionCard({
   children: React.ReactNode
 }) {
   const colorMap: Record<string, string> = {
-    purple: 'border-purple-500/20 bg-purple-500/[0.03]',
+    purple: 'border-brand-500/20 bg-brand-500/[0.03]',
     blue: 'border-blue-500/20 bg-blue-500/[0.03]',
-    green: 'border-green-500/20 bg-green-500/[0.03]',
-    orange: 'border-orange-500/20 bg-orange-500/[0.03]',
-    red: 'border-red-500/20 bg-red-500/[0.03]',
-    yellow: 'border-yellow-500/20 bg-yellow-500/[0.03]',
+    green: 'border-success-border bg-green-500/[0.03]',
+    orange: 'border-warning-border bg-orange-500/[0.03]',
+    red: 'border-danger-border bg-red-500/[0.03]',
+    yellow: 'border-warning-border bg-yellow-500/[0.03]',
     cyan: 'border-cyan-500/20 bg-cyan-500/[0.03]'
   }
   const textColorMap: Record<string, string> = {
-    purple: 'text-purple-400',
+    purple: 'text-brand-400',
     blue: 'text-blue-400',
-    green: 'text-green-400',
-    orange: 'text-orange-400',
-    red: 'text-red-400',
-    yellow: 'text-yellow-400',
+    green: 'text-success-text',
+    orange: 'text-warning-text',
+    red: 'text-danger-text',
+    yellow: 'text-warning-text',
     cyan: 'text-cyan-400'
   }
   return (
@@ -691,7 +691,7 @@ export default function ScriptEditorPage({
             <ChevronDown size={12} className={showScriptList ? 'rotate-180' : ''} />
           </button>
           {showScriptList && (
-            <div className="absolute right-0 top-full mt-2 w-80 bg-gray-900 border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
+            <div className="absolute right-0 top-full mt-2 w-80 bg-app-elevated border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
               <div className="flex items-center justify-between px-4 py-3 border-b border-white/5">
                 <span className="text-xs text-white/40 font-medium">脚本列表</span>
                 <button
@@ -730,7 +730,7 @@ export default function ScriptEditorPage({
                           <button
                             onClick={(e) => { e.stopPropagation(); handleDelete(s.name) }}
                             disabled={loading === 'delete'}
-                            className="px-2 py-0.5 rounded text-[10px] bg-red-600/20 border border-red-500/30 text-red-400 hover:bg-red-600/30"
+                            className="px-2 py-0.5 rounded text-[10px] bg-red-600/20 border border-red-500/30 text-danger-text hover:bg-red-600/30"
                           >
                             {loading === 'delete' ? '...' : '确认'}
                           </button>
@@ -745,7 +745,7 @@ export default function ScriptEditorPage({
                         <button
                           onClick={(e) => { e.stopPropagation(); setDeleteConfirm(s.name) }}
                           disabled={loading !== null}
-                          className="p-1 rounded text-white/15 hover:text-red-400 hover:bg-red-500/10 transition-colors shrink-0"
+                          className="p-1 rounded text-white/15 hover:text-danger-text hover:bg-danger-surface transition-colors shrink-0"
                           title="删除此脚本"
                         >
                           <Trash2 size={13} />
@@ -777,7 +777,7 @@ export default function ScriptEditorPage({
           disabled={!script.trim() || loading !== null}
           className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors disabled:opacity-30 flex items-center gap-2 ${
             predictionLocked
-              ? 'bg-green-600/20 border border-green-500/30 text-green-400 cursor-not-allowed'
+              ? 'bg-green-600/20 border border-success-border text-success-text cursor-not-allowed'
               : 'bg-brand-600 hover:bg-brand-500 text-white'
           }`}
         >
@@ -800,16 +800,16 @@ export default function ScriptEditorPage({
         </button>
         {/* Tool buttons */}
         <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-white/10">
-          <button onClick={async () => { try { const r = await window.api.exportChecklist({ script, topic, storyboard: [], style: {}, equipment: {} }); if (r.success) { await navigator.clipboard.writeText(r.markdown); alert('拍摄清单已复制到剪贴板！') } } catch {} }} disabled={!script.trim()} title="导出拍摄清单" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-green-400 transition-colors disabled:opacity-20">
+          <button onClick={async () => { try { const r = await window.api.exportChecklist({ script, topic, storyboard: [], style: {}, equipment: {} }); if (r.success) { await navigator.clipboard.writeText(r.markdown); alert('拍摄清单已复制到剪贴板！') } } catch {} }} disabled={!script.trim()} title="导出拍摄清单" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-success-text transition-colors disabled:opacity-20">
             <Download size={16} />
           </button>
           <button onClick={async () => { try { const r = await window.api.exportTeleprompter(script); if (r.success) { await navigator.clipboard.writeText(r.text); alert('提词器文本已复制！') } } catch {} }} disabled={!script.trim()} title="导出提词器" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-blue-400 transition-colors disabled:opacity-20">
             <FileText size={16} />
           </button>
-          <button onClick={async () => { try { const r = await window.api.ttsGenerate(script, {}); if (r.success) alert('TTS 语音已生成：' + r.filepath); else alert('TTS 失败：' + r.error) } catch(e: any) { alert('TTS 错误：' + e.message) } }} disabled={!script.trim()} title="文字转语音" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-purple-400 transition-colors disabled:opacity-20">
+          <button onClick={async () => { try { const r = await window.api.ttsGenerate(script, {}); if (r.success) alert('TTS 语音已生成：' + r.filepath); else alert('TTS 失败：' + r.error) } catch(e: any) { alert('TTS 错误：' + e.message) } }} disabled={!script.trim()} title="文字转语音" className="p-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-brand-400 transition-colors disabled:opacity-20">
             <Volume2 size={16} />
           </button>
-          <button onClick={async () => { try { setLoading('generate'); const r = await window.api.coverGeneratePrompt({ script, topic, style: '' }); if (r.success) { setCoverResult(r); setShowCoverModal(true) } } catch {} finally { setLoading(null) } }} disabled={!script.trim() || loading !== null} title="AI 封面图" className={`p-2 rounded-lg hover:bg-white/5 transition-colors disabled:opacity-20 ${loading === 'generate' ? 'text-yellow-400 animate-pulse' : 'text-white/30 hover:text-yellow-400'}`}>
+          <button onClick={async () => { try { setLoading('generate'); const r = await window.api.coverGeneratePrompt({ script, topic, style: '' }); if (r.success) { setCoverResult(r); setShowCoverModal(true) } } catch {} finally { setLoading(null) } }} disabled={!script.trim() || loading !== null} title="AI 封面图" className={`p-2 rounded-lg hover:bg-white/5 transition-colors disabled:opacity-20 ${loading === 'generate' ? 'text-warning-text animate-pulse' : 'text-white/30 hover:text-warning-text'}`}>
             <Image size={16} />
           </button>
         </div>
@@ -880,7 +880,7 @@ export default function ScriptEditorPage({
 
           {/* Error */}
           {error && (
-            <div className="mt-3 flex items-center gap-2 text-red-400 text-sm">
+            <div className="mt-3 flex items-center gap-2 text-danger-text text-sm">
               <AlertCircle size={14} />
               {error}
             </div>
@@ -895,7 +895,7 @@ export default function ScriptEditorPage({
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all mb-3 ${
                 showFullPlan
                   ? 'bg-brand-500/10 border-brand-500/20 text-brand-300 hover:bg-brand-500/15'
-                  : 'bg-gradient-to-r from-purple-500/10 to-cyan-500/10 border-purple-500/20 text-purple-300 hover:from-purple-500/15 hover:to-cyan-500/15'
+                  : 'bg-gradient-to-r from-brand-500/10 to-cyan-500/10 border-brand-500/20 text-brand-300 hover:from-brand-500/15 hover:to-cyan-500/15'
               }`}
             >
               <Eye size={15} />
@@ -999,7 +999,7 @@ export default function ScriptEditorPage({
               {/* Strengths */}
               {scoreResult.strengths.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-medium text-green-400/80 mb-1.5">
+                  <h4 className="text-xs font-medium text-success-text/80 mb-1.5">
                     👍 优势
                   </h4>
                   <ul className="space-y-1">
@@ -1016,7 +1016,7 @@ export default function ScriptEditorPage({
               {/* Weaknesses */}
               {scoreResult.weaknesses.length > 0 && (
                 <div>
-                  <h4 className="text-xs font-medium text-yellow-400/80 mb-1.5">
+                  <h4 className="text-xs font-medium text-warning-text/80 mb-1.5">
                     👎 待改进
                   </h4>
                   <ul className="space-y-1">
@@ -1070,7 +1070,7 @@ export default function ScriptEditorPage({
       {/* Pre-flight checklist overlay */}
       {showChecklist && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60">
-          <div className="bg-[#1a1a24] border border-white/10 rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl">
+          <div className="bg-app-elevated border border-white/10 rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl">
             <h3 className="text-lg font-semibold text-white mb-2">🔒 预测前检查清单</h3>
             <p className="text-sm text-white/40 mb-6">
               写完即锁定，不可修改。确认以下事项：
@@ -1091,7 +1091,7 @@ export default function ScriptEditorPage({
                   }}
                   className={`w-full text-left px-4 py-3 rounded-lg border transition-all text-sm flex items-center gap-3 ${
                     checklistItems[i]
-                      ? 'bg-green-500/5 border-green-500/20 text-green-300'
+                      ? 'bg-success-surface border-success-border text-success-text'
                       : 'bg-white/[0.02] border-white/[0.06] text-white/50 hover:border-white/15'
                   }`}
                 >
@@ -1149,14 +1149,14 @@ export default function ScriptEditorPage({
       {/* Cover image modal */}
       {showCoverModal && coverResult && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60">
-          <div className="bg-[#1a1a24] border border-white/10 rounded-2xl w-full max-w-lg mx-4 p-6 shadow-2xl">
+          <div className="bg-app-elevated border border-white/10 rounded-2xl w-full max-w-lg mx-4 p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-white">🎨 AI 封面图方案</h3>
               <button onClick={() => setShowCoverModal(false)} className="text-white/30 hover:text-white/60"><X size={18} /></button>
             </div>
             {coverResult.textOverlay && (
-              <div className="p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20 mb-4 text-center">
-                <p className="text-xs text-yellow-400/60 mb-1">推荐封面大字</p>
+              <div className="p-4 rounded-xl bg-warning-surface border border-warning-border mb-4 text-center">
+                <p className="text-xs text-warning-text/60 mb-1">推荐封面大字</p>
                 <p className="text-xl font-bold text-yellow-300">{coverResult.textOverlay}</p>
               </div>
             )}
@@ -1189,7 +1189,7 @@ export default function ScriptEditorPage({
 
       {/* Prediction locked indicator */}
       {predictionLocked && predictionData && (
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-300 text-sm shadow-lg backdrop-blur-sm flex items-center gap-3">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-success-surface border border-success-border text-success-text text-sm shadow-lg backdrop-blur-sm flex items-center gap-3">
           <CheckCircle2 size={16} />
           <span>🔒 预测已锁定 · Composite: {(predictionData.total as number)?.toFixed(1)}/10</span>
           <button

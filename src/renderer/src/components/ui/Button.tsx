@@ -35,7 +35,7 @@ const variantClasses: Record<Variant, string> = {
 
   danger:
     'bg-danger-surface text-danger-text border border-danger-border ' +
-    'hover:bg-red-600/25 hover:text-red-300 hover:border-red-500/30 ' +
+    'hover:bg-red-600/25 hover:text-danger-text hover:border-red-500/30 ' +
     'active:scale-[0.98] ' +
     'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg ' +
     'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-danger-surface disabled:active:scale-100'

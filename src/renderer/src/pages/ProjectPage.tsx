@@ -49,9 +49,9 @@ const ACTIVITY_ICONS: Record<string, React.ComponentType<{ size?: number; classN
 
 const ACTIVITY_COLORS: Record<string, string> = {
   script_saved: 'text-blue-400',
-  script_published: 'text-green-400',
-  retro_completed: 'text-orange-400',
-  rubric_evolved: 'text-purple-400',
+  script_published: 'text-success-text',
+  retro_completed: 'text-warning-text',
+  rubric_evolved: 'text-brand-400',
   plan_created: 'text-cyan-400',
   plan_completed: 'text-cyan-400'
 }
@@ -102,9 +102,9 @@ function getCoachSuggestion(
 }
 
 const VARIANT_STYLES: Record<CoachSuggestion['variant'], { gradient: string; border: string; badge: string; button: string }> = {
-  primary: { gradient: 'from-brand-500/10 to-purple-500/10', border: 'border-brand-500/20', badge: 'bg-brand-500/20 text-brand-400', button: 'bg-brand-600 hover:bg-brand-500' },
+  primary: { gradient: 'from-brand-500/10 to-brand-500/10', border: 'border-brand-500/20', badge: 'bg-brand-500/20 text-brand-400', button: 'bg-brand-600 hover:bg-brand-500' },
   secondary: { gradient: 'from-white/[0.03] to-white/[0.01]', border: 'border-white/[0.06]', badge: 'bg-white/[0.06] text-white/50', button: 'bg-white/[0.08] hover:bg-white/[0.12] text-white/75' },
-  warning: { gradient: 'from-orange-500/10 to-yellow-500/10', border: 'border-orange-500/20', badge: 'bg-orange-500/20 text-orange-400', button: 'bg-orange-600 hover:bg-orange-500' }
+  warning: { gradient: 'from-orange-500/10 to-yellow-500/10', border: 'border-warning-border', badge: 'bg-orange-500/20 text-warning-text', button: 'bg-orange-600 hover:bg-orange-500' }
 }
 
 export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish, onRetro, onPlans, onNewProject, onNavigateToPlan, onNavigateToScript, onNavigateToRetro, onNavigateToBlueprint }: ProjectPageProps) {
@@ -166,10 +166,10 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
   const quickActions = [
     { icon: Sparkles, label: 'IP 蓝图', desc: '定位、策略与行动计划', color: 'text-brand-400', bg: 'bg-brand-500/10', border: 'border-brand-500/20', action: onNavigateToBlueprint },
     { icon: PenLine, label: '写脚本', desc: 'AI写作 + 即时打分', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', action: onNewScript },
-    { icon: FileText, label: '管脚本', desc: `查看/编辑/删除${scriptsList.length > 0 ? ` · ${scriptsList.length}条` : ''}`, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20', action: handleManageScripts },
-    { icon: Lightbulb, label: '选题', desc: 'AI推荐爆款选题', color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20', action: onTopicInspiration },
-    { icon: Send, label: '发布', desc: '标题+简介+话题', color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20', action: onPublish },
-    { icon: BarChart3, label: '复盘', desc: '数据驱动进化', color: 'text-orange-400', bg: 'bg-orange-500/10', border: 'border-orange-500/20', action: onRetro },
+    { icon: FileText, label: '管脚本', desc: `查看/编辑/删除${scriptsList.length > 0 ? ` · ${scriptsList.length}条` : ''}`, color: 'text-warning-text', bg: 'bg-warning-surface', border: 'border-warning-border', action: handleManageScripts },
+    { icon: Lightbulb, label: '选题', desc: 'AI推荐爆款选题', color: 'text-brand-400', bg: 'bg-brand-500/10', border: 'border-brand-500/20', action: onTopicInspiration },
+    { icon: Send, label: '发布', desc: '标题+简介+话题', color: 'text-success-text', bg: 'bg-success-surface', border: 'border-success-border', action: onPublish },
+    { icon: BarChart3, label: '复盘', desc: '数据驱动进化', color: 'text-warning-text', bg: 'bg-warning-surface', border: 'border-warning-border', action: onRetro },
     { icon: Layout, label: '方案', desc: '系统化内容计划', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', action: onPlans }
   ]
 
@@ -254,7 +254,7 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
               </span>
             ))}
             {buffer === 0 && (
-              <span className="ml-auto text-[11px] text-red-400/70 font-medium">库存告急</span>
+              <span className="ml-auto text-[11px] text-danger-text/70 font-medium">库存告急</span>
             )}
           </div>
         </div>
@@ -294,7 +294,7 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
             </button>
             <span className="text-white/10 text-xs">→</span>
             <button onClick={() => setConfirmDialog({ type: 'publish', title: '确认发布状态', message: '视频已经发布了吗？发布后记得登记链接，T+3 天后 AI 会提醒你复盘数据。' })}
-              className="px-4 py-2 rounded-lg bg-success-surface border border-success-border hover:bg-green-500/20 text-green-400 text-sm font-medium transition-colors">
+              className="px-4 py-2 rounded-lg bg-success-surface border border-success-border hover:bg-success-surface text-success-text text-sm font-medium transition-colors">
               确认发布
             </button>
           </div>

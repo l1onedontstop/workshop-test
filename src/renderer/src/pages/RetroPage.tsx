@@ -115,10 +115,10 @@ const DIMENSION_ICONS: Record<string, React.ComponentType<{ size?: number; class
 }
 
 function getDeviationColor(dev: number): string {
-  if (dev >= 1.5) return 'text-green-400'
-  if (dev >= 0.5) return 'text-green-400/70'
-  if (dev <= -1.5) return 'text-red-400'
-  if (dev <= -0.5) return 'text-yellow-400'
+  if (dev >= 1.5) return 'text-success-text'
+  if (dev >= 0.5) return 'text-success-text/70'
+  if (dev <= -1.5) return 'text-danger-text'
+  if (dev <= -0.5) return 'text-warning-text'
   return 'text-white/40'
 }
 
@@ -331,7 +331,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                   onClick={() => handleSelectPrediction(p)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg text-xs transition-colors ${
                     selectedPred?.scriptFile === p.name.replace('.json', '.md')
-                      ? 'bg-orange-500/15 text-orange-300 border border-orange-500/20'
+                      ? 'bg-orange-500/15 text-orange-300 border border-warning-border'
                       : 'text-white/50 hover:bg-white/[0.03] hover:text-white/70 border border-transparent'
                   }`}
                 >
@@ -382,7 +382,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
               {/* Actual data input */}
               <section>
                 <h3 className="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
-                  <Play size={14} className="text-orange-400" />
+                  <Play size={14} className="text-warning-text" />
                   输入实际数据
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
@@ -511,7 +511,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
               </section>
 
               {error && (
-                <div className="flex items-center gap-2 text-red-400 text-sm">
+                <div className="flex items-center gap-2 text-danger-text text-sm">
                   <AlertCircle size={14} />
                   {error}
                 </div>
@@ -521,7 +521,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
               {retroResult && (
                 <div className="space-y-4 border-t border-white/[0.04] pt-6">
                   <h3 className="text-sm font-medium text-white/60 flex items-center gap-2">
-                    <TrendingUp size={14} className="text-green-400" />
+                    <TrendingUp size={14} className="text-success-text" />
                     复盘分析结果
                   </h3>
 
@@ -571,7 +571,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                                 {d.impliedByData}/10
                               </span>
                               <span
-                                className={`text-[10px] ml-2 ${d.deviation >= 0 ? 'text-green-400/60' : 'text-red-400/60'}`}
+                                className={`text-[10px] ml-2 ${d.deviation >= 0 ? 'text-success-text/60' : 'text-danger-text/60'}`}
                               >
                                 {d.deviation >= 0 ? '↑低估' : '↓高估'} {Math.abs(d.deviation)}
                                 分
@@ -593,7 +593,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                   {/* Key learnings */}
                   {retroResult.keyLearnings.length > 0 && (
                     <div>
-                      <h4 className="text-xs font-medium text-green-400/80 mb-1.5">
+                      <h4 className="text-xs font-medium text-success-text/80 mb-1.5">
                         💡 关键收获
                       </h4>
                       <ul className="space-y-1">
@@ -613,7 +613,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
               {retroHistory.length >= 1 && (
                 <div className="border-t border-white/[0.04] pt-6">
                   <h3 className="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
-                    <Brain size={14} className="text-purple-400" />
+                    <Brain size={14} className="text-brand-400" />
                     Rubric 进化
                     <span className="text-[10px] text-white/20 ml-1">
                       （基于 {retroHistory.length} 条复盘数据）
@@ -624,7 +624,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                     <button
                       onClick={handleEvolveRubric}
                       disabled={evolving}
-                      className="px-5 py-2.5 rounded-xl bg-purple-600/20 border border-purple-500/20 hover:bg-purple-600/30 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
+                      className="px-5 py-2.5 rounded-xl bg-brand-600/20 border border-brand-500/20 hover:bg-brand-600/30 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
                     >
                       {evolving ? (
                         <Loader2 size={16} className="animate-spin" />
@@ -634,14 +634,14 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                       AI 分析并建议权重调整
                     </button>
                   ) : evolution.shouldEvolve ? (
-                    <div className="space-y-4 p-4 rounded-xl bg-purple-500/5 border border-purple-500/10">
+                    <div className="space-y-4 p-4 rounded-xl bg-brand-500/5 border border-brand-500/10">
                       <div className="flex items-center gap-2">
-                        <Brain size={14} className="text-purple-400" />
-                        <span className="text-sm font-medium text-purple-300">
+                        <Brain size={14} className="text-brand-400" />
+                        <span className="text-sm font-medium text-brand-300">
                           已进化至 {evolution.version}
                         </span>
                         {evolutionApplied && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-green-500/20 text-green-400">
+                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-success-surface text-success-text">
                             已应用
                           </span>
                         )}
@@ -660,8 +660,8 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                             <span className="text-xs text-white/30">
                               {(wc.oldWeight * 100).toFixed(0)}%
                             </span>
-                            <span className="text-purple-400">→</span>
-                            <span className="text-xs text-purple-300 font-medium">
+                            <span className="text-brand-400">→</span>
+                            <span className="text-xs text-brand-300 font-medium">
                               {(wc.newWeight * 100).toFixed(0)}%
                             </span>
                             <span className="text-[10px] text-white/20 ml-auto">
@@ -676,9 +676,9 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                       </p>
 
                       {evolution.warnings.length > 0 && (
-                        <div className="p-3 rounded-lg bg-yellow-500/5 border border-yellow-500/10">
+                        <div className="p-3 rounded-lg bg-warning-surface border border-warning-border">
                           {evolution.warnings.map((w, i) => (
-                            <p key={i} className="text-xs text-yellow-400/60 flex gap-1.5">
+                            <p key={i} className="text-xs text-warning-text/60 flex gap-1.5">
                               <span>⚠️</span>
                               {w}
                             </p>

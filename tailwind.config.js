@@ -62,6 +62,9 @@ export default {
         'fade-in': 'fade-in 150ms ease-out',
         'slide-up': 'slide-up 200ms ease-out'
       },
+      transitionDuration: {
+        '250': '250ms'
+      },
       keyframes: {
         'page-enter': {
           from: { opacity: '0', transform: 'translateY(8px)' },

@@ -38,10 +38,10 @@ export default class ErrorBoundary extends Component<Props, State> {
       if (this.props.fallback) return this.props.fallback
 
       return (
-        <div className="h-screen flex items-center justify-center bg-[#0f0f13]">
+        <div className="h-screen flex items-center justify-center bg-app-bg">
           <div className="text-center max-w-md px-6">
-            <div className="p-3 rounded-full bg-red-500/10 inline-block mb-4">
-              <AlertTriangle size={28} className="text-red-400" />
+            <div className="p-3 rounded-full bg-danger-surface inline-block mb-4">
+              <AlertTriangle size={28} className="text-danger-text" />
             </div>
             <h2 className="text-white font-semibold text-lg mb-2">页面出现异常</h2>
             <p className="text-white/40 text-sm mb-2">

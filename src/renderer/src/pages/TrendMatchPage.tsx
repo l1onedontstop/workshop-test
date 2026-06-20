@@ -57,9 +57,9 @@ const SOURCE_LABELS: Record<string, string> = {
 
 const SOURCE_COLORS: Record<string, string> = {
   douyin: 'border-pink-500/30 text-pink-400 bg-pink-500/10',
-  weibo: 'border-red-500/30 text-red-400 bg-red-500/10',
+  weibo: 'border-red-500/30 text-danger-text bg-danger-surface',
   zhihu: 'border-blue-500/30 text-blue-400 bg-blue-500/10',
-  tophub: 'border-green-500/30 text-green-400 bg-green-500/10'
+  tophub: 'border-success-border text-success-text bg-success-surface'
 }
 
 // ── Helpers ──
@@ -77,17 +77,17 @@ function heatDisplay(heat: number): string {
 
 function methodBadge(method: string): { color: string; label: string } {
   if (method.includes('API') || method.includes('realtime') || method === 'realtime') {
-    return { color: 'border-green-500/30 text-green-400 bg-green-500/10', label: method }
+    return { color: 'border-success-border text-success-text bg-success-surface', label: method }
   }
-  return { color: 'border-yellow-500/30 text-yellow-400 bg-yellow-500/10', label: method || 'AI模拟' }
+  return { color: 'border-yellow-500/30 text-warning-text bg-warning-surface', label: method || 'AI模拟' }
 }
 
 function relevanceBadge(relevance: MatchItem['relevance']): { color: string; label: string } {
   switch (relevance) {
     case 'high':
-      return { color: 'bg-green-500/20 text-green-400 border-green-500/30', label: '高相关' }
+      return { color: 'bg-success-surface text-success-text border-success-border', label: '高相关' }
     case 'medium':
-      return { color: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', label: '中相关' }
+      return { color: 'bg-yellow-500/20 text-warning-text border-yellow-500/30', label: '中相关' }
     case 'low':
       return { color: 'bg-white/5 text-white/30 border-white/10', label: '低相关' }
   }
@@ -256,7 +256,7 @@ export default function TrendMatchPage({
           {/* ── Loading ── */}
           {fetchLoading && (
             <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 size={32} className="animate-spin text-purple-400/50 mb-4" />
+              <Loader2 size={32} className="animate-spin text-brand-400/50 mb-4" />
               <p className="text-white/40 text-sm">
                 正在获取 {SOURCE_LABELS[selectedSource] || selectedSource} 热点...
               </p>
@@ -267,8 +267,8 @@ export default function TrendMatchPage({
           {/* ── Error ── */}
           {fetchError && !fetchLoading && (
             <div className="flex flex-col items-center justify-center py-20 gap-3">
-              <AlertTriangle size={32} className="text-red-400/60" />
-              <p className="text-red-400 text-sm">{fetchError}</p>
+              <AlertTriangle size={32} className="text-danger-text/60" />
+              <p className="text-danger-text text-sm">{fetchError}</p>
               <button
                 onClick={() => fetchTrends(selectedSource)}
                 className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/70 text-sm transition-colors"
@@ -353,14 +353,14 @@ export default function TrendMatchPage({
           {/* ── Match loading ── */}
           {matchLoading && fetchResult && fetchResult.trends.length > 0 && (
             <div className="flex items-center gap-3 justify-center py-8">
-              <Loader2 size={18} className="animate-spin text-purple-400/50" />
+              <Loader2 size={18} className="animate-spin text-brand-400/50" />
               <span className="text-white/30 text-sm">AI 正在匹配适合你的热点...</span>
             </div>
           )}
 
           {/* ── Match error ── */}
           {matchError && !matchLoading && (
-            <div className="flex items-center gap-2 justify-center py-4 text-red-400/60 text-sm">
+            <div className="flex items-center gap-2 justify-center py-4 text-danger-text/60 text-sm">
               <AlertTriangle size={14} />
               {matchError}
             </div>
@@ -370,12 +370,12 @@ export default function TrendMatchPage({
           {!matchLoading && matchResult && matchResult.matches.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
-                <Sparkles size={16} className="text-purple-400" />
+                <Sparkles size={16} className="text-brand-400" />
                 <h2 className="text-sm font-medium text-white/70">为你匹配的热点</h2>
               </div>
 
               {matchResult.summary && (
-                <div className="p-4 rounded-xl bg-gradient-to-r from-purple-500/10 to-brand-500/10 border border-purple-500/20">
+                <div className="p-4 rounded-xl bg-gradient-to-r from-brand-500/10 to-brand-500/10 border border-brand-500/20">
                   <p className="text-sm text-white/50 leading-relaxed">{matchResult.summary}</p>
                 </div>
               )}
@@ -386,7 +386,7 @@ export default function TrendMatchPage({
                   return (
                     <div
                       key={i}
-                      className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-purple-500/20 transition-all group"
+                      className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-brand-500/20 transition-all group"
                     >
                       <div className="flex items-start gap-4">
                         <span className="shrink-0 w-7 text-sm font-bold text-white/12 font-mono">
@@ -407,7 +407,7 @@ export default function TrendMatchPage({
 
                           <p className="text-xs text-white/40 flex gap-2">
                             <span className="text-white/15 shrink-0">切入角度：</span>
-                            <span className="text-purple-300/80">{match.suggestedAngle}</span>
+                            <span className="text-brand-300/80">{match.suggestedAngle}</span>
                           </p>
 
                           <p className="text-xs text-white/25 flex gap-2">
@@ -419,7 +419,7 @@ export default function TrendMatchPage({
                             <div className="pt-1">
                               <button
                                 onClick={() => onWriteScript(match.suggestedAngle)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600/20 border border-purple-500/20 hover:bg-purple-600/30 text-purple-300 text-xs font-medium transition-colors"
+                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600/20 border border-brand-500/20 hover:bg-brand-600/30 text-brand-300 text-xs font-medium transition-colors"
                               >
                                 写脚本
                                 <ArrowRight size={12} />

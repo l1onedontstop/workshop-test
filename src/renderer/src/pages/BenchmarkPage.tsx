@@ -140,7 +140,7 @@ export default function BenchmarkPage({ onBack }: { onBack: () => void }) {
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
                       {(ai.contentPillars || []).map((p, i) => (
-                        <span key={i} className="px-2.5 py-1 rounded-full text-xs bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                        <span key={i} className="px-2.5 py-1 rounded-full text-xs bg-brand-500/10 border border-brand-500/20 text-brand-300">
                           {p}
                         </span>
                       ))}
@@ -152,7 +152,7 @@ export default function BenchmarkPage({ onBack }: { onBack: () => void }) {
                     </h4>
                     <div className="flex flex-wrap gap-1.5">
                       {(ai.styleFeatures || []).map((s, i) => (
-                        <span key={i} className="px-2.5 py-1 rounded-full text-xs bg-yellow-500/10 border border-yellow-500/20 text-yellow-300">
+                        <span key={i} className="px-2.5 py-1 rounded-full text-xs bg-warning-surface border border-warning-border text-yellow-300">
                           {s}
                         </span>
                       ))}
@@ -176,14 +176,14 @@ export default function BenchmarkPage({ onBack }: { onBack: () => void }) {
                 </div>
 
                 {/* Recommended hook patterns */}
-                <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10">
-                  <h4 className="text-xs text-green-400/70 mb-3 flex items-center gap-1.5">
+                <div className="p-4 rounded-xl bg-success-surface border border-success-border">
+                  <h4 className="text-xs text-success-text/70 mb-3 flex items-center gap-1.5">
                     <Sparkles size={12} /> 推荐你尝试的钩子模式
                   </h4>
                   <div className="space-y-2">
                     {(ai.recommendedHookPatterns || []).map((h: string, i: number) => (
                       <div key={i} className="flex items-start gap-2 text-sm text-white/60">
-                        <ChevronRight size={14} className="text-green-400 mt-0.5 shrink-0" />
+                        <ChevronRight size={14} className="text-success-text mt-0.5 shrink-0" />
                         {h}
                       </div>
                     ))}
@@ -194,26 +194,26 @@ export default function BenchmarkPage({ onBack }: { onBack: () => void }) {
                 </div>
 
                 <div className="flex gap-3">
-                  <div className="flex-1 p-4 rounded-xl bg-green-500/5 border border-green-500/10">
-                    <h4 className="text-xs text-green-400/70 mb-2 flex items-center gap-1.5">
+                  <div className="flex-1 p-4 rounded-xl bg-success-surface border border-success-border">
+                    <h4 className="text-xs text-success-text/70 mb-2 flex items-center gap-1.5">
                       <CheckCircle2 size={12} /> 可借鉴之处
                     </h4>
                     <ul className="space-y-1.5">
                       {(ai.learnablePoints || []).map((p, i) => (
                         <li key={i} className="text-xs text-white/50 flex items-start gap-1.5">
-                          <span className="text-green-400 mt-0.5">•</span> {p}
+                          <span className="text-success-text mt-0.5">•</span> {p}
                         </li>
                       ))}
                     </ul>
                   </div>
-                  <div className="flex-1 p-4 rounded-xl bg-red-500/5 border border-red-500/10">
-                    <h4 className="text-xs text-red-400/70 mb-2 flex items-center gap-1.5">
+                  <div className="flex-1 p-4 rounded-xl bg-danger-surface border border-danger-border">
+                    <h4 className="text-xs text-danger-text/70 mb-2 flex items-center gap-1.5">
                       <AlertCircle size={12} /> 注意风险
                     </h4>
                     <ul className="space-y-1.5">
                       {(ai.riskWarnings || []).map((w, i) => (
                         <li key={i} className="text-xs text-white/50 flex items-start gap-1.5">
-                          <span className="text-red-400 mt-0.5">•</span> {w}
+                          <span className="text-danger-text mt-0.5">•</span> {w}
                         </li>
                       ))}
                     </ul>
@@ -252,7 +252,7 @@ export default function BenchmarkPage({ onBack }: { onBack: () => void }) {
         <div className="flex-1 overflow-y-auto p-6">
           <div className="max-w-lg mx-auto space-y-5">
             <div className="text-center mb-6">
-              <Target size={36} className="text-yellow-400/50 mx-auto mb-3" />
+              <Target size={36} className="text-warning-text/50 mx-auto mb-3" />
               <p className="text-sm text-white/40">
                 对标账号是评分校准的参照系。AI 会分析账号的内容 pattern，作为后续打分的锚点。
               </p>
@@ -309,7 +309,7 @@ export default function BenchmarkPage({ onBack }: { onBack: () => void }) {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-2.5">
+              <div className="flex items-center gap-2 text-danger-text text-sm bg-danger-surface border border-danger-border rounded-lg px-4 py-2.5">
                 <AlertCircle size={14} /> {error}
               </div>
             )}
@@ -377,9 +377,9 @@ export default function BenchmarkPage({ onBack }: { onBack: () => void }) {
             <div>
             {/* Cross-account summary */}
             {crossSummary && crossSummary.commonPatterns && crossSummary.commonPatterns.length > 0 && (
-              <div className="mb-6 p-5 rounded-xl bg-purple-500/5 border border-purple-500/10">
+              <div className="mb-6 p-5 rounded-xl bg-brand-500/5 border border-brand-500/10">
                 <h3 className="text-sm font-medium text-white mb-3 flex items-center gap-2">
-                  <Sparkles size={14} className="text-purple-400" />
+                  <Sparkles size={14} className="text-brand-400" />
                   跨账号总结（{crossSummary.accounts.length} 个对标）
                 </h3>
                 <div className="space-y-3">
@@ -387,7 +387,7 @@ export default function BenchmarkPage({ onBack }: { onBack: () => void }) {
                     <p className="text-[10px] text-white/25 mb-1.5">共性 pattern</p>
                     <div className="flex flex-wrap gap-1.5">
                       {(crossSummary.commonPatterns || []).map((p: string, i: number) => (
-                        <span key={i} className="px-2.5 py-1 rounded-full text-xs bg-purple-500/10 border border-purple-500/20 text-purple-300">
+                        <span key={i} className="px-2.5 py-1 rounded-full text-xs bg-brand-500/10 border border-brand-500/20 text-brand-300">
                           {p}
                         </span>
                       ))}

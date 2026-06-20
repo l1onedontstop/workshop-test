@@ -36,9 +36,9 @@ const STATUS_LABELS: Record<string, string> = {
 const STATUS_COLORS: Record<string, string> = {
   draft: 'text-white/30',
   topics_selected: 'text-blue-400',
-  strategy_ready: 'text-purple-400',
-  scripts_generated: 'text-green-400',
-  scheduled: 'text-yellow-400',
+  strategy_ready: 'text-brand-400',
+  scripts_generated: 'text-success-text',
+  scheduled: 'text-warning-text',
   completed: 'text-brand-400'
 }
 
@@ -204,7 +204,7 @@ export default function PlanListPage({
                         {STATUS_LABELS[plan.status] || plan.status}
                       </span>
                       {plan.status === 'completed' && (
-                        <CheckCircle2 size={14} className="text-green-400 shrink-0" />
+                        <CheckCircle2 size={14} className="text-success-text shrink-0" />
                       )}
                     </div>
                     <div className="flex items-center gap-4 text-xs text-white/30">
@@ -226,7 +226,7 @@ export default function PlanListPage({
                       <>
                         <button
                           onClick={() => handleDelete(plan.id)}
-                          className="px-2.5 py-1 rounded text-[10px] bg-red-600/20 border border-red-500/30 text-red-400 hover:bg-red-600/30"
+                          className="px-2.5 py-1 rounded text-[10px] bg-red-600/20 border border-red-500/30 text-danger-text hover:bg-red-600/30"
                         >
                           确认删除
                         </button>
@@ -241,7 +241,7 @@ export default function PlanListPage({
                       <>
                         <button
                           onClick={() => setDeleteConfirm(plan.id)}
-                          className="p-1.5 rounded text-white/15 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100"
+                          className="p-1.5 rounded text-white/15 hover:text-danger-text hover:bg-danger-surface transition-colors opacity-0 group-hover:opacity-100"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -249,7 +249,7 @@ export default function PlanListPage({
                           onClick={() => onOpenPlan(plan.id)}
                           className={`px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors flex items-center gap-1.5 ${
                             plan.status === 'completed'
-                              ? 'bg-green-600/10 border-green-500/20 hover:bg-green-600/20 text-green-300'
+                              ? 'bg-green-600/10 border-success-border hover:bg-green-600/20 text-success-text'
                               : 'bg-brand-600/20 border-brand-500/20 hover:bg-brand-600/30 text-brand-300'
                           }`}
                         >

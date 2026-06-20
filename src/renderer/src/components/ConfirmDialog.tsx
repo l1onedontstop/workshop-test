@@ -35,15 +35,15 @@ export default function ConfirmDialog({
   const iconColors = {
     default: 'text-brand-400',
     warning: 'text-amber-400',
-    success: 'text-green-400',
-    danger: 'text-red-400'
+    success: 'text-success-text',
+    danger: 'text-danger-text'
   }
 
   const ringColors = {
     default: 'border-brand-500/20',
     warning: 'border-amber-500/20',
-    success: 'border-green-500/20',
-    danger: 'border-red-500/20'
+    success: 'border-success-border',
+    danger: 'border-danger-border'
   }
 
   return (

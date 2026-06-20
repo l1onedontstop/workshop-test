@@ -155,9 +155,9 @@ export default function WelcomePage({
         <div className="w-full max-w-lg text-center animate-fade-in">
           {/* Animated success icon */}
           <div className="relative mx-auto mb-8 w-20 h-20 motion-safe:animate-pulse">
-            <div className="absolute inset-0 rounded-full bg-green-500/20 motion-safe:animate-ping" />
-            <div className="relative w-20 h-20 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center">
-              <CheckCircle size={36} className="text-green-400" />
+            <div className="absolute inset-0 rounded-full bg-success-surface motion-safe:animate-ping" />
+            <div className="relative w-20 h-20 rounded-full bg-success-surface border border-success-border flex items-center justify-center">
+              <CheckCircle size={36} className="text-success-text" />
             </div>
           </div>
 
@@ -258,7 +258,7 @@ export default function WelcomePage({
           </div>
 
           {error && (
-            <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-danger-surface border border-danger-border rounded-lg px-4 py-2.5">
+            <div className="mt-4 flex items-center gap-2 text-danger-text text-sm bg-danger-surface border border-danger-border rounded-lg px-4 py-2.5">
               <AlertCircle size={14} />
               {error}
             </div>
@@ -288,7 +288,7 @@ export default function WelcomePage({
       <div className="w-full max-w-lg">
         {/* Brand hero */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-600 to-purple-600 mb-5 shadow-glow">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-600 mb-5 shadow-glow">
             <Sparkles size={28} className="text-white/90" />
           </div>
           <h1 className="text-2xl font-bold text-white/90 mb-2">打造你的个人IP</h1>
@@ -314,7 +314,7 @@ export default function WelcomePage({
                 </div>
                 {i < STEPS.length - 1 && (
                   <div className={`w-5 h-px transition-colors duration-300 mx-1 ${
-                    i < currentStep ? 'bg-green-500/50' : 'bg-white/[0.06]'
+                    i < currentStep ? 'bg-success-surface0' : 'bg-white/[0.06]'
                   }`} />
                 )}
               </div>
@@ -412,7 +412,7 @@ export default function WelcomePage({
           )}
 
           {error && (
-            <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-danger-surface border border-danger-border rounded-lg px-4 py-2.5">
+            <div className="mt-4 flex items-center gap-2 text-danger-text text-sm bg-danger-surface border border-danger-border rounded-lg px-4 py-2.5">
               <AlertCircle size={14} />
               {error}
             </div>

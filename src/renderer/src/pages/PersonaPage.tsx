@@ -103,7 +103,7 @@ export default function PersonaPage({ onBack }: { onBack: () => void }) {
         {persona && (
           <button
             onClick={handleClear}
-            className="px-3 py-2 rounded-lg bg-red-500/5 border border-red-500/10 hover:bg-red-500/10 text-red-400/70 hover:text-red-400 text-sm transition-colors flex items-center gap-1.5"
+            className="px-3 py-2 rounded-lg bg-danger-surface border border-danger-border hover:bg-danger-surface text-danger-text/70 hover:text-danger-text text-sm transition-colors flex items-center gap-1.5"
           >
             <Trash2 size={14} />
             清除
@@ -115,7 +115,7 @@ export default function PersonaPage({ onBack }: { onBack: () => void }) {
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-3xl mx-auto">
           {error && (
-            <div className="mb-6 flex items-center gap-2 text-red-400 text-sm bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-2.5">
+            <div className="mb-6 flex items-center gap-2 text-danger-text text-sm bg-danger-surface border border-danger-border rounded-lg px-4 py-2.5">
               <AlertCircle size={14} /> {error}
             </div>
           )}
@@ -163,7 +163,7 @@ export default function PersonaPage({ onBack }: { onBack: () => void }) {
                 />
                 <AudienceCard
                   title="次要受众"
-                  icon={<Users size={16} className="text-purple-400" />}
+                  icon={<Users size={16} className="text-brand-400" />}
                   data={persona.secondaryAudience}
                 />
               </div>
@@ -172,24 +172,24 @@ export default function PersonaPage({ onBack }: { onBack: () => void }) {
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                   <h4 className="text-xs text-white/40 mb-3 flex items-center gap-1.5">
-                    <CheckCircle2 size={12} className="text-green-400" /> 什么内容有效
+                    <CheckCircle2 size={12} className="text-success-text" /> 什么内容有效
                   </h4>
                   <ul className="space-y-2">
                     {(persona.contentAdvice?.whatWorks || []).map((w, i) => (
                       <li key={i} className="text-xs text-white/50 flex items-start gap-1.5">
-                        <span className="text-green-400 mt-0.5">•</span> {w}
+                        <span className="text-success-text mt-0.5">•</span> {w}
                       </li>
                     ))}
                   </ul>
                 </div>
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                   <h4 className="text-xs text-white/40 mb-3 flex items-center gap-1.5">
-                    <Shield size={12} className="text-red-400" /> 要避免什么
+                    <Shield size={12} className="text-danger-text" /> 要避免什么
                   </h4>
                   <ul className="space-y-2">
                     {(persona.contentAdvice?.whatAvoid || []).map((w, i) => (
                       <li key={i} className="text-xs text-white/50 flex items-start gap-1.5">
-                        <span className="text-red-400 mt-0.5">•</span> {w}
+                        <span className="text-danger-text mt-0.5">•</span> {w}
                       </li>
                     ))}
                   </ul>
@@ -200,7 +200,7 @@ export default function PersonaPage({ onBack }: { onBack: () => void }) {
               {persona.contentAdvice?.toneAdvice && (
                 <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
                   <h4 className="text-xs text-white/40 mb-2 flex items-center gap-1.5">
-                    <Lightbulb size={12} className="text-yellow-400" /> 风格建议
+                    <Lightbulb size={12} className="text-warning-text" /> 风格建议
                   </h4>
                   <p className="text-sm text-white/60">{persona.contentAdvice.toneAdvice}</p>
                 </div>
@@ -208,14 +208,14 @@ export default function PersonaPage({ onBack }: { onBack: () => void }) {
 
               {/* Growth */}
               {persona.growthOpportunities?.length > 0 && (
-                <div className="p-4 rounded-xl bg-green-500/5 border border-green-500/10">
-                  <h4 className="text-xs text-green-400/70 mb-3 flex items-center gap-1.5">
+                <div className="p-4 rounded-xl bg-success-surface border border-success-border">
+                  <h4 className="text-xs text-success-text/70 mb-3 flex items-center gap-1.5">
                     <TrendingUp size={12} /> 增长机会
                   </h4>
                   <div className="space-y-2">
                     {persona.growthOpportunities.map((o, i) => (
                       <div key={i} className="flex items-start gap-2 text-sm text-white/50">
-                        <ChevronRight size={14} className="text-green-400 mt-0.5 shrink-0" />
+                        <ChevronRight size={14} className="text-success-text mt-0.5 shrink-0" />
                         {o}
                       </div>
                     ))}
@@ -274,7 +274,7 @@ function AudienceCard({
             <p className="text-[10px] text-white/20 mb-1">痛点</p>
             <div className="flex flex-wrap gap-1">
               {data.painPoints.map((s, i) => (
-                <span key={i} className="px-2 py-0.5 rounded-full text-[10px] bg-red-500/5 border border-red-500/10 text-red-300/70">
+                <span key={i} className="px-2 py-0.5 rounded-full text-[10px] bg-danger-surface border border-danger-border text-danger-text/70">
                   {s}
                 </span>
               ))}
