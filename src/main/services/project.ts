@@ -4,7 +4,7 @@ import { join, basename } from 'path'
 import { homedir } from 'os'
 import { mkdirSync, existsSync, readFileSync, writeFileSync, readdirSync, rmSync } from 'fs'
 
-export const WORKSPACE_ROOT = join(homedir(), 'IP工坊', 'projects')
+export const WORKSPACE_ROOT = join(homedir(), 'SparkForge', 'projects')
 
 export function ensureDir(path: string): void {
   if (!existsSync(path)) {

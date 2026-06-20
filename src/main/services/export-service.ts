@@ -10,7 +10,7 @@ export function buildChecklistMarkdown(data: any): string {
   lines.push('', '---', '', '## 器材清单', '')
   if (equipment.camera) lines.push(`- [ ] 拍摄：${equipment.camera}`); if (equipment.audio) lines.push(`- [ ] 收音：${equipment.audio}`); if (equipment.lighting) lines.push(`- [ ] 灯光：${equipment.lighting}`)
   if (equipment.props?.length > 0 && equipment.props[0] !== '无需') { lines.push('', '### 道具'); for (const p of equipment.props) lines.push(`- [ ] ${p}`) }
-  lines.push('', '---', '', '## 开拍前检查', '- [ ] 电量充足 - [ ] 存储够 - [ ] 灯光OK - [ ] 背景整洁 - [ ] 脚本熟读3遍', '', '*IP工坊自动生成*')
+  lines.push('', '---', '', '## 开拍前检查', '- [ ] 电量充足 - [ ] 存储够 - [ ] 灯光OK - [ ] 背景整洁 - [ ] 脚本熟读3遍', '', '*SparkForge 自动生成*')
   return lines.join('\n')
 }
 

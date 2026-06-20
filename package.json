@@ -1,7 +1,7 @@
 {
-  "name": "ip-studio",
+  "name": "sparkforge",
   "version": "1.0.0",
-  "description": "IP工坊 — 个人IP打造桌面App",
+  "description": "SparkForge — 个人影响力锻造工坊",
   "main": "./out/main/index.js",
   "author": "IP工坊",
   "type": "module",
@@ -34,8 +34,8 @@
     "zustand": "^5.0.0"
   },
   "build": {
-    "appId": "com.ipstudio.app",
-    "productName": "IP工坊",
+    "appId": "com.sparkforge.app",
+    "productName": "SparkForge",
     "directories": {
       "output": "dist"
     },

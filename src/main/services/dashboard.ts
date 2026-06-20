@@ -5,7 +5,7 @@ import { homedir } from 'os'
 import { existsSync, readdirSync, readFileSync } from 'fs'
 import { info } from './logger'
 
-const WORKSPACE_ROOT = join(homedir(), 'IP工坊', 'projects')
+const WORKSPACE_ROOT = join(homedir(), 'SparkForge', 'projects')
 
 function collectAllPredictions() {
   if (!existsSync(WORKSPACE_ROOT)) return []

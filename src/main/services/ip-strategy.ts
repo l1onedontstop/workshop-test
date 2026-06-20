@@ -2,7 +2,7 @@
  * IP Strategy Blueprint — AI 生成的完整 IP 打造方案
  *
  * 从用户画像生成：定位 → 内容支柱 → 选题路线图 → 执行计划
- * 这是 IP工坊 的核心：不是脚本生成器，而是 IP 教练。
+ * 这是 SparkForge 的核心：不是脚本生成器，而是 IP 教练。
  */
 
 import { ipcMain } from 'electron'

@@ -25,7 +25,7 @@ async function callEdgeTTS(text: string, voiceId: string): Promise<Buffer> {
 export function registerTTSHandlers(): void {
   ipcMain.handle('tts:generate', async (_e, text: string, opts: any = {}) => {
     const voiceId = opts.voice || 'zh-CN-XiaoxiaoNeural'
-    const outputDir = opts.outputDir || join(homedir(), 'IP工坊', 'audio')
+    const outputDir = opts.outputDir || join(homedir(), 'SparkForge', 'audio')
     if (!existsSync(outputDir)) mkdirSync(outputDir, { recursive: true })
     const cleanText = text.replace(/[#*`\-\[\]]/g, '').replace(/\n\n+/g, '。').replace(/\n/g, ' ').trim()
     info('tts', `Generating: ${cleanText.length} chars`)

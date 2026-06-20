@@ -106,8 +106,8 @@ function registerHandlers(): void {
 
 app.whenReady().then(() => {
   registerErrorHandlers()
-  logInfo('main', 'IP工坊 starting', { version: app.getVersion() })
-  electronApp.setAppUserModelId('com.ipstudio.app')
+  logInfo('main', 'SparkForge starting', { version: app.getVersion() })
+  electronApp.setAppUserModelId('com.sparkforge.app')
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

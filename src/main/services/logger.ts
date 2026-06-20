@@ -3,7 +3,7 @@ import { join } from 'path'
 import { homedir } from 'os'
 import { existsSync, mkdirSync, writeFileSync, appendFileSync, statSync, renameSync, rmSync, readFileSync } from 'fs'
 
-const LOG_DIR = join(homedir(), 'IP工坊', 'logs')
+const LOG_DIR = join(homedir(), 'SparkForge', 'logs')
 const LOG_FILE = join(LOG_DIR, 'app.log')
 const MAX_LOG_SIZE = 5 * 1024 * 1024 // 5MB
 const MAX_BACKUPS = 3

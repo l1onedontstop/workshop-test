@@ -4,7 +4,7 @@ import { homedir } from 'os'
 import { existsSync, mkdirSync } from 'fs'
 import { info } from './logger'
 
-const OFFLINE_CACHE_DIR = join(homedir(), 'IP工坊', 'cache')
+const OFFLINE_CACHE_DIR = join(homedir(), 'SparkForge', 'cache')
 
 function ensureCacheDir(): void { if (!existsSync(OFFLINE_CACHE_DIR)) mkdirSync(OFFLINE_CACHE_DIR, { recursive: true }) }
 

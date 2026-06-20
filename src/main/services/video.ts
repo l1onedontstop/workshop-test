@@ -26,7 +26,7 @@ export function registerVideoHandlers(): void {
   ipcMain.handle('video:compose', async (_e, data: { imagePath: string; audioPath: string; outputDir?: string; duration?: number }) => {
     if (!existsSync(data.imagePath)) return { success: false, error: 'Image not found' }
     if (!existsSync(data.audioPath)) return { success: false, error: 'Audio not found' }
-    const outDir = data.outputDir || join(homedir(), 'IP工坊', 'videos')
+    const outDir = data.outputDir || join(homedir(), 'SparkForge', 'videos')
     if (!existsSync(outDir)) mkdirSync(outDir, { recursive: true })
     const outPath = join(outDir, `output-${Date.now()}.mp4`)
     return runFFmpeg(['-loop', '1', '-i', data.imagePath, '-i', data.audioPath, '-c:v', 'libx264', '-c:a', 'aac', '-pix_fmt', 'yuv420p', '-vf', 'scale=1080:1920:force_original_aspect_ratio=decrease,pad=1080:1920:(ow-iw)/2:(oh-ih)/2', '-shortest', '-y', outPath])

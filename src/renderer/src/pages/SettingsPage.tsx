@@ -344,9 +344,9 @@ export default function SettingsPage() {
 
       {/* About */}
       <div className="mt-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6">
-        <h2 className="text-white font-medium mb-3">关于 IP工坊</h2>
+        <h2 className="text-white font-medium mb-3">关于 SparkForge</h2>
         <div className="space-y-2 text-sm text-white/30">
-          <p>版本：0.5.0</p>
+          <p>版本：1.0.0</p>
           <p>基于 cheat-on-content 方法论构建</p>
           <p>所有数据存储在本地，不经过任何第三方服务器</p>
         </div>

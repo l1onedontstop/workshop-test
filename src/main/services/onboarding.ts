@@ -3,7 +3,7 @@ import { join } from 'path'
 import { homedir } from 'os'
 import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'fs'
 
-const ONBOARDING_DIR = join(homedir(), 'IP工坊', 'config')
+const ONBOARDING_DIR = join(homedir(), 'SparkForge', 'config')
 const ONBOARDING_FILE = join(ONBOARDING_DIR, 'onboarding.json')
 
 function load(): any {
