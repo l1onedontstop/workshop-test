@@ -1,150 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
   <defs>
-    <!-- Background: dark forge metal with subtle warmth -->
-    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#1e1b18"/>
-      <stop offset="40%" stop-color="#1a1714"/>
-      <stop offset="100%" stop-color="#141110"/>
+    <!-- === BACKGROUND GRADIENTS === -->
+    <!-- Dark metallic base -->
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1e1b2e"/>
+      <stop offset="40%" stop-color="#18142a"/>
+      <stop offset="100%" stop-color="#0f0b1a"/>
     </linearGradient>
 
-    <!-- Warm ambient glow behind flame -->
-    <radialGradient id="ambientGlow" cx="50%" cy="42%" r="38%">
-      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.18"/>
-      <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.05"/>
-      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+    <!-- Subtle radial sheen for metallic depth -->
+    <radialGradient id="bgShine" cx="0.45" cy="0.35" r="0.6">
+      <stop offset="0%" stop-color="#2d2550" stop-opacity="0.28"/>
+      <stop offset="60%" stop-color="#1a1530" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#0f0b1a" stop-opacity="0"/>
     </radialGradient>
 
-    <!-- Core flame glow for depth -->
-    <radialGradient id="coreGlow" cx="50%" cy="55%" r="30%">
-      <stop offset="0%" stop-color="#fef3c7" stop-opacity="0.35"/>
-      <stop offset="60%" stop-color="#fbbf24" stop-opacity="0.10"/>
-      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
-    </radialGradient>
-
-    <!-- Right facet — warmer, brighter (light from forge) -->
-    <linearGradient id="facetRight" x1="0%" y1="50%" x2="100%" y2="50%">
-      <stop offset="0%" stop-color="#f59e0b"/>
-      <stop offset="70%" stop-color="#fbbf24"/>
-      <stop offset="100%" stop-color="#fcd34d"/>
+    <!-- Inner border highlight -->
+    <linearGradient id="borderGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4a3b7c" stop-opacity="0.5"/>
+      <stop offset="50%" stop-color="#3b2f5e" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#2d2250" stop-opacity="0.35"/>
     </linearGradient>
 
-    <!-- Left facet — cooler, shadowed -->
-    <linearGradient id="facetLeft" x1="100%" y1="50%" x2="0%" y2="50%">
-      <stop offset="0%" stop-color="#f59e0b"/>
-      <stop offset="50%" stop-color="#d97706"/>
-      <stop offset="100%" stop-color="#b45309"/>
+    <!-- === BRAND GRADIENTS === -->
+    <!-- Primary diagonal gradient: violet → indigo -->
+    <linearGradient id="brandGrad" x1="0.15" y1="0" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="20%" stop-color="#a78bfa"/>
+      <stop offset="45%" stop-color="#8b5cf6"/>
+      <stop offset="70%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#5b21b6"/>
     </linearGradient>
 
-    <!-- Top facet — brightest, closest to spark point -->
-    <linearGradient id="facetTop" x1="50%" y1="100%" x2="50%" y2="0%">
-      <stop offset="0%" stop-color="#fbbf24"/>
-      <stop offset="60%" stop-color="#fcd34d"/>
-      <stop offset="100%" stop-color="#fef3c7"/>
+    <!-- Horizontal variant for crossbars -->
+    <linearGradient id="brandGradH" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#c4b5fd"/>
+      <stop offset="40%" stop-color="#8b5cf6"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
     </linearGradient>
 
-    <!-- Inner body facets -->
-    <linearGradient id="facetInnerRight" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#fbbf24"/>
-      <stop offset="100%" stop-color="#f59e0b"/>
-    </linearGradient>
+    <!-- === FILTERS === -->
+    <!-- Mark glow for subtle bloom -->
+    <filter id="markGlow" x="-35%" y="-35%" width="170%" height="170%">
+      <feGaussianBlur stdDeviation="16" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
 
-    <linearGradient id="facetInnerLeft" x1="100%" y1="0%" x2="0%" y2="100%">
-      <stop offset="0%" stop-color="#fbbf24"/>
-      <stop offset="100%" stop-color="#d97706"/>
-    </linearGradient>
-
-    <!-- Forge base / anvil line -->
-    <linearGradient id="anvilLine" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0"/>
-      <stop offset="30%" stop-color="#f59e0b" stop-opacity="0.35"/>
-      <stop offset="50%" stop-color="#fbbf24" stop-opacity="0.45"/>
-      <stop offset="70%" stop-color="#f59e0b" stop-opacity="0.35"/>
-      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
-    </linearGradient>
-
-    <!-- Subtle inner border glow -->
-    <linearGradient id="borderGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.15"/>
-      <stop offset="50%" stop-color="#f59e0b" stop-opacity="0.04"/>
-      <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
-    </linearGradient>
+    <!-- Large ambient glow behind the mark -->
+    <filter id="ambientGlow" x="-100%" y="-100%" width="300%" height="300%">
+      <feGaussianBlur stdDeviation="80"/>
+    </filter>
   </defs>
 
-  <!-- === BACKGROUND === -->
-  <!-- Rounded square base -->
-  <rect x="64" y="64" width="896" height="896" rx="200" ry="200" fill="url(#bgGrad)"/>
+  <!-- ===== BACKGROUND ===== -->
+  <!-- Main rounded square (macOS style) -->
+  <rect x="52" y="52" width="920" height="920" rx="196" fill="url(#bgGrad)"/>
 
-  <!-- Ambient warm glow -->
-  <rect x="64" y="64" width="896" height="896" rx="200" ry="200" fill="url(#ambientGlow)"/>
+  <!-- Metallic sheen overlay -->
+  <rect x="52" y="52" width="920" height="920" rx="196" fill="url(#bgShine)"/>
 
-  <!-- Core glow behind flame -->
-  <circle cx="512" cy="440" r="280" fill="url(#coreGlow)"/>
+  <!-- Subtle inner border -->
+  <rect x="52" y="52" width="920" height="920" rx="196" fill="none" stroke="url(#borderGrad)" stroke-width="2"/>
 
-  <!-- === FORGE BASE LINES === -->
-  <!-- Top anvil line -->
-  <line x1="340" y1="630" x2="684" y2="630" stroke="url(#anvilLine)" stroke-width="2.5"/>
-  <!-- Bottom anvil line -->
-  <line x1="360" y1="650" x2="664" y2="650" stroke="url(#anvilLine)" stroke-width="1.5"/>
+  <!-- ===== AMBIENT GLOW BEHIND MARK ===== -->
+  <ellipse cx="510" cy="510" rx="260" ry="270" fill="#7c3aed" opacity="0.07" filter="url(#ambientGlow)"/>
 
-  <!-- === MAIN FLAME — FACETED GEOMETRIC SPARK === -->
-  <!--
-    Flame silhouette (8 outer points):
-    Top:        (512, 160)    — flame tip
-    UR-high:    (610, 310)
-    UR-mid:     (680, 450)    — widest point right
-    UR-low:     (610, 580)
-    Bottom:     (512, 620)    — flame base
-    UL-low:     (414, 580)
-    UL-mid:     (344, 450)    — widest point left
-    UL-high:    (414, 310)
-  -->
+  <!-- ===== S+F MARK ===== -->
+  <g filter="url(#markGlow)">
+    <!--
+      F TOP CROSSBAR
+      Extends left from the S's top-left connection point.
+      Stroke: 88px for slight differentiation from S curves (96px).
+    -->
+    <path d="M 175 340 L 370 340"
+          fill="none" stroke="url(#brandGradH)" stroke-width="88" stroke-linecap="round"/>
 
-  <!-- LEFT OUTER WING (shadow side) -->
-  <polygon points="512,600  380,450  440,310  512,340"
-           fill="url(#facetLeft)" opacity="0.85"/>
+    <!--
+      F MIDDLE CROSSBAR
+      Extends left from the S's middle-left connection point.
+      Shorter than top bar = classic F proportion.
+    -->
+    <path d="M 230 530 L 370 530"
+          fill="none" stroke="url(#brandGradH)" stroke-width="88" stroke-linecap="round"/>
 
-  <!-- RIGHT OUTER WING (light side) -->
-  <polygon points="512,600  644,450  584,310  512,340"
-           fill="url(#facetRight)" opacity="0.90"/>
+    <!--
+      S TOP CURVE
+      From left stem → arcs up-right → descends to right side.
+      Creates the top half of the S.
+    -->
+    <path d="M 370 340 C 370 230, 690 240, 690 410"
+          fill="none" stroke="url(#brandGrad)" stroke-width="96" stroke-linecap="round"/>
 
-  <!-- LEFT INNER BODY -->
-  <polygon points="512,600  440,460  460,330  512,340"
-           fill="url(#facetInnerLeft)" opacity="0.92"/>
+    <!--
+      S MIDDLE CROSSING
+      From right side → arcs left-down → connects back to left stem.
+      The diagonal that gives the S its characteristic form.
+    -->
+    <path d="M 690 410 C 690 525, 370 500, 370 530"
+          fill="none" stroke="url(#brandGrad)" stroke-width="96" stroke-linecap="round"/>
 
-  <!-- RIGHT INNER BODY -->
-  <polygon points="512,600  584,460  564,330  512,340"
-           fill="url(#facetInnerRight)" opacity="0.95"/>
+    <!--
+      S BOTTOM CURVE
+      From left stem → arcs right-down → terminal extends into the spark.
+      The S's final flourish.
+    -->
+    <path d="M 370 530 C 370 645, 690 655, 690 745"
+          fill="none" stroke="url(#brandGrad)" stroke-width="96" stroke-linecap="round"/>
 
-  <!-- TOP FACET (brightest, the spark point) -->
-  <polygon points="440,310  512,160  584,310  512,340"
-           fill="url(#facetTop)" opacity="0.95"/>
-
-  <!-- CENTER CORE (hottest point) -->
-  <polygon points="470,440  512,270  554,440  512,520"
-           fill="#fef3c7" opacity="0.20"/>
-
-  <!-- Core bright ellipse -->
-  <ellipse cx="512" cy="440" rx="28" ry="40" fill="#fef3c7" opacity="0.18"/>
-
-  <!-- === SPARK PARTICLES === -->
-  <!-- Top-right spark -->
-  <circle cx="630" cy="220" r="7" fill="#fcd34d" opacity="0.55"/>
-  <circle cx="634" cy="216" r="3" fill="#fef3c7" opacity="0.3"/>
-
-  <!-- Top-left spark -->
-  <circle cx="390" cy="240" r="5.5" fill="#fbbf24" opacity="0.50"/>
-  <circle cx="393" cy="237" r="2.5" fill="#fef3c7" opacity="0.25"/>
-
-  <!-- Far left spark -->
-  <circle cx="340" cy="360" r="4.5" fill="#fbbf24" opacity="0.35"/>
-
-  <!-- Far right spark -->
-  <circle cx="690" cy="380" r="3.5" fill="#fcd34d" opacity="0.30"/>
-
-  <!-- Upper mid spark -->
-  <circle cx="570" cy="180" r="4" fill="#fef3c7" opacity="0.35"/>
-
-  <!-- === SUBTLE INNER BORDER === -->
-  <rect x="64" y="64" width="896" height="896" rx="200" ry="200"
-        fill="none" stroke="url(#borderGlow)" stroke-width="2"/>
+    <!--
+      SPARK / FORGE ELEMENT
+      A sharp, geometric 2-point spark extending from the S terminal.
+      Reads as a forge spark while remaining clean at small sizes.
+    -->
+    <path d="M 685 745
+             L 795 715
+             L 715 750
+             L 815 790
+             L 695 775
+             Z"
+          fill="url(#brandGrad)"/>
+  </g>
 </svg>
