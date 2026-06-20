@@ -49,14 +49,14 @@
         "dmg",
         "zip"
       ],
-      "artifactName": "IP工坊-${version}-mac-${arch}.${ext}"
+      "artifactName": "SparkForge-${version}-mac-${arch}.${ext}"
     },
     "win": {
       "icon": "resources/icon-256.png",
       "target": [
         "nsis"
       ],
-      "artifactName": "IP工坊-${version}-win-${arch}.${ext}"
+      "artifactName": "SparkForge-${version}-win-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,

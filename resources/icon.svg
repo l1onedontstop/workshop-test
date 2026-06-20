@@ -1,36 +1,64 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
   <defs>
+    <!-- Background: dark metallic forge -->
     <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#1e3a8a"/>
-      <stop offset="100%" style="stop-color:#2563eb"/>
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
     </linearGradient>
-    <linearGradient id="playGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#ffffff"/>
-      <stop offset="100%" style="stop-color:#bfdbfe"/>
+    <!-- Spark/Flame gradient -->
+    <linearGradient id="sparkGrad" x1="50%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" style="stop-color:#f59e0b"/>
+      <stop offset="40%" style="stop-color:#f97316"/>
+      <stop offset="100%" style="stop-color:#facc15"/>
     </linearGradient>
-    <!-- Inner shadow for depth -->
-    <filter id="innerGlow">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="6" result="blur"/>
-      <feOffset dx="0" dy="-4" result="offsetBlur"/>
-      <feComposite in="SourceGraphic" in2="offsetBlur" operator="over"/>
+    <!-- Anvil/base gradient -->
+    <linearGradient id="anvilGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" style="stop-color:#64748b"/>
+      <stop offset="100%" style="stop-color:#334155"/>
+    </linearGradient>
+    <!-- Ambient glow filter -->
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur"/>
+      <feComposite in="SourceGraphic" in2="blur" operator="over"/>
     </filter>
   </defs>
 
   <!-- Rounded square background -->
   <rect x="64" y="64" width="896" height="896" rx="200" ry="200" fill="url(#bgGrad)"/>
 
-  <!-- Subtle inner highlight ring -->
-  <rect x="64" y="64" width="896" height="896" rx="200" ry="200" fill="none" stroke="#ffffff" stroke-width="4" opacity="0.12"/>
-  <rect x="68" y="68" width="888" height="888" rx="196" ry="196" fill="none" stroke="#ffffff" stroke-width="2" opacity="0.06"/>
+  <!-- Ring accents -->
+  <rect x="64" y="64" width="896" height="896" rx="200" ry="200" fill="none" stroke="#f59e0b" stroke-width="3" opacity="0.1"/>
+  <rect x="68" y="68" width="888" height="888" rx="196" ry="196" fill="none" stroke="#facc15" stroke-width="1.5" opacity="0.05"/>
 
-  <!-- Play triangle — geometric center slightly left for visual balance -->
-  <polygon points="370,300 370,724 710,512" fill="url(#playGrad)" opacity="0.95"/>
+  <!-- Glowing ember particles (background) -->
+  <circle cx="280" cy="380" r="4" fill="#fbbf24" opacity="0.3"/>
+  <circle cx="720" cy="340" r="3" fill="#fcd34d" opacity="0.25"/>
+  <circle cx="300" cy="650" r="5" fill="#fbbf24" opacity="0.2"/>
+  <circle cx="690" cy="680" r="3" fill="#fcd34d" opacity="0.2"/>
 
-  <!-- Subtle shine on play button -->
-  <polygon points="370,300 370,512 540,420" fill="#ffffff" opacity="0.12"/>
+  <!-- Anvil base (the forge) -->
+  <polygon points="380,720 644,720 620,680 404,680" fill="url(#anvilGrad)" opacity="0.7"/>
+  <rect x="440" y="670" width="144" height="10" rx="3" fill="#475569" opacity="0.5"/>
 
-  <!-- Three accent dots representing the pipeline: 写→发→复盘 -->
-  <circle cx="780" cy="350" r="28" fill="#60a5fa" opacity="0.9"/>
-  <circle cx="780" cy="430" r="16" fill="#93c5fd" opacity="0.6"/>
-  <circle cx="780" cy="490" r="10" fill="#bfdbfe" opacity="0.4"/>
+  <!-- Central diamond/spark shape — the "Spark" -->
+  <g filter="url(#glow)">
+    <!-- Main 5-point burst -->
+    <polygon
+      points="512,200 580,420 700,420 610,530 650,720 512,590 374,720 414,530 324,420 444,420"
+      fill="url(#sparkGrad)"
+      opacity="0.95"
+    />
+    <!-- Inner highlight -->
+    <polygon
+      points="512,280 556,440 650,440 580,520 608,640 512,555 416,640 444,520 374,440 468,440"
+      fill="#fef3c7"
+      opacity="0.25"
+    />
+    <!-- Center bright point -->
+    <circle cx="512" cy="460" r="20" fill="#fef3c7" opacity="0.4"/>
+  </g>
+
+  <!-- Impact line from spark hitting anvil -->
+  <line x1="430" y1="620" x2="594" y2="620" stroke="#fbbf24" stroke-width="2" opacity="0.3"/>
+  <line x1="450" y1="640" x2="574" y2="640" stroke="#fbbf24" stroke-width="1.5" opacity="0.2"/>
 </svg>
