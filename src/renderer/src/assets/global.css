@@ -11,28 +11,46 @@
 
   html, body, #root {
     height: 100%;
-    font-family: 'PingFang SC', 'Microsoft YaHei', system-ui, sans-serif;
+    background: #0b0b10;
+    font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+  /* ── Custom scrollbar ── */
+  @media (prefers-reduced-transparency: no-preference) {
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background-clip: padding-box;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.16);
+      background-clip: padding-box;
+    }
+
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
   }
 
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 3px;
-  }
-
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.25);
+  /* ── Respect reduced-motion preference ── */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0ms !important;
+      transition-duration: 0ms !important;
+    }
   }
 }
 
@@ -43,5 +61,19 @@
 
   .no-drag {
     -webkit-app-region: no-drag;
+  }
+
+  /* ── Page transition ── */
+  .page-transition {
+    animation: page-enter 200ms ease-out;
+  }
+}
+
+@layer utilities {
+  /* Motion-safe wrapper for custom animations */
+  .motion-safe\:animate-page-enter {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: page-enter 200ms ease-out;
+    }
   }
 }

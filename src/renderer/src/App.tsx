@@ -103,9 +103,9 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen bg-[#0f0f13] text-white overflow-hidden">
+    <div className="flex h-screen bg-app-bg text-white overflow-hidden">
       <TitleBar />
-      <div className="flex flex-1 pt-10">
+      <div className="flex flex-1 pt-12">
         {showSidebar && (
           <Sidebar currentPage={page} onNavigate={handleNavigate} onNewProject={handleNewProject} />
         )}

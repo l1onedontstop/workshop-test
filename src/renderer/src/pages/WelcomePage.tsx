@@ -137,7 +137,6 @@ export default function WelcomePage({
         contentType: a[5] || '',
         identity
       })
-      // forceActiveLast=true ensures new project becomes active
       await loadProjects(true)
       setIsCreating(false)
       setCreated(true)
@@ -149,50 +148,55 @@ export default function WelcomePage({
     }
   }
 
-  // ── Post-creation: generate IP Blueprint ──
+  // ── Post-creation — upgraded success state ──
   if (created) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="w-full max-w-lg text-center">
-          <div className="mb-8">
-            <CheckCircle size={48} className="text-green-400 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-white mb-2">项目创建成功！</h1>
-            <p className="text-white/40 text-sm mb-6">
-              AI 正在为你生成 IP 打造蓝图——包含定位、内容策略、第一步行动计划
-            </p>
-            <div className="flex justify-center mb-6">
-              <Sparkles size={24} className="text-brand-400/70" />
+        <div className="w-full max-w-lg text-center animate-fade-in">
+          {/* Animated success icon */}
+          <div className="relative mx-auto mb-8 w-20 h-20 motion-safe:animate-pulse">
+            <div className="absolute inset-0 rounded-full bg-green-500/20 motion-safe:animate-ping" />
+            <div className="relative w-20 h-20 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center">
+              <CheckCircle size={36} className="text-green-400" />
             </div>
           </div>
 
-          <button
-            onClick={async () => {
-              // Map step answers to the keys expected by ip-strategy
-              const industry = answers[0] || ''
-              const experience = answers[2] || ''
-              const blueprintInput: Record<string, string> = {
-                industry,
-                audience: answers[1] || '',
-                experience,
-                time: answers[3] || '',
-                benchmark: answers[4] || '',
-                contentType: answers[5] || '',
-                identity: [industry, experience].filter(Boolean).join(' | ') || '新手创作者'
-              }
-              onNavigateToBlueprint?.(blueprintInput)
-            }}
-            className="w-full py-4 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-base font-medium transition-colors flex items-center justify-center gap-2 mb-4"
-          >
-            <Sparkles size={20} />
-            生成我的 IP 蓝图
-          </button>
+          <h1 className="text-2xl font-bold text-white/90 mb-2">项目创建成功！</h1>
+          <p className="text-white/45 text-sm mb-3">
+            你的 IP 打造之路正式启动
+          </p>
+          <p className="text-white/30 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
+            AI 正在分析你的回答，为你生成专属的 IP 打造蓝图——包含定位、内容策略、第一条视频计划
+          </p>
 
-          <button
-            onClick={onSkip || (() => { onBack?.() || setCreated(false) })}
-            className="text-sm text-white/25 hover:text-white/40 transition-colors"
-          >
-            跳过，进入工作台
-          </button>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={async () => {
+                const industry = answers[0] || ''
+                const experience = answers[2] || ''
+                onNavigateToBlueprint?.({
+                  industry,
+                  audience: answers[1] || '',
+                  experience,
+                  time: answers[3] || '',
+                  benchmark: answers[4] || '',
+                  contentType: answers[5] || '',
+                  identity: [industry, experience].filter(Boolean).join(' | ') || '新手创作者'
+                })
+              }}
+              className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-all duration-150 hover:shadow-md active:scale-[0.98] flex items-center gap-2"
+            >
+              <Sparkles size={16} />
+              生成我的 IP 蓝图
+            </button>
+            <button
+              onClick={onSkip || (() => { onBack?.() || setCreated(false) })}
+              className="px-6 py-3 rounded-xl bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-white/50 hover:text-white/70 text-sm font-medium transition-all duration-150"
+            >
+              进入工作台
+            </button>
+          </div>
+          <p className="text-xs text-white/25 mt-4">推荐先生成蓝图，AI 将根据你的回答定制完整方案</p>
         </div>
       </div>
     )
@@ -202,32 +206,35 @@ export default function WelcomePage({
   if (showNameInput) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="w-full max-w-lg">
+        <div className="w-full max-w-lg animate-fade-in">
           <div className="text-center mb-8">
             <Sparkles size={32} className="text-brand-400/50 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-white mb-2">给你的项目起个名字</h1>
+            <h1 className="text-2xl font-bold text-white/90 mb-2">给你的项目起个名字</h1>
             <p className="text-white/40 text-sm">
               例如：老杨的AI成神之路、XX行业观察笔记
             </p>
           </div>
 
-          <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 space-y-4">
-            <input
-              type="text"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreateProject()
-              }}
-              placeholder="输入项目名称（留空则自动生成）"
-              className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-brand-500/30"
-              autoFocus
-            />
+          <div className="bg-app-surface border border-white/[0.06] rounded-2xl p-6 space-y-4 shadow-sm">
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-white/45">项目名称</label>
+              <input
+                type="text"
+                value={projectName}
+                onChange={(e) => setProjectName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleCreateProject()
+                }}
+                placeholder="输入项目名称（留空则自动生成）"
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-white/90 placeholder:text-white/20 transition-all duration-150 hover:border-white/[0.12] focus:outline-none focus:border-brand-500/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-brand-500/20"
+                autoFocus
+              />
+            </div>
 
             <button
               onClick={handleCreateProject}
               disabled={isCreating}
-              className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-40 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-500 hover:shadow-md disabled:opacity-40 disabled:hover:bg-brand-600 text-white text-sm font-medium transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
             >
               {isCreating ? (
                 <>
@@ -244,14 +251,14 @@ export default function WelcomePage({
 
             <button
               onClick={() => setShowNameInput(false)}
-              className="w-full py-2 text-sm text-white/25 hover:text-white/40 transition-colors"
+              className="w-full py-2 text-sm text-white/30 hover:text-white/50 transition-colors"
             >
               返回修改回答
             </button>
           </div>
 
           {error && (
-            <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-2.5">
+            <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-danger-surface border border-danger-border rounded-lg px-4 py-2.5">
               <AlertCircle size={14} />
               {error}
             </div>
@@ -269,7 +276,7 @@ export default function WelcomePage({
         <div className="p-4">
           <button
             onClick={onBack}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-white/5 text-white/30 hover:text-white/50 transition-colors text-sm"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg hover:bg-white/[0.05] text-white/30 hover:text-white/50 transition-colors text-sm"
           >
             <ChevronLeft size={16} />
             返回工作台
@@ -277,42 +284,50 @@ export default function WelcomePage({
         </div>
       )}
 
-      <div className="flex-1 flex items-start justify-center px-4 pt-8 pb-16 overflow-y-auto">
+      <div className="flex-1 flex items-start justify-center px-4 pt-4 pb-16 overflow-y-auto">
       <div className="w-full max-w-lg">
-        {/* Header */}
+        {/* Brand hero */}
         <div className="text-center mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/20 mb-4">
-            <Sparkles size={14} className="text-brand-400" />
-            <span className="text-xs text-brand-400 font-medium">AI 教练</span>
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-600 to-purple-600 mb-5 shadow-glow">
+            <Sparkles size={28} className="text-white/90" />
           </div>
-          <h1 className="text-2xl font-bold text-white mb-2">打造你的个人IP</h1>
+          <h1 className="text-2xl font-bold text-white/90 mb-2">打造你的个人IP</h1>
           <p className="text-white/40 text-sm">
             回答几个问题，AI教练为你定制专属方案
           </p>
 
-          {/* Step indicators */}
-          <div className="flex justify-center gap-2 mt-6">
-            {STEPS.map((_, i) => (
-              <div
-                key={i}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  i < currentStep
-                    ? 'bg-green-500'
-                    : i === currentStep
-                      ? 'bg-brand-500 scale-125'
-                      : 'bg-white/15'
-                }`}
-              />
+          {/* Progress indicator — upgraded */}
+          <div className="flex items-center justify-center gap-1 mt-8">
+            {STEPS.map((s, i) => (
+              <div key={i} className="flex items-center gap-1">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
+                    i < currentStep
+                      ? 'bg-green-500'
+                      : i === currentStep
+                        ? 'bg-brand-500 ring-4 ring-brand-500/20'
+                        : 'bg-white/[0.10]'
+                  }`} />
+                  {i === currentStep && (
+                    <span className="text-xs text-brand-400 font-medium hidden sm:inline">{s.title}</span>
+                  )}
+                </div>
+                {i < STEPS.length - 1 && (
+                  <div className={`w-5 h-px transition-colors duration-300 mx-1 ${
+                    i < currentStep ? 'bg-green-500/50' : 'bg-white/[0.06]'
+                  }`} />
+                )}
+              </div>
             ))}
           </div>
         </div>
 
         {/* Question card */}
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-8">
+        <div className="bg-app-surface border border-white/[0.06] rounded-2xl p-8 shadow-sm animate-fade-in">
           <p className="text-xs text-white/30 mb-1">
             问题 {currentStep + 1} / {STEPS.length}
           </p>
-          <h2 className="text-lg font-semibold text-white mb-2">
+          <h2 className="text-lg font-semibold text-white/85 mb-2">
             {step.description}
           </h2>
 
@@ -324,19 +339,19 @@ export default function WelcomePage({
                 onChange={(e) => setOtherInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleOtherSubmit() }}
                 placeholder="请输入..."
-                className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-brand-500/50"
+                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-white/90 placeholder:text-white/20 transition-all duration-150 focus:outline-none focus:border-brand-500/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-brand-500/20"
                 autoFocus
               />
               <div className="flex gap-3">
                 <button
                   onClick={handleOtherSubmit}
-                  className="flex-1 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-colors"
+                  className="flex-1 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-all duration-150 active:scale-[0.98]"
                 >
                   确认
                 </button>
                 <button
                   onClick={() => setShowOtherInput(false)}
-                  className="px-4 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 text-sm transition-colors"
+                  className="px-4 py-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-white/50 hover:text-white/70 text-sm font-medium transition-all duration-150"
                 >
                   取消
                 </button>
@@ -353,24 +368,24 @@ export default function WelcomePage({
                   }
                 }}
                 placeholder="输入对标账号的名称或链接，也可以跳过..."
-                className="w-full h-24 bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-sm text-white placeholder:text-white/20 resize-none focus:outline-none focus:border-brand-500/50"
+                className="w-full h-24 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-white/90 placeholder:text-white/20 resize-none transition-all duration-150 focus:outline-none focus:border-brand-500/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-brand-500/20"
               />
               <div className="flex gap-3">
                 <button
                   onClick={handleFreeTextNext}
-                  className="flex-1 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-colors flex items-center justify-center gap-2"
+                  className="flex-1 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-all duration-150 active:scale-[0.98] flex items-center justify-center gap-2"
                 >
                   继续
                   <ArrowRight size={16} />
                 </button>
                 <button
                   onClick={handleFreeTextNext}
-                  className="px-4 py-2.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 text-sm transition-colors"
+                  className="px-4 py-2.5 rounded-lg bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-white/50 hover:text-white/70 text-sm font-medium transition-all duration-150"
                 >
                   跳过
                 </button>
               </div>
-              <p className="text-white/15 text-xs text-center">Cmd+Enter 快捷提交</p>
+              <p className="text-white/20 text-xs text-center">Cmd+Enter 快捷提交</p>
             </div>
           ) : (
             <div className="mt-4 space-y-2">
@@ -380,15 +395,15 @@ export default function WelcomePage({
                   <button
                     key={option}
                     onClick={() => handleSelect(option)}
-                    className={`w-full text-left px-4 py-3 rounded-lg border transition-all text-sm ${
+                    className={`w-full text-left px-4 py-3 rounded-lg border transition-all duration-150 text-sm active:scale-[0.99] ${
                       isSelected
-                        ? 'border-brand-500/50 bg-brand-500/10 text-brand-300'
-                        : 'border-white/[0.06] bg-white/[0.02] text-white/60 hover:border-white/15 hover:text-white/80'
+                        ? 'border-brand-500/40 bg-brand-500/8 text-brand-300 shadow-glow'
+                        : 'border-white/[0.06] bg-white/[0.02] text-white/55 hover:border-white/[0.12] hover:text-white/75 hover:bg-white/[0.04] hover:translate-x-[2px]'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span>{option}</span>
-                      {isSelected && <CheckCircle size={16} className="text-brand-400" />}
+                      {isSelected && <CheckCircle size={16} className="text-brand-400 shrink-0" />}
                     </div>
                   </button>
                 )
@@ -397,14 +412,14 @@ export default function WelcomePage({
           )}
 
           {error && (
-            <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-red-500/5 border border-red-500/20 rounded-lg px-4 py-2.5">
+            <div className="mt-4 flex items-center gap-2 text-red-400 text-sm bg-danger-surface border border-danger-border rounded-lg px-4 py-2.5">
               <AlertCircle size={14} />
               {error}
             </div>
           )}
         </div>
 
-        {/* Back button — previous question or exit */}
+        {/* Back button */}
         {!isCreating && (
           <div className="mt-4 flex items-center justify-center gap-4">
             {currentStep > 0 && (

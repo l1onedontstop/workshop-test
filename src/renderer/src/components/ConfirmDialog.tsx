@@ -25,30 +25,44 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   if (!open) return null
 
-  const variantStyles = {
-    default: 'bg-brand-600 hover:bg-brand-500',
-    warning: 'bg-yellow-600 hover:bg-yellow-500',
-    success: 'bg-green-600 hover:bg-green-500',
-    danger: 'bg-red-600 hover:bg-red-500'
+  const primaryStyles = {
+    default: 'bg-brand-600 hover:bg-brand-500 text-white',
+    warning: 'bg-amber-600 hover:bg-amber-500 text-white',
+    success: 'bg-green-600 hover:bg-green-500 text-white',
+    danger: 'bg-red-600 hover:bg-red-500 text-white'
+  }
+
+  const iconColors = {
+    default: 'text-brand-400',
+    warning: 'text-amber-400',
+    success: 'text-green-400',
+    danger: 'text-red-400'
+  }
+
+  const ringColors = {
+    default: 'border-brand-500/20',
+    warning: 'border-amber-500/20',
+    success: 'border-green-500/20',
+    danger: 'border-red-500/20'
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center animate-fade-in">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/60" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Dialog */}
-      <div className="relative bg-[#1a1a24] border border-white/10 rounded-2xl w-full max-w-md mx-4 p-6 shadow-2xl animate-in">
+      <div className={`relative bg-app-elevated border ${ringColors[variant]} rounded-2xl w-full max-w-md mx-4 p-6 shadow-lg animate-slide-up`}>
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 p-1 rounded-lg hover:bg-white/5 text-white/30 hover:text-white/60 transition-colors"
+          className="absolute top-4 right-4 p-1.5 rounded-lg hover:bg-white/[0.06] text-white/30 hover:text-white/60 transition-colors"
         >
           <X size={16} />
         </button>
 
         {/* Content */}
-        <h3 className="text-lg font-semibold text-white mb-2">{title}</h3>
+        <h3 className="text-lg font-semibold text-white/90 mb-2">{title}</h3>
         <p className="text-sm text-white/50 mb-6 leading-relaxed">{message}</p>
 
         {/* Actions */}
@@ -56,14 +70,14 @@ export default function ConfirmDialog({
           {secondaryLabel && onSecondary && (
             <button
               onClick={onSecondary}
-              className="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-white/50 text-sm transition-colors"
+              className="px-4 py-2.5 rounded-xl bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-white/55 hover:text-white/75 text-sm font-medium transition-all duration-150"
             >
               {secondaryLabel}
             </button>
           )}
           <button
             onClick={onPrimary}
-            className={`px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-colors ${variantStyles[variant]}`}
+            className={`px-5 py-2.5 rounded-xl text-white text-sm font-medium transition-all duration-150 hover:shadow-md active:scale-[0.98] ${primaryStyles[variant]}`}
           >
             {primaryLabel}
           </button>
