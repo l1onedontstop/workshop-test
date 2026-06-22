@@ -132,7 +132,7 @@ export default function App() {
               onPlans={() => setPage('plan-list')}
               onNewProject={handleNewProject}
               onNavigateToPlan={(planId) => { setPendingPlanId(planId); setPage('plan-editor') }}
-              onNavigateToScript={() => setPage('script-editor')}
+              onNavigateToScript={(scriptFile) => { if (scriptFile) setPendingScriptFile(scriptFile); setPage('script-editor') }}
               onNavigateToRetro={() => setPage('retro')}
               onNavigateToBlueprint={() => { setBlueprintAnswers(undefined); setPage('blueprint') }}
             />

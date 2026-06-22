@@ -27,7 +27,7 @@ interface ProjectPageProps {
   onPlans?: () => void
   onNewProject?: () => void
   onNavigateToPlan?: (planId: string) => void
-  onNavigateToScript?: () => void
+  onNavigateToScript?: (scriptFile?: string) => void
   onNavigateToRetro?: () => void
   onNavigateToBlueprint?: () => void
 }
@@ -273,7 +273,7 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
           </div>
           <div className="space-y-1 mb-3">
             {scriptsList.slice(0, 10).map((s) => (
-              <Button key={s.name} variant="ghost" onClick={() => onNavigateToScript?.()} className="w-full justify-between">
+              <Button key={s.name} variant="ghost" onClick={() => onNavigateToScript?.(s.name)} className="w-full justify-between">
                 <span className="text-sm text-ink-secondary truncate">{s.name.replace('.md', '')}</span>
                 <ArrowRight size={14} className="text-ink-disabled shrink-0" />
               </Button>
@@ -319,7 +319,7 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
                 const clickable = entry.navTarget || (entry.type === 'script_saved' && entry.scriptFile) || entry.planId
                 const handleClick = () => {
                   if (entry.navTarget === 'plan-editor' && entry.planId) onNavigateToPlan?.(entry.planId)
-                  else if (entry.navTarget === 'script-editor' || (entry.type === 'script_saved' && entry.scriptFile)) onNavigateToScript?.()
+                  else if (entry.navTarget === 'script-editor' || (entry.type === 'script_saved' && entry.scriptFile)) onNavigateToScript?.(entry.scriptFile)
                   else if (entry.navTarget === 'retro') onNavigateToRetro?.()
                   else if (entry.navTarget === 'publish' || entry.type === 'script_published') onPublish?.()
                   else if (entry.type === 'plan_created' || entry.type === 'plan_completed') onNavigateToPlan?.(entry.planId || '')

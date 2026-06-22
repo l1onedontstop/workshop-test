@@ -87,8 +87,8 @@ function buildPredictionPath(projectPath: string, today: string, seq: string, sa
 }
 
 function extractScript(raw: string): string {
-  // Layer 1: Try --- separator (most common case)
-  const sepIndex = raw.lastIndexOf('---')
+  // Layer 1: Try --- separator — use FIRST occurrence to grab voiceover only
+  const sepIndex = raw.indexOf('---')
   if (sepIndex > 0) {
     const scriptPart = raw.substring(0, sepIndex).trim()
     if (scriptPart.length > 20) return scriptPart
@@ -123,62 +123,7 @@ function extractScript(raw: string): string {
   return ''
 }
 
-// ── Script Section Parser ─────────────────────────────────
-
-interface ScriptSections {
-  voiceover: string
-  style: string
-  storyboard: string
-  equipment: string
-  scene: string
-  postProduction: string
-  cover: string
-  rawJson: string
-}
-
-function parseFullScript(raw: string): ScriptSections | null {
-  // Replace table header-separator rows (|---|...|) with placeholder
-  // so they don't get mistaken for section dividers
-  const safeLines: string[] = []
-  let inTable = false
-  for (const line of raw.split('\n')) {
-    const trimmed = line.trim()
-    // Detect table separator row: starts with |, contains only |-: and spaces
-    if (trimmed.startsWith('|') && /^\|[\-: |]+\|$/.test(trimmed)) {
-      safeLines.push('<!TS>')
-      inTable = true
-      continue
-    }
-    // Exit table on non-table line
-    if (inTable && !trimmed.startsWith('|')) {
-      inTable = false
-    }
-    safeLines.push(line)
-  }
-  const safe = safeLines.join('\n')
-  
-  const parts = safe.split(/\r?\n---\r?\n/)
-  if (parts.length < 3) return null
-  
-  return buildSections(parts.map(p => p.replace(/<!TS>/g, '')))
-}function buildSections(parts: string[]): ScriptSections {
-  const result: ScriptSections = {
-    voiceover: parts[0].trim(),
-    style: '',
-    storyboard: '',
-    equipment: '',
-    scene: '',
-    postProduction: '',
-    cover: '',
-    rawJson: ''
-  }
-  const keys = ['style', 'storyboard', 'equipment', 'scene', 'postProduction', 'cover'] as const
-  for (let i = 1; i < parts.length - 1 && i <= keys.length; i++) {
-    result[keys[i - 1]] = parts[i].trim()
-  }
-  result.rawJson = parts[parts.length - 1].trim()
-  return result
-}
+import { parseFullScript, type ScriptSections } from '../services/scriptParser'
 
 // ── Section Card Component ────────────────────────────────
 
@@ -308,6 +253,10 @@ export default function ScriptEditorPage({
   const [currentScriptFile, setCurrentScriptFile] = useState<string | null>(null)
   const [coverResult, setCoverResult] = useState<any>(null)
   const [showCoverModal, setShowCoverModal] = useState(false)
+  const [showReportModal, setShowReportModal] = useState(false)
+  const [reportContent, setReportContent] = useState('')
+  const [reportLoading, setReportLoading] = useState(false)
+  const [reportError, setReportError] = useState('')
 
   const loadScriptList = useCallback(async () => {
     if (!activeProject) return
@@ -332,11 +281,21 @@ export default function ScriptEditorPage({
         const content = await window.api.readFile(scriptPath) as string
         const topicMatch = content.match(/^# (.+)/m)
         if (topicMatch) setTopic(topicMatch[1])
-        const sepIdx = content.indexOf('\n---\n')
-        const body = sepIdx > 0
-          ? content.substring(0, sepIdx).replace(/^# .*\n/, '').trim()
-          : content.trim()
-        setScript(body)
+        // Parse full 8-section format if available
+        const sections = parseFullScript(content)
+        if (sections?.voiceover) {
+          // Strip the # topic header line that handleSave prepends (avoids round-trip corruption)
+          const cleanVoiceover = sections.voiceover.replace(/^# .+\n\n?/, '')
+          setScript(cleanVoiceover)
+          setScriptSections({ ...sections, voiceover: cleanVoiceover })
+        } else {
+          const sepIdx = content.indexOf('\n---\n')
+          const body = sepIdx > 0
+            ? content.substring(0, sepIdx).replace(/^# .*\n/, '').trim()
+            : content.trim()
+          setScript(body)
+          setScriptSections(null)
+        }
         setCurrentScriptFile(initialScriptFile)
       } catch { /* ignore */ }
     })()
@@ -355,20 +314,24 @@ export default function ScriptEditorPage({
         audience: activeProject?.opts?.targetAudience || '',
         projectPath: activeProject?.path || ''
       })
-      const scriptText = extractScript(raw)
+      // Parse full production plan first — 8 sections separated by ---
+      const sections = parseFullScript(raw)
+      let scriptText: string
+      if (sections?.voiceover) {
+        // Use voiceover section directly (avoids lastIndexOf('---') grabbing all sections)
+        scriptText = sections.voiceover
+        setScriptSections(sections)
+        setShowFullPlan(true)
+      } else {
+        // Fallback: old format (script --- scores) or plain script
+        scriptText = extractScript(raw)
+        setScriptSections(null)
+        setShowFullPlan(false)
+      }
       const scores = parseScoreResult(raw)
 
       setScript(scriptText)
       if (scores) setScoreResult(scores)
-      // Parse full production plan sections and auto-expand
-      const sections = parseFullScript(raw)
-      if (sections) {
-        setScriptSections(sections)
-        setShowFullPlan(true) // Auto-show full plan on generation
-      } else {
-        setScriptSections(null)
-        setShowFullPlan(false)
-      }
     } catch (err) {
       setError(translateAIError(err, 'AI 生成'))
     } finally {
@@ -410,10 +373,14 @@ export default function ScriptEditorPage({
       // Reuse existing file name if editing; otherwise create new
       let fileName: string
       let scriptPath: string
+      let nextSeq: string
 
       if (currentScriptFile) {
         fileName = currentScriptFile
         scriptPath = `${activeProject.path}/scripts/${fileName}`
+        // Extract seq from existing filename (format: YYYY-MM-DD_SSS_topic.md)
+        const seqMatch = currentScriptFile.match(/^\d{4}-\d{2}-\d{2}_(\d{3})_/)
+        nextSeq = seqMatch ? seqMatch[1] : '001'
       } else {
         const existingScripts = await window.api.listScripts(activeProject.path)
         const todayPrefix = `${today}_`
@@ -427,7 +394,7 @@ export default function ScriptEditorPage({
             }
           }
         }
-        const nextSeq = String(maxSeq + 1).padStart(3, '0')
+        nextSeq = String(maxSeq + 1).padStart(3, '0')
         fileName = `${today}_${nextSeq}_${safeTopic}.md`
         scriptPath = buildScriptPath(activeProject.path, today, nextSeq, safeTopic)
         setCurrentScriptFile(fileName)
@@ -438,7 +405,25 @@ export default function ScriptEditorPage({
         '',
         script,
         '',
-        '---',
+        // When full production plan is available, embed all 8 sections
+        scriptSections
+          ? [
+              '---',
+              scriptSections.style || '',
+              '---',
+              scriptSections.storyboard || '',
+              '---',
+              scriptSections.equipment || '',
+              '---',
+              scriptSections.scene || '',
+              '---',
+              scriptSections.postProduction || '',
+              '---',
+              scriptSections.cover || '',
+              '---',
+              scriptSections.rawJson || '',
+            ].join('\n')
+          : '---',
         '',
         scoreResult
           ? [
@@ -647,7 +632,7 @@ export default function ScriptEditorPage({
     } catch (err) {
       setError(translateAIError(err, '保存'))
     }
-  }, [script, topic, scoreResult, activeProject])
+  }, [script, topic, scoreResult, activeProject, scriptSections, currentScriptFile])
 
   const handleDelete = useCallback(async (scriptName: string) => {
     if (!activeProject) return
@@ -719,11 +704,20 @@ export default function ScriptEditorPage({
                           const content = await window.api.readFile(s.path) as string
                           const topicMatch = content.match(/^# (.+)/m)
                           if (topicMatch) setTopic(topicMatch[1])
-                          const sepIdx = content.indexOf('\n---\n')
-                          const body = sepIdx > 0
-                            ? content.substring(0, sepIdx).replace(/^# .*\n/, '').trim()
-                            : content.trim()
-                          setScript(body)
+                          // Parse full 8-section format if available
+                          const sections = parseFullScript(content)
+                          if (sections?.voiceover) {
+                            const cleanVoiceover = sections.voiceover.replace(/^# .+\n\n?/, '')
+                            setScript(cleanVoiceover)
+                            setScriptSections({ ...sections, voiceover: cleanVoiceover })
+                          } else {
+                            const sepIdx = content.indexOf('\n---\n')
+                            const body = sepIdx > 0
+                              ? content.substring(0, sepIdx).replace(/^# .*\n/, '').trim()
+                              : content.trim()
+                            setScript(body)
+                            setScriptSections(null)
+                          }
                           setCurrentScriptFile(s.name)
                           setShowScriptList(false)
                         } catch { /* ignore */ }
@@ -1184,6 +1178,57 @@ export default function ScriptEditorPage({
         </div>
       )}
 
+      {/* Prediction report modal */}
+      {showReportModal && reportContent && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center bg-black/60">
+          <Card level="elevated" className="w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col shadow-2xl overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-rule-subtle shrink-0">
+              <h3 className="text-lg font-semibold text-ink-primary flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-success-text" />
+                🔒 预测报告
+              </h3>
+              <Button variant="ghost" size="sm" onClick={() => setShowReportModal(false)} icon={<X size={18} />} />
+            </div>
+            <div className="flex-1 overflow-y-auto p-6">
+              <div
+                className="prose prose-sm max-w-none text-ink-secondary"
+                dangerouslySetInnerHTML={{
+                  __html: reportContent
+                    .replace(/^# (.+)$/gm, '<h1 class="text-xl font-bold text-ink-primary mb-4">$1</h1>')
+                    .replace(/^## (.+)$/gm, '<h2 class="text-base font-semibold text-ink-primary mt-6 mb-3">$1</h2>')
+                    .replace(/^### (.+)$/gm, '<h3 class="text-sm font-medium text-ink-tertiary mt-4 mb-2">$1</h3>')
+                    .replace(/^- (.+)$/gm, '<li class="text-xs text-ink-tertiary ml-4">$1</li>')
+                    .replace(/^> (.+)$/gm, '<blockquote class="text-xs text-ink-disabled italic border-l-2 border-rule pl-3 my-2">$1</blockquote>')
+                    .replace(/\|(.+)\|/g, (m) => {
+                      const cells = m.split('|').filter(c => c.trim())
+                      return '<tr>' + cells.map((c, i) => {
+                        const tag = m.includes('---') ? '' : i === 0 ? '<th class="border border-rule px-2 py-1 text-xs text-ink-tertiary font-medium bg-black/[0.02] text-left">' : '<td class="border border-rule px-2 py-1 text-xs text-ink-tertiary">'
+                        return tag + c.trim() + (tag ? tag.replace('<', '</').split(' ')[0] : '')
+                      }).join('') + '</tr>'
+                    })
+                    .replace(/\*\*(.+?)\*\*/g, '<strong class="font-semibold text-ink-primary">$1</strong>')
+                    .replace(/\n\n/g, '</p><p class="text-xs text-ink-tertiary leading-relaxed mb-2">')
+                    .replace(/^(.+)$/gm, '<p class="text-xs text-ink-tertiary leading-relaxed mb-2">$1</p>')
+                }}
+              />
+            </div>
+            <div className="px-6 py-3 border-t border-rule-subtle shrink-0 flex gap-3">
+              <Button variant="secondary" size="md" onClick={() => setShowReportModal(false)} className="flex-1">关闭</Button>
+              <Button variant="primary" size="md" onClick={() => { navigator.clipboard.writeText(reportContent); alert('报告已复制到剪贴板') }} icon={<FileText size={14} />}>复制报告</Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Report error toast */}
+      {reportError && (
+        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-[120] px-4 py-2 rounded-lg bg-danger-surface border border-danger-border text-danger-text text-sm shadow-lg flex items-center gap-2">
+          <AlertCircle size={14} />
+          {reportError}
+          <Button variant="ghost" size="sm" onClick={() => setReportError('')} className="ml-2">✕</Button>
+        </div>
+      )}
+
       {/* Prediction locked indicator */}
       {predictionLocked && predictionData && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-success-surface border border-success-border text-success-text text-sm shadow-lg backdrop-blur-sm flex items-center gap-3">
@@ -1194,22 +1239,46 @@ export default function ScriptEditorPage({
             size="sm"
             onClick={async () => {
               if (!activeProject) return
-              const predFileName = (predictionData as Record<string, unknown>).scriptFile as string || ''
-              const reportFileName = predFileName.replace('.md', '.json').replace('.json', '') + '.report.md'
-              // Find the prediction file and its report
-              const preds = await window.api.listPredictions(activeProject.path) as Array<{ name: string; path: string }>
-              const reportPred = preds.find((p) => p.name.includes(reportFileName.replace('.report.md', '')))
-              if (reportPred) {
-                try {
-                  const reportPath = reportPred.path.replace('.json', '.report.md')
+              setReportLoading(true)
+              setReportError('')
+              try {
+                const predFileName = (predictionData as Record<string, unknown>).scriptFile as string || ''
+                const baseName = predFileName.replace(/\.md$/, '')
+                // Find the matching prediction .json to derive report path
+                const preds = await window.api.listPredictions(activeProject.path) as Array<{ name: string; path: string }>
+                const reportPred = preds.find((p) => p.name.includes(baseName))
+                if (reportPred) {
+                  const reportPath = reportPred.path.replace(/\.json$/, '.report.md')
                   const content = await window.api.readFile(reportPath) as string
-                  setScript(content)
-                  setTopic(`📋 预测报告`)
-                } catch { /* report not found */ }
+                  setReportContent(content)
+                  setShowReportModal(true)
+                } else {
+                  // Fallback: construct report path directly from script filename
+                  const today = predFileName.slice(0, 10)
+                  const safeTopic = baseName.replace(/^\d{4}-\d{2}-\d{2}_\d{3}_/, '')
+                  const predPath = `${activeProject.path}/predictions/${predFileName.replace(/\.md$/, '.json')}`
+                  const reportPath = predPath.replace(/\.json$/, '.report.md')
+                  try {
+                    const content = await window.api.readFile(reportPath) as string
+                    if (content) {
+                      setReportContent(content)
+                      setShowReportModal(true)
+                    } else {
+                      setReportError('报告文件为空')
+                    }
+                  } catch {
+                    setReportError('未找到预测报告文件，请先生成并保存脚本')
+                  }
+                }
+              } catch (e) {
+                setReportError(e instanceof Error ? e.message : '加载报告失败')
+              } finally {
+                setReportLoading(false)
               }
             }}
+            disabled={reportLoading}
           >
-            📋 查看报告
+            {reportLoading ? '加载中...' : '📋 查看报告'}
           </Button>
           <Button
             variant="ghost"

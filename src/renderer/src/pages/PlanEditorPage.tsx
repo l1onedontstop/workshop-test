@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
+import { parseFullScript } from '../services/scriptParser'
 import {
   ArrowLeft,
   Loader2,
@@ -62,7 +63,11 @@ function parseStrategyResult(raw: string): ContentStrategy | null {
 // ── Helper: extract script from AI response (same logic as ScriptEditorPage) ──
 
 function extractScript(raw: string): string {
-  const sepIndex = raw.lastIndexOf('---')
+  // Use parseFullScript to collect all voiceover paragraphs (handles multi-para format)
+  const sections = parseFullScript(raw)
+  if (sections?.voiceover) return sections.voiceover
+  // Legacy fallback
+  const sepIndex = raw.indexOf('---')
   if (sepIndex > 0) {
     const scriptPart = raw.substring(0, sepIndex).trim()
     if (scriptPart.length > 20) return scriptPart
