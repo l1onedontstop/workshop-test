@@ -13,38 +13,38 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantClasses: Record<Variant, string> = {
   primary:
-    'bg-brand-600 text-white shadow-sm ' +
-    'hover:bg-brand-500 hover:shadow-md ' +
+    'bg-brand-600 text-ink-inverse shadow-sm ' +
+    'hover:bg-brand-700 hover:shadow-md ' +
     'active:scale-[0.98] ' +
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-400/60 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg ' +
-    'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-600 disabled:active:scale-100',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg ' +
+    'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-600 disabled:hover:shadow-sm disabled:active:scale-100',
 
   secondary:
-    'bg-white/[0.06] text-white/70 border border-white/[0.06] ' +
-    'hover:bg-white/[0.10] hover:text-white/85 hover:border-white/[0.10] ' +
+    'bg-transparent text-ink-secondary border border-rule ' +
+    'hover:bg-black/[0.03] hover:text-ink-primary hover:border-rule-strong ' +
     'active:scale-[0.98] ' +
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/25 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg ' +
-    'disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-white/[0.06] disabled:active:scale-100',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg ' +
+    'disabled:opacity-35 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-ink-secondary disabled:hover:border-rule disabled:active:scale-100',
 
   ghost:
-    'text-white/50 ' +
-    'hover:bg-white/[0.06] hover:text-white/75 ' +
+    'text-ink-tertiary ' +
+    'hover:bg-black/[0.04] hover:text-ink-primary ' +
     'active:scale-[0.98] ' +
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-1 focus-visible:ring-offset-app-bg ' +
-    'disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:active:scale-100',
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rule focus-visible:ring-offset-1 focus-visible:ring-offset-app-bg ' +
+    'disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-ink-tertiary disabled:active:scale-100',
 
   danger:
     'bg-danger-surface text-danger-text border border-danger-border ' +
-    'hover:bg-red-600/25 hover:text-danger-text hover:border-red-500/30 ' +
+    'hover:bg-danger-text/10 hover:border-danger-text/30 hover:text-danger-text ' +
     'active:scale-[0.98] ' +
-    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg ' +
-    'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-danger-surface disabled:active:scale-100'
+    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-danger-text/30 focus-visible:ring-offset-2 focus-visible:ring-offset-app-bg ' +
+    'disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-danger-surface disabled:hover:border-danger-border disabled:active:scale-100'
 }
 
 const sizeClasses: Record<Size, string> = {
   sm: 'px-3 py-1.5 text-xs rounded-md gap-1.5',
   md: 'px-4 py-2 text-sm rounded-lg gap-2',
-  lg: 'px-6 py-3 text-base rounded-lg gap-2'
+  lg: 'px-6 py-2.5 text-base rounded-lg gap-2'
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(

@@ -95,22 +95,22 @@ export default function App() {
     return (
       <div className="h-screen flex items-center justify-center bg-app-bg">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 size={32} className="animate-spin text-white/20" />
-          <p className="text-white/30 text-sm">加载中...</p>
+          <Loader2 size={32} className="animate-spin text-ink-disabled" />
+          <p className="text-ink-tertiary text-sm">加载中...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="flex h-screen bg-app-bg text-white overflow-hidden">
+    <div className="flex h-screen bg-app-bg text-ink-primary overflow-hidden">
       <TitleBar />
       <div className="flex flex-1 pt-12">
         {showSidebar && (
           <Sidebar currentPage={page} onNavigate={handleNavigate} onNewProject={handleNewProject} />
         )}
         <ErrorBoundary>
-          <main className="flex-1 overflow-auto animate-fade-in">
+          <main key={page} className="flex-1 overflow-auto page-transition">
           {page === 'welcome' && (
             <WelcomePage
               onCreated={() => { suppressAutoNavRef.current = true }}

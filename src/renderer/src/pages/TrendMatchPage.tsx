@@ -10,6 +10,9 @@ import {
   Sparkles,
   ArrowRight
 } from 'lucide-react'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import Badge from '../components/ui/Badge'
 
 // ── Types ──
 
@@ -56,18 +59,18 @@ const SOURCE_LABELS: Record<string, string> = {
 }
 
 const SOURCE_COLORS: Record<string, string> = {
-  douyin: 'border-pink-500/30 text-pink-400 bg-pink-500/10',
+  douyin: 'border-brand-200 text-brand-600 bg-brand-50',
   weibo: 'border-red-500/30 text-danger-text bg-danger-surface',
-  zhihu: 'border-blue-500/30 text-blue-400 bg-blue-500/10',
+  zhihu: 'border-info-border text-info-text bg-info-surface',
   tophub: 'border-success-border text-success-text bg-success-surface'
 }
 
 // ── Helpers ──
 
 function heatColor(heat: number): string {
-  if (heat >= 80) return 'bg-gradient-to-r from-red-500 to-orange-500'
-  if (heat >= 50) return 'bg-gradient-to-r from-orange-500 to-yellow-500'
-  return 'bg-gradient-to-r from-yellow-600 to-yellow-500'
+  if (heat >= 80) return 'bg-gradient-to-r from-danger to-warning'
+  if (heat >= 50) return 'bg-gradient-to-r from-warning to-warning'
+  return 'bg-gradient-to-r from-yellow-600 to-warning'
 }
 
 function heatDisplay(heat: number): string {
@@ -79,7 +82,7 @@ function methodBadge(method: string): { color: string; label: string } {
   if (method.includes('API') || method.includes('realtime') || method === 'realtime') {
     return { color: 'border-success-border text-success-text bg-success-surface', label: method }
   }
-  return { color: 'border-yellow-500/30 text-warning-text bg-warning-surface', label: method || 'AI模拟' }
+  return { color: 'border-warning-border text-warning-text bg-warning-surface', label: method || 'AI模拟' }
 }
 
 function relevanceBadge(relevance: MatchItem['relevance']): { color: string; label: string } {
@@ -87,9 +90,9 @@ function relevanceBadge(relevance: MatchItem['relevance']): { color: string; lab
     case 'high':
       return { color: 'bg-success-surface text-success-text border-success-border', label: '高相关' }
     case 'medium':
-      return { color: 'bg-yellow-500/20 text-warning-text border-yellow-500/30', label: '中相关' }
+      return { color: 'bg-warning-surface text-warning-text border-warning-border', label: '中相关' }
     case 'low':
-      return { color: 'bg-white/5 text-white/30 border-white/10', label: '低相关' }
+      return { color: 'bg-black/[0.04] text-ink-tertiary border-rule', label: '低相关' }
   }
 }
 
@@ -198,7 +201,7 @@ export default function TrendMatchPage({
   // ── No project guard ──
   if (!activeProject) {
     return (
-      <div className="flex items-center justify-center h-full text-white/30">
+      <div className="flex items-center justify-center h-full text-ink-tertiary">
         <p>请先创建项目</p>
       </div>
     )
@@ -207,22 +210,17 @@ export default function TrendMatchPage({
   return (
     <div className="h-full flex flex-col">
       {/* ── Top bar ── */}
-      <div className="flex items-center gap-4 px-6 py-4 border-b border-white/5">
-        <button
-          onClick={onBack}
-          className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white/70 transition-colors"
-        >
-          <ArrowLeft size={18} />
-        </button>
+      <div className="flex items-center gap-4 px-6 py-4 border-b border-rule-subtle">
+        <Button variant="ghost" onClick={onBack} icon={<ArrowLeft size={16} />} />
         <h1 className="text-lg font-semibold text-white">热点趋势</h1>
-        <span className="text-xs text-white/20">实时热点 · AI 匹配你的选题</span>
+        <span className="text-xs text-ink-disabled">实时热点 · AI 匹配你的选题</span>
         <div className="flex-1" />
       </div>
 
       {/* ── Source tabs ── */}
-      <div className="px-6 py-3 border-b border-white/[0.03]">
+      <div className="px-6 py-3 border-b border-rule-subtle">
         {sourcesLoading ? (
-          <div className="flex items-center gap-2 text-white/20 text-sm">
+          <div className="flex items-center gap-2 text-ink-disabled text-sm">
             <Loader2 size={14} className="animate-spin" />
             加载数据源...
           </div>
@@ -237,8 +235,8 @@ export default function TrendMatchPage({
                   onClick={() => setSelectedSource(src.id)}
                   className={`px-3.5 py-1.5 rounded-full text-xs font-medium border transition-all ${
                     active
-                      ? `${colorStyle} ring-1 ring-white/10`
-                      : 'border-white/[0.06] text-white/30 hover:text-white/50 hover:border-white/10 bg-white/[0.01]'
+                      ? `${colorStyle} ring-1 ring-black/[0.10]`
+                      : 'border-rule text-ink-tertiary hover:text-ink-secondary hover:border-rule bg-black/[0.01]'
                   }`}
                 >
                   <Flame size={11} className="inline mr-1.5" />
@@ -256,11 +254,11 @@ export default function TrendMatchPage({
           {/* ── Loading ── */}
           {fetchLoading && (
             <div className="flex flex-col items-center justify-center py-20">
-              <Loader2 size={32} className="animate-spin text-brand-400/50 mb-4" />
-              <p className="text-white/40 text-sm">
+              <Loader2 size={32} className="animate-spin text-brand-600/50 mb-4" />
+              <p className="text-ink-tertiary text-sm">
                 正在获取 {SOURCE_LABELS[selectedSource] || selectedSource} 热点...
               </p>
-              <p className="text-white/20 text-xs mt-1">拉取实时榜单数据</p>
+              <p className="text-ink-disabled text-xs mt-1">拉取实时榜单数据</p>
             </div>
           )}
 
@@ -269,18 +267,15 @@ export default function TrendMatchPage({
             <div className="flex flex-col items-center justify-center py-20 gap-3">
               <AlertTriangle size={32} className="text-danger-text/60" />
               <p className="text-danger-text text-sm">{fetchError}</p>
-              <button
-                onClick={() => fetchTrends(selectedSource)}
-                className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/70 text-sm transition-colors"
-              >
+              <Button variant="ghost" onClick={() => fetchTrends(selectedSource)}>
                 重试
-              </button>
+              </Button>
             </div>
           )}
 
           {/* ── Empty ── */}
           {!fetchLoading && !fetchError && fetchResult && fetchResult.trends.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-20 text-white/20">
+            <div className="flex flex-col items-center justify-center py-20 text-ink-disabled">
               <Flame size={48} className="mb-4 opacity-30" />
               <p className="text-sm">暂无热点数据</p>
             </div>
@@ -291,19 +286,12 @@ export default function TrendMatchPage({
             <>
               {/* Method badge */}
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-medium text-white/60">
+                <h2 className="text-sm font-medium text-ink-secondary">
                   {SOURCE_LABELS[fetchResult.source] || fetchResult.source} · {fetchResult.trends.length} 条热点
                 </h2>
-                {(() => {
-                  const mb = methodBadge(fetchResult.method)
-                  return (
-                    <span
-                      className={`text-[10px] px-2 py-0.5 rounded-full border ${mb.color}`}
-                    >
-                      {mb.label}
-                    </span>
-                  )
-                })()}
+                <Badge variant={fetchResult.method?.includes('API') || fetchResult.method === 'realtime' ? 'success' : 'warning'}>
+                  {fetchResult.method || 'AI模拟'}
+                </Badge>
               </div>
 
               {/* Trends */}
@@ -314,20 +302,18 @@ export default function TrendMatchPage({
                     href={trend.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white/[0.02] border border-white/[0.03] hover:bg-white/[0.04] hover:border-white/[0.06] transition-all group"
+                    className="flex items-center gap-3 px-4 py-3 rounded-lg bg-black/[0.02] border border-rule-subtle hover:bg-black/[0.04] hover:border-rule transition-all group"
                   >
-                    <span className="shrink-0 w-7 text-xs font-mono text-white/15 text-center">
+                    <span className="shrink-0 w-7 text-xs font-mono text-ink-disabled text-center">
                       {String(i + 1).padStart(2, '0')}
                     </span>
 
-                    <span className="flex-1 min-w-0 text-sm text-white/80 group-hover:text-white/90 truncate transition-colors">
+                    <span className="flex-1 min-w-0 text-sm text-ink-primary group-hover:text-ink-primary truncate transition-colors">
                       {trend.title}
                     </span>
 
                     {trend.category && (
-                      <span className="shrink-0 text-[10px] px-1.5 py-0.5 rounded border border-white/[0.06] text-white/25 bg-white/[0.02]">
-                        {trend.category}
-                      </span>
+                      <Badge className="!text-[10px] !px-1.5 !py-0.5">{trend.category}</Badge>
                     )}
 
                     <span
@@ -336,13 +322,13 @@ export default function TrendMatchPage({
                       {heatDisplay(trend.heat)}
                     </span>
 
-                    <span className="shrink-0 text-[10px] text-white/15">
+                    <span className="shrink-0 text-[10px] text-ink-disabled">
                       {SOURCE_LABELS[trend.source] || trend.source}
                     </span>
 
                     <ExternalLink
                       size={12}
-                      className="shrink-0 text-white/10 group-hover:text-white/30 transition-colors"
+                      className="shrink-0 text-ink-disabled group-hover:text-ink-tertiary transition-colors"
                     />
                   </a>
                 ))}
@@ -353,8 +339,8 @@ export default function TrendMatchPage({
           {/* ── Match loading ── */}
           {matchLoading && fetchResult && fetchResult.trends.length > 0 && (
             <div className="flex items-center gap-3 justify-center py-8">
-              <Loader2 size={18} className="animate-spin text-brand-400/50" />
-              <span className="text-white/30 text-sm">AI 正在匹配适合你的热点...</span>
+              <Loader2 size={18} className="animate-spin text-brand-600/50" />
+              <span className="text-ink-tertiary text-sm">AI 正在匹配适合你的热点...</span>
             </div>
           )}
 
@@ -370,32 +356,34 @@ export default function TrendMatchPage({
           {!matchLoading && matchResult && matchResult.matches.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center gap-2 mb-1">
-                <Sparkles size={16} className="text-brand-400" />
-                <h2 className="text-sm font-medium text-white/70">为你匹配的热点</h2>
+                <Sparkles size={16} className="text-brand-600" />
+                <h2 className="text-sm font-medium text-ink-secondary">为你匹配的热点</h2>
               </div>
 
               {matchResult.summary && (
-                <div className="p-4 rounded-xl bg-gradient-to-r from-brand-500/10 to-brand-500/10 border border-brand-500/20">
-                  <p className="text-sm text-white/50 leading-relaxed">{matchResult.summary}</p>
-                </div>
+                <Card level="elevated" className="!border-brand-200 !bg-brand-50 p-4">
+                  <p className="text-sm text-ink-secondary leading-relaxed">{matchResult.summary}</p>
+                </Card>
               )}
 
               <div className="grid grid-cols-1 gap-3">
                 {matchResult.matches.map((match, i) => {
                   const badge = relevanceBadge(match.relevance)
                   return (
-                    <div
+                    <Card
                       key={i}
-                      className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-brand-500/20 transition-all group"
+                      level="subtle"
+                      interactive
+                      className="p-5 group"
                     >
                       <div className="flex items-start gap-4">
-                        <span className="shrink-0 w-7 text-sm font-bold text-white/12 font-mono">
+                        <span className="shrink-0 w-7 text-sm font-bold text-ink-disabled font-mono">
                           {String(i + 1).padStart(2, '0')}
                         </span>
 
                         <div className="flex-1 min-w-0 space-y-2">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="text-sm font-semibold text-white/85 group-hover:text-white transition-colors">
+                            <h3 className="text-sm font-semibold text-ink-primary group-hover:text-ink-primary transition-colors">
                               {match.hotTitle}
                             </h3>
                             <span
@@ -405,30 +393,31 @@ export default function TrendMatchPage({
                             </span>
                           </div>
 
-                          <p className="text-xs text-white/40 flex gap-2">
-                            <span className="text-white/15 shrink-0">切入角度：</span>
-                            <span className="text-brand-300/80">{match.suggestedAngle}</span>
+                          <p className="text-xs text-ink-tertiary flex gap-2">
+                            <span className="text-ink-disabled shrink-0">切入角度：</span>
+                            <span className="text-brand-500/80">{match.suggestedAngle}</span>
                           </p>
 
-                          <p className="text-xs text-white/25 flex gap-2">
-                            <span className="text-white/12 shrink-0">推荐理由：</span>
+                          <p className="text-xs text-ink-disabled flex gap-2">
+                            <span className="text-ink-disabled shrink-0">推荐理由：</span>
                             {match.reason}
                           </p>
 
                           {onWriteScript && (
                             <div className="pt-1">
-                              <button
+                              <Button
+                                variant="primary"
+                                size="sm"
+                                icon={<ArrowRight size={12} />}
                                 onClick={() => onWriteScript(match.suggestedAngle)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600/20 border border-brand-500/20 hover:bg-brand-600/30 text-brand-300 text-xs font-medium transition-colors"
                               >
                                 写脚本
-                                <ArrowRight size={12} />
-                              </button>
+                              </Button>
                             </div>
                           )}
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   )
                 })}
               </div>
@@ -437,7 +426,7 @@ export default function TrendMatchPage({
 
           {/* ── No matches ── */}
           {!matchLoading && !matchError && matchResult && matchResult.matches.length === 0 && fetchResult && fetchResult.trends.length > 0 && (
-            <div className="flex flex-col items-center justify-center py-10 text-white/20">
+            <div className="flex flex-col items-center justify-center py-10 text-ink-disabled">
               <Sparkles size={32} className="mb-3 opacity-30" />
               <p className="text-sm">暂无匹配你账号的热点</p>
               <p className="text-xs mt-1 opacity-60">试试切换其他数据源</p>

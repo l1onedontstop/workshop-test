@@ -8,7 +8,7 @@ interface BadgeProps {
 
 const variantClasses: Record<BadgeVariant, string> = {
   default:
-    'bg-white/[0.06] text-white/45 border-white/[0.06]',
+    'bg-black/[0.04] text-ink-tertiary border-rule-subtle',
   success:
     'bg-success-surface text-success-text border-success-border',
   warning:
@@ -22,7 +22,7 @@ const variantClasses: Record<BadgeVariant, string> = {
 export default function Badge({ variant = 'default', children, className = '' }: BadgeProps) {
   return (
     <span
-      className={`inline-flex items-center px-2 py-0.5 text-[11px] font-medium rounded-md border tracking-wide ${variantClasses[variant]} ${className}`}
+      className={`inline-flex items-center px-2 py-0.5 text-[12px] font-medium rounded-md border tracking-wide ${variantClasses[variant]} ${className}`}
     >
       {children}
     </span>

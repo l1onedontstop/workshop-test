@@ -53,9 +53,9 @@ const ACTIVITY_COLORS: Record<string, string> = {
   script_saved: 'text-info-text',
   script_published: 'text-success-text',
   retro_completed: 'text-warning-text',
-  rubric_evolved: 'text-brand-400',
-  plan_created: 'text-cyan-400',
-  plan_completed: 'text-cyan-400'
+  rubric_evolved: 'text-brand-600',
+  plan_created: 'text-info-text',
+  plan_completed: 'text-info-text'
 }
 
 function formatTime(iso: string): string {
@@ -104,9 +104,9 @@ function getCoachSuggestion(
 }
 
 const VARIANT_STYLES: Record<CoachSuggestion['variant'], { gradient: string; border: string; badge: string; button: string }> = {
-  primary: { gradient: 'from-brand-500/10 to-brand-500/10', border: 'border-brand-500/20', badge: 'bg-brand-500/20 text-brand-400', button: 'bg-brand-600 hover:bg-brand-500' },
-  secondary: { gradient: 'from-white/[0.03] to-white/[0.01]', border: 'border-white/[0.06]', badge: 'bg-white/[0.06] text-white/50', button: 'bg-white/[0.08] hover:bg-white/[0.12] text-white/75' },
-  warning: { gradient: 'from-orange-500/10 to-yellow-500/10', border: 'border-warning-border', badge: 'bg-orange-500/20 text-warning-text', button: 'bg-orange-600 hover:bg-orange-500' }
+  primary: { gradient: 'from-brand-50 to-brand-50', border: 'border-brand-200', badge: 'bg-brand-100 text-brand-600', button: 'bg-brand-600 hover:bg-brand-500' },
+  secondary: { gradient: 'from-black/[0.03] to-black/[0.01]', border: 'border-rule', badge: 'bg-black/[0.04] text-ink-tertiary', button: 'bg-black/[0.06] hover:bg-black/[0.10] text-ink-secondary' },
+  warning: { gradient: 'from-warning-surface to-warning-surface', border: 'border-warning-border', badge: 'bg-warning-surface text-warning-text', button: 'bg-warning hover:bg-warning' }
 }
 
 export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish, onRetro, onPlans, onNewProject, onNavigateToPlan, onNavigateToScript, onNavigateToRetro, onNavigateToBlueprint }: ProjectPageProps) {
@@ -116,7 +116,7 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
 
   if (!activeProject) {
     return (
-      <div className="flex items-center justify-center h-full text-white/30">
+      <div className="flex items-center justify-center h-full text-ink-tertiary">
         <p>请先创建项目</p>
       </div>
     )
@@ -166,13 +166,13 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
   const styles = VARIANT_STYLES[coachSuggestion.variant]
 
   const quickActions = [
-    { icon: Sparkles, label: 'IP 蓝图', desc: '定位、策略与行动计划', color: 'text-brand-400', bg: 'bg-brand-500/10', border: 'border-brand-500/20', action: onNavigateToBlueprint },
-    { icon: PenLine, label: '写脚本', desc: 'AI写作 + 即时打分', color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20', action: onNewScript },
+    { icon: Sparkles, label: 'IP 蓝图', desc: '定位、策略与行动计划', color: 'text-brand-600', bg: 'bg-brand-50', border: 'border-brand-200', action: onNavigateToBlueprint },
+    { icon: PenLine, label: '写脚本', desc: 'AI写作 + 即时打分', color: 'text-info-text', bg: 'bg-info-surface', border: 'border-info-border', action: onNewScript },
     { icon: FileText, label: '管脚本', desc: `查看/编辑/删除${scriptsList.length > 0 ? ` · ${scriptsList.length}条` : ''}`, color: 'text-warning-text', bg: 'bg-warning-surface', border: 'border-warning-border', action: handleManageScripts },
-    { icon: Lightbulb, label: '选题', desc: 'AI推荐爆款选题', color: 'text-brand-400', bg: 'bg-brand-500/10', border: 'border-brand-500/20', action: onTopicInspiration },
+    { icon: Lightbulb, label: '选题', desc: 'AI推荐爆款选题', color: 'text-brand-600', bg: 'bg-brand-50', border: 'border-brand-200', action: onTopicInspiration },
     { icon: Send, label: '发布', desc: '标题+简介+话题', color: 'text-success-text', bg: 'bg-success-surface', border: 'border-success-border', action: onPublish },
     { icon: BarChart3, label: '复盘', desc: '数据驱动进化', color: 'text-warning-text', bg: 'bg-warning-surface', border: 'border-warning-border', action: onRetro },
-    { icon: Layout, label: '方案', desc: '系统化内容计划', color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20', action: onPlans }
+    { icon: Layout, label: '方案', desc: '系统化内容计划', color: 'text-info-text', bg: 'bg-info-surface', border: 'border-info-border', action: onPlans }
   ]
 
   // Pipeline stats
@@ -184,8 +184,8 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
     <div className="px-8 py-6 max-w-5xl mx-auto h-full overflow-y-auto">
       {/* Header */}
       <header className="mb-8">
-        <h1 className="text-xl font-semibold text-white/90 mb-1">{activeProject.name}</h1>
-        <p className="text-sm text-white/45">
+        <h1 className="text-xl font-semibold text-ink-primary mb-1">{activeProject.name}</h1>
+        <p className="text-sm text-ink-tertiary">
           已发布 {published} 条 · 预测中 {predicted} 条 · 待复盘 {published} 条
         </p>
       </header>
@@ -195,8 +195,8 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         <div className="flex items-center gap-3 mb-3">
           <div className={`p-2 rounded-lg ${styles.badge}`}><Sparkles size={18} /></div>
           <div>
-            <h2 className="text-sm font-semibold text-white/85">AI教练 · {coachSuggestion.title}</h2>
-            <p className="text-xs text-white/40 mt-0.5">{coachSuggestion.message}</p>
+            <h2 className="text-sm font-semibold text-ink-primary">AI教练 · {coachSuggestion.title}</h2>
+            <p className="text-xs text-ink-tertiary mt-0.5">{coachSuggestion.message}</p>
           </div>
         </div>
         {coachSuggestion.action && (
@@ -215,11 +215,11 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         {quickActions.slice(0, 4).map((a) => {
           const Icon = a.icon
           return (
-            <Card key={a.label} level="subtle" interactive={!!a.action} onClick={a.action} className={`flex flex-col items-center gap-3 p-4 text-center ${!a.action ? 'opacity-40 cursor-not-allowed' : ''}`}>
+            <Card key={a.label} level="subtle" interactive={!!a.action} onClick={a.action} className={`flex flex-col items-center gap-3 p-4 text-center h-full ${a.action ? 'hover:scale-[1.02]' : ''} ${!a.action ? 'opacity-40 cursor-not-allowed' : ''}`}>
               <div className={`p-2.5 rounded-lg ${a.bg}`}><Icon size={22} className={a.color} /></div>
               <div>
-                <div className="text-sm font-medium text-white/80">{a.label}</div>
-                <div className="text-[11px] text-white/35 mt-0.5">{a.desc}</div>
+                <div className="text-sm font-medium text-ink-primary">{a.label}</div>
+                <div className="text-[11px] text-ink-tertiary mt-0.5">{a.desc}</div>
               </div>
             </Card>
           )
@@ -229,11 +229,11 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         {quickActions.slice(4).map((a) => {
           const Icon = a.icon
           return (
-            <Card key={a.label} level="subtle" interactive={!!a.action} onClick={a.action} className={`flex flex-col items-center gap-3 p-4 text-center ${!a.action ? 'opacity-40 cursor-not-allowed' : ''}`}>
+            <Card key={a.label} level="subtle" interactive={!!a.action} onClick={a.action} className={`flex flex-col items-center gap-3 p-4 text-center h-full ${a.action ? 'hover:scale-[1.02]' : ''} ${!a.action ? 'opacity-40 cursor-not-allowed' : ''}`}>
               <div className={`p-2.5 rounded-lg ${a.bg}`}><Icon size={22} className={a.color} /></div>
               <div>
-                <div className="text-sm font-medium text-white/80">{a.label}</div>
-                <div className="text-[11px] text-white/35 mt-0.5">{a.desc}</div>
+                <div className="text-sm font-medium text-ink-primary">{a.label}</div>
+                <div className="text-[11px] text-ink-tertiary mt-0.5">{a.desc}</div>
               </div>
             </Card>
           )
@@ -242,9 +242,9 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
 
       {/* Pipeline bar — compact */}
       {predicted > 0 && (
-        <div className="mb-8 p-4 rounded-xl bg-app-surface border border-white/[0.04]">
+        <Card level="subtle" className="mb-8 p-4">
           <div className="flex items-center gap-3 text-xs">
-            <span className="text-white/30 font-medium">管道</span>
+            <span className="text-ink-tertiary font-medium">管道</span>
             {[
               { label: '脚本', n: predicted },
               { label: '待拍', n: buffer },
@@ -252,62 +252,62 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
               { label: '待复盘', n: published }
             ].map((s, i, arr) => (
               <span key={i} className="flex items-center gap-1.5">
-                <span className={`font-mono font-semibold ${s.n > 0 ? 'text-white/60' : 'text-white/15'}`}>{s.n}</span>
-                <span className={s.n > 0 ? 'text-white/35' : 'text-white/12'}>{s.label}</span>
-                {i < arr.length - 1 && <span className="text-white/[0.08] mx-0.5">·</span>}
+                <span className={`font-mono font-semibold ${s.n > 0 ? 'text-ink-tertiary' : 'text-ink-disabled'}`}>{s.n}</span>
+                <span className={s.n > 0 ? 'text-ink-tertiary' : 'text-ink-disabled'}>{s.label}</span>
+                {i < arr.length - 1 && <span className="text-ink-disabled mx-0.5">·</span>}
               </span>
             ))}
             {buffer === 0 && (
               <span className="ml-auto text-[11px] text-danger-text/70 font-medium">库存告急</span>
             )}
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Script list (manage) */}
       {scriptsList.length > 0 && (
-        <div className="mb-8 p-5 rounded-xl bg-app-surface border border-white/[0.04]">
+        <Card level="subtle" className="mb-8 p-5">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-medium text-white/55">已有脚本 · {scriptsList.length} 条</h3>
-            <button onClick={() => setScriptsList([])} className="text-xs text-white/25 hover:text-white/45">收起</button>
+            <h3 className="text-sm font-medium text-ink-tertiary">已有脚本 · {scriptsList.length} 条</h3>
+            <button onClick={() => setScriptsList([])} className="text-xs text-ink-disabled hover:text-ink-tertiary">收起</button>
           </div>
           <div className="space-y-1 mb-3">
             {scriptsList.slice(0, 10).map((s) => (
-              <button key={s.name} onClick={() => onNavigateToScript?.()} className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/[0.04] transition-colors text-left">
-                <span className="text-sm text-white/65 truncate">{s.name.replace('.md', '')}</span>
-                <ArrowRight size={14} className="text-white/15 shrink-0" />
-              </button>
+              <Button key={s.name} variant="ghost" onClick={() => onNavigateToScript?.()} className="w-full justify-between">
+                <span className="text-sm text-ink-secondary truncate">{s.name.replace('.md', '')}</span>
+                <ArrowRight size={14} className="text-ink-disabled shrink-0" />
+              </Button>
             ))}
           </div>
-        </div>
+        </Card>
       )}
       {scriptsLoading && (
-        <div className="mb-8 p-5 rounded-xl bg-app-surface border border-white/[0.04] text-center">
-          <p className="text-sm text-white/25">加载脚本列表中...</p>
+        <div className="mb-8 text-center">
+          <p className="text-sm text-ink-disabled">加载中...</p>
         </div>
       )}
 
       {/* Pipeline actions */}
       {predicted > 0 && (
-        <div className="mb-8 p-4 rounded-xl bg-app-surface border border-white/[0.04]">
-          <h3 className="text-sm font-medium text-white/50 mb-3">管道推进</h3>
+        <Card level="subtle" className="mb-8 p-4">
+          <h3 className="text-sm font-medium text-ink-tertiary mb-3">管道推进</h3>
           <div className="flex items-center gap-3 flex-wrap">
             <Button variant="secondary" onClick={() => setConfirmDialog({ type: 'shoot', title: '确认拍摄状态', message: '这条脚本已经写好了 —— 你拍了吗？拍完告诉 AI，它会帮你生成发布资料包。' })}>
               确认拍摄
             </Button>
-            <span className="text-white/10 text-xs">→</span>
+            <span className="text-ink-disabled text-xs">→</span>
             <Button variant="secondary" onClick={() => setConfirmDialog({ type: 'publish', title: '确认发布状态', message: '视频已经发布了吗？发布后记得登记链接，T+3 天后 AI 会提醒你复盘数据。' })}>
               确认发布
             </Button>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* Activity timeline */}
       <div className="mt-10 mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-medium text-white/50">
-            最近活动{activities.length > 0 && <span className="text-white/18 ml-1">· {activities.length} 条</span>}
+          <h3 className="text-sm font-medium text-ink-tertiary">
+            最近活动{activities.length > 0 && <span className="text-ink-disabled ml-1">· {activities.length} 条</span>}
           </h3>
         </div>
         {activities.length > 0 ? (
@@ -315,7 +315,7 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
             <div className="space-y-0">
               {pagedActivities.map((entry, i) => {
                 const IconComp = ACTIVITY_ICONS[entry.type] || Clock
-                const iconColor = ACTIVITY_COLORS[entry.type] || 'text-white/25'
+                const iconColor = ACTIVITY_COLORS[entry.type] || 'text-ink-disabled'
                 const clickable = entry.navTarget || (entry.type === 'script_saved' && entry.scriptFile) || entry.planId
                 const handleClick = () => {
                   if (entry.navTarget === 'plan-editor' && entry.planId) onNavigateToPlan?.(entry.planId)
@@ -325,47 +325,47 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
                   else if (entry.type === 'plan_created' || entry.type === 'plan_completed') onNavigateToPlan?.(entry.planId || '')
                 }
                 const content = (
-                  <div className="flex items-start gap-3 py-2.5 border-b border-white/[0.03] last:border-0">
-                    <div className="p-1.5 rounded-md bg-white/[0.03] shrink-0 mt-0.5"><IconComp size={14} className={iconColor} /></div>
+                  <div className="flex items-start gap-3 py-2.5 border-b border-rule-subtle last:border-0">
+                    <div className="p-1.5 rounded-md bg-black/[0.03] shrink-0 mt-0.5"><IconComp size={14} className={iconColor} /></div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white/65 truncate">{entry.label}</p>
-                      {entry.detail && <p className="text-xs text-white/25 mt-0.5">{entry.detail}</p>}
+                      <p className="text-sm text-ink-secondary truncate">{entry.label}</p>
+                      {entry.detail && <p className="text-xs text-ink-disabled mt-0.5">{entry.detail}</p>}
                     </div>
-                    <span className="text-xs text-white/18 shrink-0 mt-1">{formatTime(entry.timestamp)}</span>
+                    <span className="text-xs text-ink-disabled shrink-0 mt-1">{formatTime(entry.timestamp)}</span>
                   </div>
                 )
-                return clickable ? <button key={i} onClick={handleClick} className="w-full text-left hover:bg-white/[0.02] transition-colors">{content}</button> : <div key={i}>{content}</div>
+                return clickable ? <button key={i} onClick={handleClick} className="w-full text-left hover:bg-black/[0.02] transition-colors">{content}</button> : <div key={i}>{content}</div>
               })}
             </div>
             {totalPages > 1 && (
               <div className="flex items-center justify-center gap-4 mt-4">
-                <button onClick={() => setActivityPage((p) => Math.max(0, p - 1))} disabled={activityPage === 0}
-                  className="px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-white/45 disabled:opacity-20 text-xs transition-colors">上一页</button>
-                <span className="text-xs text-white/25">{activityPage + 1} / {totalPages}</span>
-                <button onClick={() => setActivityPage((p) => Math.min(totalPages - 1, p + 1))} disabled={activityPage >= totalPages - 1}
-                  className="px-3 py-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-white/45 disabled:opacity-20 text-xs transition-colors">下一页</button>
+                <Button variant="ghost" size="sm" onClick={() => setActivityPage((p) => Math.max(0, p - 1))} disabled={activityPage === 0}>
+                  上一页
+                </Button>
+                <span className="text-xs text-ink-disabled">{activityPage + 1} / {totalPages}</span>
+                <Button variant="ghost" size="sm" onClick={() => setActivityPage((p) => Math.min(totalPages - 1, p + 1))} disabled={activityPage >= totalPages - 1}>
+                  下一页
+                </Button>
               </div>
             )}
           </>
         ) : (
-          <div className="text-center py-12 bg-app-surface border border-white/[0.04] rounded-xl">
-            <p className="text-white/25 text-sm">还没有任何活动记录</p>
-            <p className="text-white/15 text-xs mt-1">保存第一条脚本后，这里会显示你的创作时间线</p>
-          </div>
+          <Card level="subtle" className="text-center py-12">
+            <p className="text-ink-disabled text-sm">还没有任何活动记录</p>
+            <p className="text-ink-disabled text-xs mt-1">保存第一条脚本后，这里会显示你的创作时间线</p>
+          </Card>
         )}
 
         {/* Danger zone */}
-        <div className="mt-6 pt-4 border-t border-white/[0.04] space-y-2">
+        <div className="mt-6 pt-4 border-t border-rule-subtle space-y-2">
           {(predicted > 0 || activities.length > 0) && (
-            <button onClick={() => setConfirmDialog({ type: 'reset', title: '清空项目数据', message: `确定要清空「${activeProject.name}」的所有数据吗？\n\n这将删除：\n· 所有已保存的脚本\n· 所有预测记录和报告\n· 所有活动历史\n\n此操作不可撤销。` })}
-              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-danger-surface border border-danger-border hover:bg-red-600/15 text-danger-text/60 hover:text-danger-text text-xs transition-colors w-full">
-              <Trash2 size={13} />清空所有脚本和记录
-            </button>
+            <Button variant="danger" onClick={() => setConfirmDialog({ type: 'reset', title: '清空项目数据', message: `确定要清空「${activeProject.name}」的所有数据吗？\n\n这将删除：\n· 所有已保存的脚本\n· 所有预测记录和报告\n· 所有活动历史\n\n此操作不可撤销。` })} icon={<Trash2 size={13} />} className="w-full">
+              清空所有脚本和记录
+            </Button>
           )}
-          <button onClick={() => setConfirmDialog({ type: 'delete', title: '删除项目', message: `确定要删除「${activeProject.name}」吗？\n\n这将永久删除：\n· 所有脚本、预测、报告\n· 评分规则进化记录\n· 对标分析数据\n· 整个项目目录\n\n此操作不可撤销！` })}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-danger-surface border border-danger-border hover:bg-red-600/20 text-danger-text/70 hover:text-danger-text text-xs transition-colors w-full">
-            <Trash2 size={13} />删除整个项目
-          </button>
+          <Button variant="danger" onClick={() => setConfirmDialog({ type: 'delete', title: '删除项目', message: `确定要删除「${activeProject.name}」吗？\n\n这将永久删除：\n· 所有脚本、预测、报告\n· 评分规则进化记录\n· 对标分析数据\n· 整个项目目录\n\n此操作不可撤销！` })} icon={<Trash2 size={13} />} className="w-full">
+            删除整个项目
+          </Button>
         </div>
       </div>
 

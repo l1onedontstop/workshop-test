@@ -12,6 +12,10 @@ import {
 import { useEffect, useState } from 'react'
 import { useAppStore } from '../stores/appStore'
 import BackButton from '../components/ui/BackButton'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import Badge from '../components/ui/Badge'
+import { Input } from '../components/ui/Input'
 
 function PipelineParamValue({ settingKey, defaultValue }: { settingKey: string; defaultValue: string }) {
   const [value, setValue] = useState(defaultValue)
@@ -25,7 +29,7 @@ function PipelineParamValue({ settingKey, defaultValue }: { settingKey: string; 
   }, [settingKey])
 
   return (
-    <span className="px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-sm text-white/60 font-mono">
+    <span className="px-3 py-1.5 rounded-lg bg-black/[0.04] border border-rule text-sm text-ink-secondary font-mono">
       {value}
     </span>
   )
@@ -135,17 +139,17 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
         <BackButton onClick={onBack} />
       )}
       <h1 className="text-2xl font-bold text-white mb-2">设置</h1>
-      <p className="text-white/40 text-sm mb-8">配置 AI 引擎和 API 密钥</p>
+      <p className="text-ink-tertiary text-sm mb-8">配置 AI 引擎和 API 密钥</p>
 
       {/* Provider selection */}
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6 mb-4">
+      <Card level="default" className="p-6 mb-4">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-brand-500/10">
-            <Cpu size={20} className="text-brand-400" />
+          <div className="p-2 rounded-lg bg-brand-50">
+            <Cpu size={20} className="text-brand-600" />
           </div>
           <div>
             <h2 className="text-white font-medium">AI 引擎</h2>
-            <p className="text-white/30 text-xs mt-0.5">
+            <p className="text-ink-tertiary text-xs mt-0.5">
               选择底层大模型提供商，支持 7 个主流平台
             </p>
           </div>
@@ -155,45 +159,44 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
           {PROVIDERS.map((p) => {
             const isActive = aiProvider === p.id
             return (
-              <button
+              <Button
                 key={p.id}
+                variant="ghost"
                 onClick={() => setAIProvider(p.id)}
-                className={`w-full text-left p-3.5 rounded-xl border transition-all ${
+                className={`w-full !justify-start !text-left !p-3.5 !rounded-xl !font-normal ${
                   isActive
-                    ? 'border-brand-500/50 bg-brand-500/10'
-                    : 'border-white/[0.06] bg-white/[0.02] hover:border-white/15'
+                    ? '!border-brand-200 !bg-brand-50'
+                    : '!border-rule !bg-black/[0.02] hover:!border-rule'
                 }`}
               >
                 <div className="flex items-center justify-between">
                   <div>
                     <span
-                      className={`text-sm font-medium ${isActive ? 'text-brand-300' : 'text-white/70'}`}
+                      className={`text-sm font-medium ${isActive ? 'text-brand-500' : 'text-ink-secondary'}`}
                     >
                       {p.label}
                     </span>
-                    <span className="text-xs text-white/25 ml-2">{p.desc}</span>
+                    <span className="text-xs text-ink-disabled ml-2">{p.desc}</span>
                   </div>
                   {isActive && (
-                    <span className="text-xs px-2 py-0.5 rounded bg-brand-500/20 text-brand-400 shrink-0">
-                      当前
-                    </span>
+                    <Badge variant="info">当前</Badge>
                   )}
                 </div>
-              </button>
+              </Button>
             )
           })}
         </div>
-      </div>
+      </Card>
 
       {/* API Key */}
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6">
+      <Card level="elevated" className="p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-lg bg-brand-500/10">
-            <Key size={20} className="text-brand-400" />
+          <div className="p-2 rounded-lg bg-brand-50">
+            <Key size={20} className="text-brand-600" />
           </div>
           <div>
             <h2 className="text-white font-medium">{currentProvider.label} API Key</h2>
-            <p className="text-white/30 text-xs mt-0.5">
+            <p className="text-ink-tertiary text-xs mt-0.5">
               密钥仅存储在本地，不上传任何服务器
             </p>
           </div>
@@ -201,57 +204,53 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
 
         <div className="flex gap-3">
           <div className="relative flex-1">
-            <input
+            <Input
               type={showKey ? 'text' : 'password'}
               value={keyInput}
               onChange={(e) => setKeyInput(e.target.value)}
               placeholder={placeholderMap[aiProvider] || '请输入 API Key'}
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 pr-10 text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-brand-500/50"
+              className="pr-10"
             />
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setShowKey(!showKey)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60"
+              className="absolute right-3 top-1/2 -translate-y-1/2 !p-1"
             >
               {showKey ? <EyeOff size={16} /> : <Eye size={16} />}
-            </button>
+            </Button>
           </div>
-          <button
+          <Button
+            variant="primary"
             onClick={handleSave}
             disabled={!keyInput.trim() || keyInput === currentKey}
-            className="px-5 py-2.5 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
+            icon={saved ? <CheckCircle size={16} /> : undefined}
           >
-            {saved ? (
-              <>
-                <CheckCircle size={16} />
-                已保存
-              </>
-            ) : (
-              '保存'
-            )}
-          </button>
+            {saved ? '已保存' : '保存'}
+          </Button>
         </div>
 
         <a
           href={linkMap[aiProvider]}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 text-xs text-white/20 hover:text-brand-400 transition-colors mt-3"
+          className="inline-flex items-center gap-1 text-xs text-ink-disabled hover:text-brand-600 transition-colors mt-3"
         >
           前往 {currentProvider.label} 平台申请 Key
           <ExternalLink size={12} />
         </a>
-      </div>
+      </Card>
 
       {/* Data Management */}
       {activeProject && (
-        <div className="mt-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6">
+        <Card className="mt-4 !border-danger-border/30 p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 rounded-lg bg-danger-surface">
               <Trash2 size={20} className="text-danger-text" />
             </div>
             <div>
               <h2 className="text-white font-medium">数据管理</h2>
-              <p className="text-white/30 text-xs mt-0.5">
+              <p className="text-ink-tertiary text-xs mt-0.5">
                 清除当前项目的所有脚本和预测数据，此操作不可恢复
               </p>
             </div>
@@ -266,46 +265,47 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
                 </p>
               </div>
               <div className="flex gap-2">
-                <button
+                <Button
+                  variant="danger"
                   onClick={handleReset}
                   disabled={resetting}
-                  className="px-4 py-2 rounded-lg bg-red-600 hover:bg-red-500 disabled:opacity-50 text-white text-sm font-medium transition-colors"
+                  loading={resetting}
                 >
                   {resetting ? '清空中...' : '确认清空'}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
                   onClick={() => setResetConfirm(false)}
                   disabled={resetting}
-                  className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 text-sm transition-colors"
                 >
                   取消
-                </button>
+                </Button>
               </div>
             </div>
           ) : (
-            <button
+            <Button
+              variant="ghost"
               onClick={() => setResetConfirm(true)}
-              className="px-4 py-2 rounded-lg bg-white/5 hover:bg-danger-surface border border-white/[0.06] hover:border-danger-border text-white/40 hover:text-danger-text text-sm transition-all flex items-center gap-2"
+              icon={<Trash2 size={14} />}
             >
-              <Trash2 size={14} />
               重置项目数据
-            </button>
+            </Button>
           )}
-        </div>
+        </Card>
       )}
 
       {/* Pipeline Configuration */}
       {activeProject && (
-        <div className="mt-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6">
+        <Card className="mt-4 p-6">
           <h2 className="text-white font-medium mb-4 flex items-center gap-2">
-            <BarChartIcon size={18} className="text-white/30" />
+            <BarChartIcon size={18} className="text-ink-tertiary" />
             管道参数
           </h2>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/60">跨模型审核</p>
-                <p className="text-xs text-white/25 mt-0.5">用不同 AI 模型独立打分，减少单模型偏差</p>
+                <p className="text-sm text-ink-secondary">跨模型审核</p>
+                <p className="text-xs text-ink-disabled mt-0.5">用不同 AI 模型独立打分，减少单模型偏差</p>
               </div>
               <label className="relative inline-flex items-center cursor-pointer">
                 <input
@@ -318,43 +318,43 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
                     await window.api.setSetting('cross_model_audit', next)
                   }}
                 />
-                <div className="w-9 h-5 bg-white/[0.06] peer-checked:bg-brand-500 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" />
+                <div className="w-9 h-5 bg-black/[0.04] peer-checked:bg-brand-500 rounded-full peer peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all" />
               </label>
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/60">复盘等待天数 (RETRO_WINDOW_DAYS)</p>
-                <p className="text-xs text-white/25 mt-0.5">发布后多少天才能进行复盘，默认 3 天</p>
+                <p className="text-sm text-ink-secondary">复盘等待天数 (RETRO_WINDOW_DAYS)</p>
+                <p className="text-xs text-ink-disabled mt-0.5">发布后多少天才能进行复盘，默认 3 天</p>
               </div>
               <PipelineParamValue settingKey="retro_window_days" defaultValue="3" />
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/60">Buffer 黄色预警 (BUFFER_WARNING_LOW)</p>
-                <p className="text-xs text-white/25 mt-0.5">库存低于此值显示黄色警告，默认 2</p>
+                <p className="text-sm text-ink-secondary">Buffer 黄色预警 (BUFFER_WARNING_LOW)</p>
+                <p className="text-xs text-ink-disabled mt-0.5">库存低于此值显示黄色警告，默认 2</p>
               </div>
               <PipelineParamValue settingKey="buffer_warning_low" defaultValue="2" />
             </div>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-white/60">最小校准样本 (MIN_SAMPLES_FOR_BUMP)</p>
-                <p className="text-xs text-white/25 mt-0.5">至少需要多少次复盘才能升级 rubric，默认 5</p>
+                <p className="text-sm text-ink-secondary">最小校准样本 (MIN_SAMPLES_FOR_BUMP)</p>
+                <p className="text-xs text-ink-disabled mt-0.5">至少需要多少次复盘才能升级 rubric，默认 5</p>
               </div>
               <PipelineParamValue settingKey="min_samples_for_bump" defaultValue="5" />
             </div>
           </div>
-        </div>
+        </Card>
       )}
 
       {/* About */}
-      <div className="mt-4 bg-white/[0.03] border border-white/[0.06] rounded-2xl p-6">
+      <Card className="mt-4 p-6">
         <h2 className="text-white font-medium mb-3">关于 SparkForge</h2>
-        <div className="space-y-2 text-sm text-white/30">
+        <div className="space-y-2 text-sm text-ink-tertiary">
           <p>版本：1.0.0</p>
           <p>基于 cheat-on-content 方法论构建</p>
           <p>所有数据存储在本地，不经过任何第三方服务器</p>
         </div>
-      </div>
+      </Card>
     </div>
   )
 }

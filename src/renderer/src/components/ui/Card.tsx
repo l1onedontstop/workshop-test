@@ -1,6 +1,6 @@
 import { forwardRef } from 'react'
 
-type Level = 'subtle' | 'default' | 'elevated'
+type Level = 'subtle' | 'default' | 'elevated' | 'brand'
 
 interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   level?: Level
@@ -9,11 +9,13 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const levelClasses: Record<Level, string> = {
   subtle:
-    'bg-white/[0.02] border border-white/[0.04] rounded-xl',
+    'bg-app-surface border border-rule-subtle rounded-xl',
   default:
-    'bg-white/[0.03] border border-white/[0.06] rounded-2xl',
+    'bg-app-surface border border-rule rounded-2xl shadow-sm',
   elevated:
-    'bg-app-elevated border border-white/[0.08] rounded-2xl shadow-sm'
+    'bg-app-elevated border border-rule-strong rounded-2xl shadow-md',
+  brand:
+    'bg-brand-50 border border-brand-200 rounded-2xl shadow-sm border-l-[3px] border-l-brand-500'
 }
 
 const Card = forwardRef<HTMLDivElement, CardProps>(
@@ -21,7 +23,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
     return (
       <div
         ref={ref}
-        className={`${levelClasses[level]} ${interactive ? 'cursor-pointer hover:bg-white/[0.05] hover:border-white/[0.10] hover:shadow-glow active:scale-[0.99] transition-all duration-150' : ''} ${className}`}
+        className={`${levelClasses[level]} ${interactive ? 'cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:border-brand-300 active:scale-[0.99] transition-all duration-150' : ''} ${className}`}
         {...props}
       >
         {children}

@@ -119,7 +119,7 @@ function getDeviationColor(dev: number): string {
   if (dev >= 0.5) return 'text-success-text/70'
   if (dev <= -1.5) return 'text-danger-text'
   if (dev <= -0.5) return 'text-warning-text'
-  return 'text-white/40'
+  return 'text-ink-tertiary'
 }
 
 function parseRetroResult(raw: string): RetroResult | null {
@@ -291,7 +291,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
 
   if (!activeProject) {
     return (
-      <div className="flex items-center justify-center h-full text-white/30">
+      <div className="flex items-center justify-center h-full text-ink-tertiary">
         <p>请先创建项目</p>
       </div>
     )
@@ -300,28 +300,28 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
   return (
     <div className="h-full flex flex-col">
       {/* Top bar */}
-      <div className="flex items-center gap-4 px-6 py-4 border-b border-white/5">
+      <div className="flex items-center gap-4 px-6 py-4 border-b border-rule-subtle">
         <button
           onClick={onBack}
-          className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white/70 transition-colors"
+          className="p-2 rounded-lg hover:bg-black/[0.03] text-ink-tertiary hover:text-ink-secondary transition-colors"
         >
           <ArrowLeft size={18} />
         </button>
         <h1 className="text-lg font-semibold text-white">数据复盘</h1>
-        <span className="text-xs text-white/20">预测 vs 实际 · 持续进化</span>
+        <span className="text-xs text-ink-disabled">预测 vs 实际 · 持续进化</span>
       </div>
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Prediction list */}
-        <div className="w-72 border-r border-white/5 p-4 overflow-y-auto shrink-0">
-          <h3 className="text-xs font-medium text-white/40 uppercase tracking-wider mb-3">
+        <div className="w-72 border-r border-rule-subtle p-4 overflow-y-auto shrink-0">
+          <h3 className="text-xs font-medium text-ink-tertiary uppercase tracking-wider mb-3">
             预测记录
           </h3>
           {predictions.length === 0 ? (
             <div className="text-center py-8">
-              <FileText size={24} className="text-white/10 mx-auto mb-2" />
-              <p className="text-white/25 text-xs">还没有预测记录</p>
-              <p className="text-white/15 text-xs mt-1">先去创作工作台保存脚本</p>
+              <FileText size={24} className="text-ink-disabled mx-auto mb-2" />
+              <p className="text-ink-disabled text-xs">还没有预测记录</p>
+              <p className="text-ink-disabled text-xs mt-1">先去创作工作台保存脚本</p>
             </div>
           ) : (
             <div className="space-y-1">
@@ -331,8 +331,8 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                   onClick={() => handleSelectPrediction(p)}
                   className={`w-full text-left px-3 py-2.5 rounded-lg text-xs transition-colors ${
                     selectedPred?.scriptFile === p.name.replace('.json', '.md')
-                      ? 'bg-orange-500/15 text-orange-300 border border-warning-border'
-                      : 'text-white/50 hover:bg-white/[0.03] hover:text-white/70 border border-transparent'
+                      ? 'bg-warning-surface text-warning-text border border-warning-border'
+                      : 'text-ink-tertiary hover:bg-black/[0.03] hover:text-ink-secondary border border-transparent'
                   }`}
                 >
                   <div className="truncate font-medium">{p.name}</div>
@@ -345,7 +345,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
         {/* Right: Retro workspace */}
         <div className="flex-1 overflow-y-auto p-6">
           {!selectedPred ? (
-            <div className="flex flex-col items-center justify-center h-full text-white/20">
+            <div className="flex flex-col items-center justify-center h-full text-ink-disabled">
               <BarChart3 size={40} className="mb-3 opacity-30" />
               <p className="text-sm">从左侧选择一个预测记录</p>
               <p className="text-xs mt-1 opacity-60">输入实际数据开始复盘分析</p>
@@ -353,11 +353,11 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
           ) : (
             <div className="max-w-2xl space-y-6">
               {/* Prediction summary */}
-              <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                <h3 className="text-sm font-medium text-white/70 mb-2">
+              <div className="p-4 rounded-xl bg-black/[0.02] border border-rule-subtle">
+                <h3 className="text-sm font-medium text-ink-secondary mb-2">
                   📋 {selectedPred.topic}
                 </h3>
-                <div className="flex items-center gap-4 text-xs text-white/40">
+                <div className="flex items-center gap-4 text-xs text-ink-tertiary">
                   <span>预测分数：{selectedPred.total.toFixed(1)}/10</span>
                   <span>
                     预测时间：{new Date(selectedPred.predictedAt).toLocaleDateString('zh-CN')}
@@ -366,14 +366,14 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                 {selectedPred.actualData?.videoUrl && (
                   <button
                     onClick={() => window.open(selectedPred.actualData!.videoUrl!, '_blank')}
-                    className="mt-2 inline-flex items-center gap-1.5 text-xs text-brand-400 hover:text-brand-300 transition-colors"
+                    className="mt-2 inline-flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-500 transition-colors"
                   >
                     <ExternalLink size={11} />
                     查看原视频
                   </button>
                 )}
                 {selectedPred.actualData?.note && (
-                  <p className="mt-2 text-xs text-white/30 leading-relaxed italic border-t border-white/[0.04] pt-2">
+                  <p className="mt-2 text-xs text-ink-tertiary leading-relaxed italic border-t border-rule-subtle pt-2">
                     📝 {selectedPred.actualData.note}
                   </p>
                 )}
@@ -381,13 +381,13 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
 
               {/* Actual data input */}
               <section>
-                <h3 className="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
+                <h3 className="text-sm font-medium text-ink-secondary mb-3 flex items-center gap-2">
                   <Play size={14} className="text-warning-text" />
                   输入实际数据
                 </h3>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] text-white/30 uppercase tracking-wider flex items-center gap-1 mb-1">
+                    <label className="text-[10px] text-ink-tertiary uppercase tracking-wider flex items-center gap-1 mb-1">
                       <Eye size={10} /> 播放量
                     </label>
                     <input
@@ -397,11 +397,11 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                         setActualData((d) => ({ ...d, plays: parseInt(e.target.value) || 0 }))
                       }
                       placeholder="0"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-orange-500/30"
+                      className="w-full bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-white placeholder:text-ink-disabled focus:outline-none focus:border-warning-border"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-white/30 uppercase tracking-wider flex items-center gap-1 mb-1">
+                    <label className="text-[10px] text-ink-tertiary uppercase tracking-wider flex items-center gap-1 mb-1">
                       <ThumbsUp size={10} /> 点赞
                     </label>
                     <input
@@ -411,11 +411,11 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                         setActualData((d) => ({ ...d, likes: parseInt(e.target.value) || 0 }))
                       }
                       placeholder="0"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-orange-500/30"
+                      className="w-full bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-white placeholder:text-ink-disabled focus:outline-none focus:border-warning-border"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-white/30 uppercase tracking-wider flex items-center gap-1 mb-1">
+                    <label className="text-[10px] text-ink-tertiary uppercase tracking-wider flex items-center gap-1 mb-1">
                       <MessageCircle size={10} /> 评论
                     </label>
                     <input
@@ -425,11 +425,11 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                         setActualData((d) => ({ ...d, comments: parseInt(e.target.value) || 0 }))
                       }
                       placeholder="0"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-orange-500/30"
+                      className="w-full bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-white placeholder:text-ink-disabled focus:outline-none focus:border-warning-border"
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-white/30 uppercase tracking-wider flex items-center gap-1 mb-1">
+                    <label className="text-[10px] text-ink-tertiary uppercase tracking-wider flex items-center gap-1 mb-1">
                       <Share2 size={10} /> 分享
                     </label>
                     <input
@@ -439,13 +439,13 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                         setActualData((d) => ({ ...d, shares: parseInt(e.target.value) || 0 }))
                       }
                       placeholder="0"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-orange-500/30"
+                      className="w-full bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-white placeholder:text-ink-disabled focus:outline-none focus:border-warning-border"
                     />
                   </div>
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <div>
-                    <label className="text-[10px] text-white/30 uppercase tracking-wider mb-1 block">
+                    <label className="text-[10px] text-ink-tertiary uppercase tracking-wider mb-1 block">
                       完播率 (%)
                     </label>
                     <input
@@ -464,12 +464,12 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                       }}
                       placeholder="如 45.2"
                       step="0.1"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-orange-500/30"
+                      className="w-full bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-white placeholder:text-ink-disabled focus:outline-none focus:border-warning-border"
                     />
                   </div>
                 </div>
                 <div className="mt-3">
-                  <label className="text-[10px] text-white/30 uppercase tracking-wider flex items-center gap-1 mb-1">
+                  <label className="text-[10px] text-ink-tertiary uppercase tracking-wider flex items-center gap-1 mb-1">
                     <Link2 size={10} /> 视频链接
                   </label>
                   <input
@@ -479,11 +479,11 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                       setActualData((d) => ({ ...d, videoUrl: e.target.value }))
                     }
                     placeholder="https://v.douyin.com/... 或 https://www.bilibili.com/video/..."
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-orange-500/30"
+                    className="w-full bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-white placeholder:text-ink-disabled focus:outline-none focus:border-warning-border"
                   />
                 </div>
                 <div className="mt-3">
-                  <label className="text-[10px] text-white/30 uppercase tracking-wider flex items-center gap-1 mb-1">
+                  <label className="text-[10px] text-ink-tertiary uppercase tracking-wider flex items-center gap-1 mb-1">
                     <PenLine size={10} /> 备注
                   </label>
                   <textarea
@@ -493,13 +493,13 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                     }
                     placeholder="记录发布时的特殊情况、限流、爆款原因等..."
                     rows={2}
-                    className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/15 focus:outline-none focus:border-orange-500/30 resize-none"
+                    className="w-full bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-white placeholder:text-ink-disabled focus:outline-none focus:border-warning-border resize-none"
                   />
                 </div>
                 <button
                   onClick={handleAnalyze}
                   disabled={loading || actualData.plays <= 0}
-                  className="mt-4 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
+                  className="mt-4 px-5 py-2.5 rounded-xl bg-warning hover:bg-warning/80 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
                 >
                   {loading ? (
                     <Loader2 size={16} className="animate-spin" />
@@ -519,8 +519,8 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
 
               {/* Retro result */}
               {retroResult && (
-                <div className="space-y-4 border-t border-white/[0.04] pt-6">
-                  <h3 className="text-sm font-medium text-white/60 flex items-center gap-2">
+                <div className="space-y-4 border-t border-rule-subtle pt-6">
+                  <h3 className="text-sm font-medium text-ink-secondary flex items-center gap-2">
                     <TrendingUp size={14} className="text-success-text" />
                     复盘分析结果
                   </h3>
@@ -535,10 +535,10 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                     ].map((m) => (
                       <div
                         key={m.label}
-                        className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] text-center"
+                        className="p-3 rounded-lg bg-black/[0.02] border border-rule-subtle text-center"
                       >
-                        <p className="text-[10px] text-white/30">{m.label}</p>
-                        <p className="text-lg font-bold text-white/80">
+                        <p className="text-[10px] text-ink-tertiary">{m.label}</p>
+                        <p className="text-lg font-bold text-ink-primary">
                           {(m.value * 100).toFixed(1)}%
                         </p>
                       </div>
@@ -547,7 +547,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
 
                   {/* Deviation analysis */}
                   <div>
-                    <h4 className="text-xs font-medium text-white/40 mb-2">
+                    <h4 className="text-xs font-medium text-ink-tertiary mb-2">
                       维度偏差分析
                     </h4>
                     <div className="space-y-2">
@@ -556,17 +556,17 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                         return (
                           <div
                             key={i}
-                            className="flex items-center gap-3 p-3 rounded-lg bg-white/[0.02] border border-white/[0.04]"
+                            className="flex items-center gap-3 p-3 rounded-lg bg-black/[0.02] border border-rule-subtle"
                           >
-                            <IconComp size={14} className="text-white/30 shrink-0" />
-                            <span className="text-xs text-white/50 w-16 shrink-0">
+                            <IconComp size={14} className="text-ink-tertiary shrink-0" />
+                            <span className="text-xs text-ink-tertiary w-16 shrink-0">
                               {DIMENSION_LABELS[d.dimension] || d.dimension}
                             </span>
                             <div className="flex items-center gap-1.5 flex-1">
-                              <span className="text-xs text-white/30">
+                              <span className="text-xs text-ink-tertiary">
                                 {d.predictedScore}/10
                               </span>
-                              <span className="text-white/15">→</span>
+                              <span className="text-ink-disabled">→</span>
                               <span className={`text-xs font-medium ${getDeviationColor(d.deviation)}`}>
                                 {d.impliedByData}/10
                               </span>
@@ -584,8 +584,8 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                   </div>
 
                   {/* Overall assessment */}
-                  <div className="p-4 rounded-lg bg-white/[0.02] border border-white/[0.04]">
-                    <p className="text-sm text-white/60 leading-relaxed">
+                  <div className="p-4 rounded-lg bg-black/[0.02] border border-rule-subtle">
+                    <p className="text-sm text-ink-secondary leading-relaxed">
                       {retroResult.overallAssessment}
                     </p>
                   </div>
@@ -598,8 +598,8 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                       </h4>
                       <ul className="space-y-1">
                         {retroResult.keyLearnings.map((l, i) => (
-                          <li key={i} className="text-xs text-white/40 flex gap-1.5">
-                            <span className="text-green-500/50 shrink-0">•</span>
+                          <li key={i} className="text-xs text-ink-tertiary flex gap-1.5">
+                            <span className="text-success/50 shrink-0">•</span>
                             {l}
                           </li>
                         ))}
@@ -611,11 +611,11 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
 
               {/* Rubric Evolution */}
               {retroHistory.length >= 1 && (
-                <div className="border-t border-white/[0.04] pt-6">
-                  <h3 className="text-sm font-medium text-white/60 mb-3 flex items-center gap-2">
-                    <Brain size={14} className="text-brand-400" />
+                <div className="border-t border-rule-subtle pt-6">
+                  <h3 className="text-sm font-medium text-ink-secondary mb-3 flex items-center gap-2">
+                    <Brain size={14} className="text-brand-600" />
                     Rubric 进化
-                    <span className="text-[10px] text-white/20 ml-1">
+                    <span className="text-[10px] text-ink-disabled ml-1">
                       （基于 {retroHistory.length} 条复盘数据）
                     </span>
                   </h3>
@@ -624,7 +624,7 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                     <button
                       onClick={handleEvolveRubric}
                       disabled={evolving}
-                      className="px-5 py-2.5 rounded-xl bg-brand-600/20 border border-brand-500/20 hover:bg-brand-600/30 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
+                      className="px-5 py-2.5 rounded-xl bg-brand-100 border border-brand-200 hover:bg-brand-200 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
                     >
                       {evolving ? (
                         <Loader2 size={16} className="animate-spin" />
@@ -634,10 +634,10 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                       AI 分析并建议权重调整
                     </button>
                   ) : evolution.shouldEvolve ? (
-                    <div className="space-y-4 p-4 rounded-xl bg-brand-500/5 border border-brand-500/10">
+                    <div className="space-y-4 p-4 rounded-xl bg-brand-50 border border-brand-200">
                       <div className="flex items-center gap-2">
-                        <Brain size={14} className="text-brand-400" />
-                        <span className="text-sm font-medium text-brand-300">
+                        <Brain size={14} className="text-brand-600" />
+                        <span className="text-sm font-medium text-brand-500">
                           已进化至 {evolution.version}
                         </span>
                         {evolutionApplied && (
@@ -652,26 +652,26 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                         {evolution.weightChanges.map((wc, i) => (
                           <div
                             key={i}
-                            className="flex items-center gap-3 p-2.5 rounded-lg bg-white/[0.02]"
+                            className="flex items-center gap-3 p-2.5 rounded-lg bg-black/[0.02]"
                           >
-                            <span className="text-xs text-white/50 w-16">
+                            <span className="text-xs text-ink-tertiary w-16">
                               {DIMENSION_LABELS[wc.dimension] || wc.dimension}
                             </span>
-                            <span className="text-xs text-white/30">
+                            <span className="text-xs text-ink-tertiary">
                               {(wc.oldWeight * 100).toFixed(0)}%
                             </span>
-                            <span className="text-brand-400">→</span>
-                            <span className="text-xs text-brand-300 font-medium">
+                            <span className="text-brand-600">→</span>
+                            <span className="text-xs text-brand-500 font-medium">
                               {(wc.newWeight * 100).toFixed(0)}%
                             </span>
-                            <span className="text-[10px] text-white/20 ml-auto">
+                            <span className="text-[10px] text-ink-disabled ml-auto">
                               基于 {wc.evidenceCount} 条数据
                             </span>
                           </div>
                         ))}
                       </div>
 
-                      <p className="text-xs text-white/40 leading-relaxed">
+                      <p className="text-xs text-ink-tertiary leading-relaxed">
                         {evolution.rationale}
                       </p>
 
@@ -687,8 +687,8 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
                       )}
                     </div>
                   ) : (
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                      <p className="text-sm text-white/40">
+                    <div className="p-4 rounded-xl bg-black/[0.02] border border-rule-subtle">
+                      <p className="text-sm text-ink-tertiary">
                         当前数据不足以建议权重调整。继续积累复盘数据，当偏差模式足够明显时，AI 会建议进化方向。
                       </p>
                     </div>

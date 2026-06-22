@@ -40,8 +40,8 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number; classN
 
 const CATEGORY_COLORS: Record<string, string> = {
   '观点输出': 'text-warning-text border-warning-border bg-warning-surface',
-  '经验分享': 'text-blue-400 border-blue-500/20 bg-blue-500/5',
-  '趋势解读': 'text-brand-400 border-brand-500/20 bg-brand-500/5',
+  '经验分享': 'text-info-text border-info-border bg-info-surface',
+  '趋势解读': 'text-brand-600 border-brand-200 bg-brand-50',
   '避坑指南': 'text-danger-text border-danger-border bg-danger-surface'
 }
 
@@ -121,7 +121,7 @@ export default function TopicInspirationPage({
 
   if (!activeProject) {
     return (
-      <div className="flex items-center justify-center h-full text-white/30">
+      <div className="flex items-center justify-center h-full text-ink-tertiary">
         <p>请先创建项目</p>
       </div>
     )
@@ -130,17 +130,17 @@ export default function TopicInspirationPage({
   return (
     <div className="h-full flex flex-col">
       {/* Top bar */}
-      <div className="flex items-center gap-4 px-6 py-4 border-b border-white/5">
+      <div className="flex items-center gap-4 px-6 py-4 border-b border-rule-subtle">
         <button
           onClick={onBack}
-          className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white/70 transition-colors"
+          className="p-2 rounded-lg hover:bg-black/[0.03] text-ink-tertiary hover:text-ink-secondary transition-colors"
         >
           <ArrowLeft size={18} />
         </button>
         <h1 className="text-lg font-semibold text-white">选题灵感</h1>
-        <span className="text-xs text-white/20">AI 根据你的画像推荐爆款选题</span>
+        <span className="text-xs text-ink-disabled">AI 根据你的画像推荐爆款选题</span>
         <div className="flex-1" />
-        <label className="flex items-center gap-2 text-xs text-white/30 cursor-pointer select-none">
+        <label className="flex items-center gap-2 text-xs text-ink-tertiary cursor-pointer select-none">
           <input
             type="checkbox"
             checked={useRetroData}
@@ -153,7 +153,7 @@ export default function TopicInspirationPage({
           <button
             onClick={handleGenerate}
             disabled={loading}
-            className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/70 text-sm transition-colors flex items-center gap-2"
+            className="px-4 py-2 rounded-lg bg-black/[0.04] hover:bg-black/[0.06] text-ink-tertiary hover:text-ink-secondary text-sm transition-colors flex items-center gap-2"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
             换一批
@@ -164,7 +164,7 @@ export default function TopicInspirationPage({
       {/* Main content */}
       <div className="flex-1 overflow-y-auto p-6">
         {!result && !loading ? (
-          <div className="flex flex-col items-center justify-center h-full text-white/20">
+          <div className="flex flex-col items-center justify-center h-full text-ink-disabled">
             <Lightbulb size={48} className="mb-4 opacity-30" />
             <p className="text-sm mb-1">AI 根据你的行业和受众画像，生成选题建议</p>
             <p className="text-xs opacity-60 mb-6">
@@ -175,7 +175,7 @@ export default function TopicInspirationPage({
             <button
               onClick={handleGenerate}
               disabled={loading}
-              className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
+              className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
             >
               <Lightbulb size={16} />
               为我生成选题
@@ -183,36 +183,36 @@ export default function TopicInspirationPage({
           </div>
         ) : loading ? (
           <div className="flex flex-col items-center justify-center h-full">
-            <Loader2 size={32} className="animate-spin text-brand-400/50 mb-4" />
-            <p className="text-white/40 text-sm">AI 正在分析你的受众画像...</p>
-            <p className="text-white/20 text-xs mt-1">结合行业趋势和往期数据，生成选题建议</p>
+            <Loader2 size={32} className="animate-spin text-brand-600/50 mb-4" />
+            <p className="text-ink-tertiary text-sm">AI 正在分析你的受众画像...</p>
+            <p className="text-ink-disabled text-xs mt-1">结合行业趋势和往期数据，生成选题建议</p>
           </div>
         ) : result ? (
           <div className="max-w-4xl mx-auto space-y-6">
             {/* Overall advice */}
-            <div className="p-5 rounded-2xl bg-gradient-to-r from-brand-500/10 to-brand-500/10 border border-brand-500/20">
+            <div className="p-5 rounded-2xl bg-gradient-to-r from-brand-50 to-brand-50 border border-brand-200">
               <div className="flex items-center gap-2 mb-2">
-                <Target size={16} className="text-brand-400" />
-                <h3 className="text-sm font-medium text-white/80">AI 综合建议</h3>
+                <Target size={16} className="text-brand-600" />
+                <h3 className="text-sm font-medium text-ink-primary">AI 综合建议</h3>
               </div>
-              <p className="text-sm text-white/60 leading-relaxed">{result.overallAdvice}</p>
+              <p className="text-sm text-ink-secondary leading-relaxed">{result.overallAdvice}</p>
             </div>
 
             {/* Topic cards */}
             <div className="grid grid-cols-1 gap-3">
               {result.topics.map((topic, i) => {
                 const CategoryIcon = CATEGORY_ICONS[topic.category] || Lightbulb
-                const catStyle = CATEGORY_COLORS[topic.category] || 'text-white/30 border-white/10 bg-white/[0.02]'
+                const catStyle = CATEGORY_COLORS[topic.category] || 'text-ink-tertiary border-rule bg-black/[0.02]'
 
                 return (
                   <div
                     key={i}
-                    className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-brand-500/20 transition-all group"
+                    className="p-5 rounded-xl bg-black/[0.02] border border-rule-subtle hover:border-brand-200 transition-all group"
                   >
                     <div className="flex items-start gap-4">
                       {/* Number + category */}
                       <div className="shrink-0 flex flex-col items-center gap-1.5">
-                        <span className="text-lg font-bold text-white/15 font-mono">
+                        <span className="text-lg font-bold text-ink-disabled font-mono">
                           {String(i + 1).padStart(2, '0')}
                         </span>
                         <span
@@ -225,25 +225,25 @@ export default function TopicInspirationPage({
 
                       {/* Content */}
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-semibold text-white/90 mb-2 group-hover:text-white transition-colors">
+                        <h3 className="text-base font-semibold text-ink-primary mb-2 group-hover:text-white transition-colors">
                           {topic.title}
                         </h3>
 
                         <div className="space-y-1.5 mb-3">
-                          <p className="text-xs text-white/40 flex gap-2">
-                            <span className="text-white/20 shrink-0">切入：</span>
+                          <p className="text-xs text-ink-tertiary flex gap-2">
+                            <span className="text-ink-disabled shrink-0">切入：</span>
                             {topic.angle}
                           </p>
-                          <p className="text-xs text-white/40 flex gap-2">
-                            <span className="text-white/20 shrink-0">钩子：</span>
-                            <span className="text-brand-400/70 italic">"{topic.hook}"</span>
+                          <p className="text-xs text-ink-tertiary flex gap-2">
+                            <span className="text-ink-disabled shrink-0">钩子：</span>
+                            <span className="text-brand-600/70 italic">"{topic.hook}"</span>
                           </p>
-                          <p className="text-xs text-white/40 flex gap-2">
-                            <span className="text-white/20 shrink-0">共鸣：</span>
+                          <p className="text-xs text-ink-tertiary flex gap-2">
+                            <span className="text-ink-disabled shrink-0">共鸣：</span>
                             {topic.audienceResonance}
                           </p>
-                          <p className="text-xs text-white/30 flex gap-2">
-                            <span className="text-white/20 shrink-0">理由：</span>
+                          <p className="text-xs text-ink-tertiary flex gap-2">
+                            <span className="text-ink-disabled shrink-0">理由：</span>
                             {topic.reason}
                           </p>
                         </div>
@@ -251,7 +251,7 @@ export default function TopicInspirationPage({
                         {/* Difficulty stars + action */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-1">
-                            <span className="text-[10px] text-white/20 mr-1">难度</span>
+                            <span className="text-[10px] text-ink-disabled mr-1">难度</span>
                             {Array.from({ length: 5 }).map((_, si) => (
                               <Star
                                 key={si}
@@ -266,7 +266,7 @@ export default function TopicInspirationPage({
 
                           <button
                             onClick={() => onWriteScript(topic.title)}
-                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-600/20 border border-brand-500/20 hover:bg-brand-600/30 text-brand-300 text-xs font-medium transition-colors"
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-100 border border-brand-200 hover:bg-brand-200 text-brand-500 text-xs font-medium transition-colors"
                           >
                             用这个选题写脚本
                             <ArrowRight size={12} />

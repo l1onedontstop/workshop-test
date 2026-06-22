@@ -22,6 +22,9 @@ import {
   X,
   PenLine
 } from 'lucide-react'
+import Button from '../components/ui/Button'
+import Card from '../components/ui/Card'
+import Badge from '../components/ui/Badge'
 import type { ContentPlan, ContentStrategy, TopicEntry } from '../types/plan'
 import { extractJSON } from '../services/parseAIResponse'
 
@@ -39,8 +42,8 @@ const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number; classN
 
 const CATEGORY_COLORS: Record<string, string> = {
   '观点输出': 'text-warning-text border-warning-border bg-warning-surface',
-  '经验分享': 'text-blue-400 border-blue-500/20 bg-blue-500/5',
-  '趋势解读': 'text-brand-400 border-brand-500/20 bg-brand-500/5',
+  '经验分享': 'text-info-text border-info-border bg-info-surface',
+  '趋势解读': 'text-brand-600 border-brand-200 bg-brand-50',
   '避坑指南': 'text-danger-text border-danger-border bg-danger-surface'
 }
 
@@ -447,7 +450,7 @@ export default function PlanEditorPage({
 
   if (!activeProject || !plan) {
     return (
-      <div className="flex items-center justify-center h-full text-white/30">
+      <div className="flex items-center justify-center h-full text-ink-tertiary">
         <Loader2 size={24} className="animate-spin" />
       </div>
     )
@@ -458,14 +461,14 @@ export default function PlanEditorPage({
   return (
     <div className="h-full flex flex-col">
       {/* Top bar */}
-      <div className="flex items-center gap-4 px-6 py-4 border-b border-white/5">
-        <button
+      <div className="flex items-center gap-4 px-6 py-4 border-b border-rule-subtle">
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onBack}
-          className="p-2 rounded-lg hover:bg-white/5 text-white/40 hover:text-white/70 transition-colors"
-        >
-          <ArrowLeft size={18} />
-        </button>
-        <h1 className="text-lg font-semibold text-white">{plan.name}</h1>
+          icon={<ArrowLeft size={18} />}
+        />
+        <h1 className="text-lg font-semibold text-ink-primary">{plan.name}</h1>
         {/* Step indicator */}
         <div className="flex items-center gap-1.5 ml-6">
           {STEP_LABELS.map((label, i) => (
@@ -474,17 +477,17 @@ export default function PlanEditorPage({
                 onClick={() => i + 1 <= step && setStep((i + 1) as Step)}
                 className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
                   i + 1 === step
-                    ? 'bg-brand-500/20 text-brand-400'
+                    ? 'bg-brand-100 text-brand-600'
                     : i + 1 < step
                       ? 'text-success-text/60'
-                      : 'text-white/15'
+                      : 'text-ink-disabled'
                 }`}
               >
                 {i + 1 < step ? <CheckCircle2 size={10} className="inline mr-0.5" /> : null}
                 {label}
               </button>
               {i < STEP_LABELS.length - 1 && (
-                <ChevronRight size={10} className="text-white/10" />
+                <ChevronRight size={10} className="text-ink-disabled" />
               )}
             </div>
           ))}
@@ -500,9 +503,9 @@ export default function PlanEditorPage({
           {step === 1 && (
             <div className="space-y-6">
               <div className="text-center mb-8">
-                <Target size={36} className="text-brand-400/50 mx-auto mb-3" />
-                <h2 className="text-xl font-semibold text-white mb-2">完善你的人设</h2>
-                <p className="text-sm text-white/40">
+                <Target size={36} className="text-brand-600/50 mx-auto mb-3" />
+                <h2 className="text-xl font-semibold text-ink-primary mb-2">完善你的人设</h2>
+                <p className="text-sm text-ink-tertiary">
                   逐题回答，让 AI 更了解你。越详细，生成的方案越贴合你。
                 </p>
               </div>
@@ -510,71 +513,69 @@ export default function PlanEditorPage({
               {/* Summary view: show all 4 questions, unfilled ones marked as "未填写" */}
               {personaEditMode ? (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-xl bg-brand-500/5 border border-brand-500/10 mb-2">
-                    <p className="text-sm text-brand-300/80">
+                  <div className="p-4 rounded-xl bg-brand-50 border border-brand-200 mb-2">
+                    <p className="text-sm text-brand-500/80">
                       💡 填写得越详细，AI 越能为你量身定制最适合的 IP 方案
                     </p>
                   </div>
 
                   {PERSONA_QUESTIONS.map((q, i) => (
-                    <div
+                    <Card
                       key={q.key}
-                      className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4 group"
+                      level="default"
+                      className="rounded-xl p-4 group"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-white/30 mb-1">
+                          <p className="text-xs text-ink-tertiary mb-1">
                             {q.label} — {q.question.slice(0, 20)}...
                           </p>
-                          <p className="text-sm text-white/70 whitespace-pre-wrap">
+                          <p className="text-sm text-ink-secondary whitespace-pre-wrap">
                             {personaAnswers[i]?.trim() || '（未填写）'}
                           </p>
                         </div>
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => {
                             setPersonaSubStep(i)
                             setPersonaEditMode(false)
                           }}
-                          className="shrink-0 p-1.5 rounded-lg bg-white/[0.04] hover:bg-white/[0.08] text-white/30 hover:text-white/60 opacity-0 group-hover:opacity-100 transition-all"
-                        >
-                          <PenLine size={14} />
-                        </button>
+                          icon={<PenLine size={14} />}
+                          className="opacity-0 group-hover:opacity-100"
+                        />
                       </div>
-                    </div>
+                    </Card>
                   ))}
 
                   {aiTraits.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {aiTraits.map((t, i) => (
-                        <span
+                        <Badge
                           key={i}
-                          className="px-3 py-1 rounded-full text-xs bg-brand-500/10 border border-brand-500/20 text-brand-400"
+                          className="rounded-full bg-brand-50 border-brand-200 text-brand-600"
                         >
                           {t}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
                   )}
 
                   <div className="flex justify-end gap-3 pt-2">
-                    <button
+                    <Button
+                      variant="secondary"
                       onClick={() => { setPersonaEditMode(false); setPersonaSubStep(0) }}
-                      className="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-white/50 text-sm transition-colors"
                     >
                       重新填写
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="primary"
                       onClick={handleSavePersona}
-                      disabled={loading}
-                      className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
+                      loading={loading}
+                      icon={<ChevronRight size={16} />}
                     >
-                      {loading ? (
-                        <Loader2 size={16} className="animate-spin" />
-                      ) : (
-                        <ChevronRight size={16} />
-                      )}
                       下一步：选题组盘
-                    </button>
+                    </Button>
                   </div>
                 </div>
               ) : (
@@ -590,8 +591,8 @@ export default function PlanEditorPage({
                           i === personaSubStep
                             ? 'bg-brand-600 text-white'
                             : personaAnswers[i]?.trim()
-                              ? 'bg-brand-500/20 text-brand-400 border border-brand-500/30'
-                              : 'bg-white/[0.04] text-white/20 border border-white/[0.04]'
+                              ? 'bg-brand-100 text-brand-600 border border-brand-200'
+                              : 'bg-black/[0.04] text-ink-disabled border border-rule-subtle'
                         }`}
                       >
                         {i + 1}
@@ -600,11 +601,11 @@ export default function PlanEditorPage({
                   </div>
 
                   {/* Current question */}
-                  <div className="bg-white/[0.02] border border-white/[0.06] rounded-xl p-6">
-                    <p className="text-sm text-white/50 mb-1">
+                  <Card level="subtle" className="p-6">
+                    <p className="text-sm text-ink-tertiary mb-1">
                       {PERSONA_QUESTIONS[personaSubStep].label}
                     </p>
-                    <p className="text-base text-white font-medium mb-4">
+                    <p className="text-base text-ink-primary font-medium mb-4">
                       {PERSONA_QUESTIONS[personaSubStep].question}
                     </p>
                     <textarea
@@ -616,39 +617,39 @@ export default function PlanEditorPage({
                       }}
                       placeholder={PERSONA_QUESTIONS[personaSubStep].placeholder}
                       rows={5}
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg p-4 text-sm text-white/80 placeholder:text-white/12 resize-none focus:outline-none focus:border-brand-500/30"
+                      className="w-full bg-black/[0.04] border border-rule rounded-lg p-4 text-sm text-ink-primary placeholder:text-ink-disabled resize-none focus:outline-none focus:border-brand-200"
                       autoFocus
                     />
-                  </div>
+                  </Card>
 
                   {/* Navigation */}
                   <div className="flex justify-between">
-                    <button
+                    <Button
+                      variant="secondary"
                       onClick={() => setPersonaSubStep((s) => Math.max(0, s - 1))}
                       disabled={personaSubStep === 0}
-                      className="px-4 py-2.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] disabled:opacity-20 text-white/50 text-sm transition-colors flex items-center gap-1.5"
+                      icon={<ChevronLeft size={16} />}
                     >
-                      <ChevronLeft size={16} />
                       上一题
-                    </button>
+                    </Button>
 
                     {personaSubStep < PERSONA_QUESTIONS.length - 1 ? (
-                      <button
+                      <Button
+                        variant="secondary"
                         onClick={() => setPersonaSubStep((s) => s + 1)}
-                        className="px-5 py-2.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.10] text-white/70 text-sm transition-colors flex items-center gap-1.5"
+                        icon={<ChevronRight size={16} />}
                       >
                         下一题
-                        <ChevronRight size={16} />
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button
+                        variant="primary"
                         onClick={() => setPersonaEditMode(true)}
                         disabled={personaAnswers.filter((a) => a?.trim()).length < 1}
-                        className="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
+                        icon={<CheckCircle2 size={16} />}
                       >
-                        <CheckCircle2 size={16} />
                         查看汇总
-                      </button>
+                      </Button>
                     )}
                   </div>
                 </div>
@@ -660,27 +661,24 @@ export default function PlanEditorPage({
           {step === 2 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <Lightbulb size={36} className="text-brand-400/50 mx-auto mb-3" />
-                <h2 className="text-xl font-semibold text-white mb-2">选题组盘</h2>
-                <p className="text-sm text-white/40">
+                <Lightbulb size={36} className="text-brand-600/50 mx-auto mb-3" />
+                <h2 className="text-xl font-semibold text-ink-primary mb-2">选题组盘</h2>
+                <p className="text-sm text-ink-tertiary">
                   AI 会根据你的人设生成选题建议。勾选你想拍的选题，组成你的内容计划。
                 </p>
               </div>
 
               {topicCandidates.length === 0 ? (
                 <div className="text-center py-12">
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
                     onClick={handleGenerateTopics}
-                    disabled={loading}
-                    className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2 mx-auto"
+                    loading={loading}
+                    icon={<Sparkles size={16} />}
                   >
-                    {loading ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <Sparkles size={16} />
-                    )}
                     AI 生成选题建议
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <>
@@ -690,15 +688,15 @@ export default function PlanEditorPage({
                       const CategoryIcon = CATEGORY_ICONS[topic.category] || Lightbulb
                       const catStyle =
                         CATEGORY_COLORS[topic.category] ||
-                        'text-white/30 border-white/10 bg-white/[0.02]'
+                        'text-ink-tertiary border-rule bg-black/[0.02]'
                       return (
                         <button
                           key={i}
                           onClick={() => toggleTopic(i)}
                           className={`w-full text-left p-4 rounded-xl border transition-all ${
                             isSelected
-                              ? 'border-brand-500/30 bg-brand-500/5'
-                              : 'border-white/[0.04] bg-white/[0.02] hover:border-white/10'
+                              ? 'border-brand-200 bg-brand-50'
+                              : 'border-rule-subtle bg-black/[0.02] hover:border-rule'
                           }`}
                         >
                           <div className="flex items-start gap-3">
@@ -706,23 +704,23 @@ export default function PlanEditorPage({
                               className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
                                 isSelected
                                   ? 'border-brand-500 bg-brand-500'
-                                  : 'border-white/15'
+                                  : 'border-rule-strong'
                               }`}
                             >
                               {isSelected && <CheckCircle2 size={12} className="text-white" />}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="text-sm font-medium text-white/80">
+                                <span className="text-sm font-medium text-ink-primary">
                                   {topic.title}
                                 </span>
-                                <span
-                                  className={`text-[9px] px-1.5 py-0.5 rounded-full border ${catStyle} flex items-center gap-0.5`}
+                                <Badge
+                                  className={`text-[9px] px-1.5 py-0.5 rounded-full ${catStyle}`}
                                 >
                                   <CategoryIcon size={9} />
                                   {topic.category}
-                                </span>
-                                <span className="text-[10px] text-white/20">
+                                </Badge>
+                                <span className="text-[10px] text-ink-disabled">
                                   <Star
                                     size={10}
                                     className="inline mr-0.5"
@@ -731,8 +729,8 @@ export default function PlanEditorPage({
                                   {topic.difficulty}/5
                                 </span>
                               </div>
-                              <p className="text-xs text-white/40">{topic.angle}</p>
-                              <p className="text-xs text-brand-400/60 italic mt-1">
+                              <p className="text-xs text-ink-tertiary">{topic.angle}</p>
+                              <p className="text-xs text-brand-600/60 italic mt-1">
                                 "{topic.hook}"
                               </p>
                             </div>
@@ -742,27 +740,27 @@ export default function PlanEditorPage({
                     })}
                   </div>
 
-                  <div className="flex justify-between items-center pt-4 border-t border-white/[0.04]">
-                    <span className="text-xs text-white/30">
+                  <div className="flex justify-between items-center pt-4 border-t border-rule-subtle">
+                    <span className="text-xs text-ink-tertiary">
                       已选 {selectedTopics.size}/{topicCandidates.length} 个选题
                     </span>
                     <div className="flex gap-3">
-                      <button
+                      <Button
+                        variant="secondary"
                         onClick={handleGenerateTopics}
                         disabled={loading}
-                        className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 text-sm transition-colors flex items-center gap-2"
+                        icon={<Sparkles size={14} />}
                       >
-                        <Sparkles size={14} />
                         换一批
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="primary"
                         onClick={handleConfirmTopics}
                         disabled={selectedTopics.size === 0}
-                        className="px-5 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-colors flex items-center gap-2"
+                        icon={<ChevronRight size={14} />}
                       >
                         确认选题 ({selectedTopics.size})
-                        <ChevronRight size={14} />
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 </>
@@ -774,65 +772,62 @@ export default function PlanEditorPage({
           {step === 3 && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <Brain size={36} className="text-brand-400/50 mx-auto mb-3" />
-                <h2 className="text-xl font-semibold text-white mb-2">策略生成</h2>
-                <p className="text-sm text-white/40">
+                <Brain size={36} className="text-brand-600/50 mx-auto mb-3" />
+                <h2 className="text-xl font-semibold text-ink-primary mb-2">策略生成</h2>
+                <p className="text-sm text-ink-tertiary">
                   AI 会根据你的人设和选题，生成系统化的内容策略
                 </p>
               </div>
 
               {!strategy ? (
                 <div className="text-center py-12">
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
                     onClick={handleGenerateStrategy}
-                    disabled={loading}
-                    className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2 mx-auto"
+                    loading={loading}
+                    icon={<Brain size={16} />}
                   >
-                    {loading ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : (
-                      <Brain size={16} />
-                    )}
                     AI 生成内容策略
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="space-y-5">
                   {/* Content pillars */}
-                  <div className="p-5 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                    <h3 className="text-sm font-medium text-white/70 mb-3">🎯 内容支柱</h3>
+                  <Card level="subtle" className="p-5">
+                    <h3 className="text-sm font-medium text-ink-secondary mb-3">🎯 内容支柱</h3>
                     <div className="space-y-2">
                       {strategy.contentPillars.map((p, i) => (
                         <div
                           key={i}
-                          className="flex items-start gap-2 p-3 rounded-lg bg-white/[0.02]"
+                          className="flex items-start gap-2 p-3 rounded-lg bg-black/[0.02]"
                         >
-                          <span className="text-brand-400 font-mono text-xs mt-0.5">#{i + 1}</span>
-                          <span className="text-sm text-white/60">{p}</span>
+                          <span className="text-brand-600 font-mono text-xs mt-0.5">#{i + 1}</span>
+                          <span className="text-sm text-ink-tertiary">{p}</span>
                         </div>
                       ))}
                     </div>
-                  </div>
+                  </Card>
 
                   {/* Cadence + Persona advice */}
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                      <h3 className="text-sm font-medium text-white/70 mb-2">📅 发布节奏</h3>
-                      <p className="text-xs text-white/40 leading-relaxed">
+                    <Card level="subtle" className="p-4">
+                      <h3 className="text-sm font-medium text-ink-secondary mb-2">📅 发布节奏</h3>
+                      <p className="text-xs text-ink-tertiary leading-relaxed">
                         {strategy.publishCadence}
                       </p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                      <h3 className="text-sm font-medium text-white/70 mb-2">👤 人设建议</h3>
-                      <p className="text-xs text-white/40 leading-relaxed">
+                    </Card>
+                    <Card level="subtle" className="p-4">
+                      <h3 className="text-sm font-medium text-ink-secondary mb-2">👤 人设建议</h3>
+                      <p className="text-xs text-ink-tertiary leading-relaxed">
                         {strategy.personaAdvice}
                       </p>
-                    </div>
+                    </Card>
                   </div>
 
                   {/* Overall advice */}
-                  <div className="p-4 rounded-xl bg-gradient-to-r from-brand-500/10 to-brand-500/10 border border-brand-500/20">
-                    <p className="text-sm text-white/60 leading-relaxed">
+                  <div className="p-4 rounded-xl bg-gradient-to-r from-brand-50 to-brand-50 border border-brand-200">
+                    <p className="text-sm text-ink-tertiary leading-relaxed">
                       {strategy.overallAdvice}
                     </p>
                   </div>
@@ -852,22 +847,22 @@ export default function PlanEditorPage({
                     </div>
                   )}
 
-                  <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.04]">
-                    <button
+                  <div className="flex justify-end gap-3 pt-4 border-t border-rule-subtle">
+                    <Button
+                      variant="secondary"
                       onClick={handleGenerateStrategy}
                       disabled={loading}
-                      className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 text-sm transition-colors flex items-center gap-2"
+                      icon={<Sparkles size={14} />}
                     >
-                      <Sparkles size={14} />
                       重新生成
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="primary"
                       onClick={() => setStep(4)}
-                      className="px-5 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-colors flex items-center gap-2"
+                      icon={<ChevronRight size={14} />}
                     >
                       下一步：生成脚本
-                      <ChevronRight size={14} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -879,35 +874,36 @@ export default function PlanEditorPage({
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <FileText size={36} className="text-success-text/50 mx-auto mb-3" />
-                <h2 className="text-xl font-semibold text-white mb-2">批量生成脚本</h2>
-                <p className="text-sm text-white/40">
+                <h2 className="text-xl font-semibold text-ink-primary mb-2">批量生成脚本</h2>
+                <p className="text-sm text-ink-tertiary">
                   为每个选题逐一生成脚本，保存到 scripts/ 目录。生成速度取决于你的 AI 引擎。
                 </p>
               </div>
 
               {generatedScripts.length === 0 && !loading ? (
                 <div className="text-center py-12">
-                  <p className="text-sm text-white/40 mb-1">
+                  <p className="text-sm text-ink-tertiary mb-1">
                     将为 {selectedTopicList.length} 个选题生成脚本
                   </p>
-                  <p className="text-xs text-white/20 mb-6">
+                  <p className="text-xs text-ink-disabled mb-6">
                     每个脚本约需 20-60 秒，请耐心等待
                   </p>
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
                     onClick={handleGenerateScripts}
-                    className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-all flex items-center gap-2 mx-auto"
+                    icon={<Sparkles size={16} />}
                   >
-                    <Sparkles size={16} />
                     开始批量生成
-                  </button>
+                  </Button>
                 </div>
               ) : loading ? (
                 <div className="text-center py-12">
-                  <Loader2 size={32} className="animate-spin text-brand-400/50 mx-auto mb-4" />
-                  <p className="text-sm text-white/40">
+                  <Loader2 size={32} className="animate-spin text-brand-600/50 mx-auto mb-4" />
+                  <p className="text-sm text-ink-tertiary">
                     正在生成第 {scriptProgress.current}/{scriptProgress.total} 个脚本...
                   </p>
-                  <div className="mt-4 h-2 bg-white/[0.04] rounded-full max-w-md mx-auto overflow-hidden">
+                  <div className="mt-4 h-2 bg-black/[0.04] rounded-full max-w-md mx-auto overflow-hidden">
                     <div
                       className="h-full bg-brand-500 rounded-full transition-all duration-500"
                       style={{
@@ -927,36 +923,37 @@ export default function PlanEditorPage({
 
                   <div className="space-y-2">
                     {generatedScripts.map((g) => (
-                      <div
+                      <Card
                         key={g.topicIndex}
-                        className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.04] flex items-center gap-3"
+                        level="subtle"
+                        className="p-3 rounded-lg flex items-center gap-3"
                       >
                         <CheckCircle2 size={14} className="text-green-500/70 shrink-0" />
-                        <span className="text-sm text-white/60 truncate flex-1">
+                        <span className="text-sm text-ink-tertiary truncate flex-1">
                           {selectedTopicList[g.topicIndex]?.title || `脚本 ${g.topicIndex + 1}`}
                         </span>
-                        <span className="text-[10px] text-white/20 font-mono">
+                        <span className="text-[10px] text-ink-disabled font-mono">
                           {g.fileName}
                         </span>
-                      </div>
+                      </Card>
                     ))}
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-4 border-t border-white/[0.04]">
-                    <button
+                  <div className="flex justify-end gap-3 pt-4 border-t border-rule-subtle">
+                    <Button
+                      variant="secondary"
                       onClick={handleGenerateScripts}
-                      className="px-4 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/50 text-sm transition-colors flex items-center gap-2"
+                      icon={<Sparkles size={14} />}
                     >
-                      <Sparkles size={14} />
                       重新生成
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="primary"
                       onClick={() => setStep(5)}
-                      className="px-5 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-colors flex items-center gap-2"
+                      icon={<ChevronRight size={14} />}
                     >
                       下一步：排期定稿
-                      <ChevronRight size={14} />
-                    </button>
+                    </Button>
                   </div>
                 </div>
               )}
@@ -968,8 +965,8 @@ export default function PlanEditorPage({
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <Calendar size={36} className="text-warning-text/50 mx-auto mb-3" />
-                <h2 className="text-xl font-semibold text-white mb-2">排期定稿</h2>
-                <p className="text-sm text-white/40">
+                <h2 className="text-xl font-semibold text-ink-primary mb-2">排期定稿</h2>
+                <p className="text-sm text-ink-tertiary">
                   为每条脚本分配发布日期，完成整个 IP 方案
                 </p>
               </div>
@@ -988,23 +985,23 @@ export default function PlanEditorPage({
                             onNavigateToScript?.(topic.scriptFile)
                           }
                         }}
-                        className="w-full text-left p-4 rounded-xl bg-white/[0.02] border border-white/[0.04] hover:border-brand-500/20 hover:bg-white/[0.04] flex items-center gap-4 transition-all group"
+                        className="w-full text-left p-4 rounded-xl bg-black/[0.02] border border-rule-subtle hover:border-brand-200 hover:bg-black/[0.04] flex items-center gap-4 transition-all group"
                       >
                         <div className="text-center shrink-0 w-16">
-                          <p className="text-lg font-bold text-white/60">
+                          <p className="text-lg font-bold text-ink-tertiary">
                             {date.getDate()}
                           </p>
-                          <p className="text-[10px] text-white/30">
+                          <p className="text-[10px] text-ink-tertiary">
                             {date.toLocaleDateString('zh-CN', { month: 'short', weekday: 'short' })}
                           </p>
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-white/70 truncate group-hover:text-brand-300 transition-colors">{topic.title}</p>
-                          <p className="text-[10px] text-white/20 font-mono mt-0.5">
+                          <p className="text-sm text-ink-secondary truncate group-hover:text-brand-500 transition-colors">{topic.title}</p>
+                          <p className="text-[10px] text-ink-disabled font-mono mt-0.5">
                             {topic.scriptFile}
                           </p>
                         </div>
-                        <ChevronRight size={14} className="text-white/10 group-hover:text-brand-400 group-hover:translate-x-0.5 transition-all shrink-0" />
+                        <ChevronRight size={14} className="text-ink-disabled group-hover:text-brand-600 group-hover:translate-x-0.5 transition-all shrink-0" />
                       </button>
                     )
                   })}
@@ -1012,29 +1009,30 @@ export default function PlanEditorPage({
 
               {!schedule.length ? (
                 <div className="flex justify-end">
-                  <button
+                  <Button
+                    variant="primary"
+                    size="lg"
                     onClick={handleFinalize}
-                    disabled={loading}
-                    className="px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-500 disabled:opacity-30 text-white text-sm font-medium transition-all flex items-center gap-2"
+                    loading={loading}
+                    icon={<CheckCircle2 size={16} />}
                   >
-                    <CheckCircle2 size={16} />
                     完成方案
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <div className="p-5 rounded-xl bg-success-surface border border-success-border text-center">
                   <CheckCircle2 size={32} className="text-success-text mx-auto mb-3" />
-                  <h2 className="text-lg font-semibold text-white mb-2">方案已完成！</h2>
-                  <p className="text-sm text-white/40 mb-4">
+                  <h2 className="text-lg font-semibold text-ink-primary mb-2">方案已完成！</h2>
+                  <p className="text-sm text-ink-tertiary mb-4">
                     {selectedTopicList.filter((t) => t.scriptFile).length} 条脚本已保存到
                     scripts/，可以返回工作台查看和编辑。
                   </p>
-                  <button
+                  <Button
+                    variant="primary"
                     onClick={onBack}
-                    className="px-5 py-2 rounded-lg bg-brand-600 hover:bg-brand-500 text-white text-sm font-medium transition-colors"
                   >
                     返回工作台
-                  </button>
+                  </Button>
                 </div>
               )}
             </div>

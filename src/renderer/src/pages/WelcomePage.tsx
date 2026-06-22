@@ -164,11 +164,11 @@ export default function WelcomePage({
             </div>
           </div>
 
-          <h1 className="text-2xl font-bold text-white/90 mb-2">项目创建成功！</h1>
-          <p className="text-white/45 text-sm mb-3">
+          <h1 className="text-2xl font-bold text-ink-primary mb-2">项目创建成功！</h1>
+          <p className="text-ink-tertiary text-sm mb-3">
             你的 IP 打造之路正式启动
           </p>
-          <p className="text-white/30 text-sm mb-8 max-w-sm mx-auto leading-relaxed">
+          <p className="text-ink-tertiary text-sm mb-8 max-w-sm mx-auto leading-relaxed">
             AI 正在分析你的回答，为你生成专属的 IP 打造蓝图——包含定位、内容策略、第一条视频计划
           </p>
 
@@ -201,7 +201,7 @@ export default function WelcomePage({
               进入工作台
             </Button>
           </div>
-          <p className="text-xs text-white/25 mt-4">推荐先生成蓝图，AI 将根据你的回答定制完整方案</p>
+          <p className="text-xs text-ink-disabled mt-4">推荐先生成蓝图，AI 将根据你的回答定制完整方案</p>
         </div>
       </div>
     )
@@ -213,16 +213,16 @@ export default function WelcomePage({
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="w-full max-w-lg animate-fade-in">
           <div className="text-center mb-8">
-            <Sparkles size={32} className="text-brand-400/50 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-white/90 mb-2">给你的项目起个名字</h1>
-            <p className="text-white/40 text-sm">
+            <Sparkles size={32} className="text-brand-600/50 mx-auto mb-4" />
+            <h1 className="text-2xl font-bold text-ink-primary mb-2">给你的项目起个名字</h1>
+            <p className="text-ink-tertiary text-sm">
               例如：老杨的AI成神之路、XX行业观察笔记
             </p>
           </div>
 
           <Card level="default" className="p-6 space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-white/45">项目名称</label>
+              <label className="text-xs font-medium text-ink-tertiary">项目名称</label>
               <input
                 type="text"
                 value={projectName}
@@ -231,7 +231,7 @@ export default function WelcomePage({
                   if (e.key === 'Enter') handleCreateProject()
                 }}
                 placeholder="输入项目名称（留空则自动生成）"
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-white/90 placeholder:text-white/20 transition-all duration-150 hover:border-white/[0.12] focus:outline-none focus:border-brand-500/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-brand-500/20"
+                className="w-full bg-black/[0.04] border border-rule rounded-lg px-3.5 py-2.5 text-sm text-ink-primary placeholder:text-ink-disabled transition-all duration-150 hover:border-rule-strong focus:outline-none focus:border-brand-200 focus:bg-black/[0.04] focus:ring-1 focus:ring-brand-200"
                 autoFocus
               />
             </div>
@@ -282,10 +282,10 @@ export default function WelcomePage({
         {/* Brand hero */}
         <div className="text-center mb-10">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-600 to-brand-600 mb-5 shadow-glow">
-            <Sparkles size={28} className="text-white/90" />
+            <Sparkles size={28} className="text-ink-primary" />
           </div>
-          <h1 className="text-2xl font-bold text-white/90 mb-2">打造你的个人IP</h1>
-          <p className="text-white/40 text-sm">
+          <h1 className="text-2xl font-bold text-ink-primary mb-2">打造你的个人IP</h1>
+          <p className="text-ink-tertiary text-sm">
             回答几个问题，AI教练为你定制专属方案
           </p>
 
@@ -296,18 +296,18 @@ export default function WelcomePage({
                 <div className="flex items-center gap-1.5">
                   <div className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${
                     i < currentStep
-                      ? 'bg-green-500'
+                      ? 'bg-success'
                       : i === currentStep
-                        ? 'bg-brand-500 ring-4 ring-brand-500/20'
-                        : 'bg-white/[0.10]'
+                        ? 'bg-brand-500 ring-4 ring-brand-200'
+                        : 'bg-black/[0.08]'
                   }`} />
                   {i === currentStep && (
-                    <span className="text-xs text-brand-400 font-medium hidden sm:inline">{s.title}</span>
+                    <span className="text-xs text-brand-600 font-medium hidden sm:inline">{s.title}</span>
                   )}
                 </div>
                 {i < STEPS.length - 1 && (
                   <div className={`w-5 h-px transition-colors duration-300 mx-1 ${
-                    i < currentStep ? 'bg-success-surface0' : 'bg-white/[0.06]'
+                    i < currentStep ? 'bg-success-surface0' : 'bg-black/[0.06]'
                   }`} />
                 )}
               </div>
@@ -317,10 +317,10 @@ export default function WelcomePage({
 
         {/* Question card */}
         <Card level="default" className="p-8 animate-fade-in">
-          <p className="text-xs text-white/30 mb-1">
+          <p className="text-xs text-ink-tertiary mb-1">
             问题 {currentStep + 1} / {STEPS.length}
           </p>
-          <h2 className="text-lg font-semibold text-white/85 mb-2">
+          <h2 className="text-lg font-semibold text-ink-primary mb-2">
             {step.description}
           </h2>
 
@@ -332,7 +332,7 @@ export default function WelcomePage({
                 onChange={(e) => setOtherInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleOtherSubmit() }}
                 placeholder="请输入..."
-                className="w-full bg-white/[0.04] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-white/90 placeholder:text-white/20 transition-all duration-150 focus:outline-none focus:border-brand-500/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-brand-500/20"
+                className="w-full bg-black/[0.04] border border-rule rounded-lg px-3.5 py-2.5 text-sm text-ink-primary placeholder:text-ink-disabled transition-all duration-150 focus:outline-none focus:border-brand-200 focus:bg-black/[0.04] focus:ring-1 focus:ring-brand-200"
                 autoFocus
               />
               <div className="flex gap-3">
@@ -355,7 +355,7 @@ export default function WelcomePage({
                   }
                 }}
                 placeholder="输入对标账号的名称或链接，也可以跳过..."
-                className="w-full h-24 bg-white/[0.04] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-white/90 placeholder:text-white/20 resize-none transition-all duration-150 focus:outline-none focus:border-brand-500/50 focus:bg-white/[0.06] focus:ring-1 focus:ring-brand-500/20"
+                className="w-full h-24 bg-black/[0.04] border border-rule rounded-lg px-3.5 py-2.5 text-sm text-ink-primary placeholder:text-ink-disabled resize-none transition-all duration-150 focus:outline-none focus:border-brand-200 focus:bg-black/[0.04] focus:ring-1 focus:ring-brand-200"
               />
               <div className="flex gap-3">
                 <Button variant="primary" className="flex-1" onClick={handleFreeTextNext} icon={<ArrowRight size={16} />}>
@@ -365,7 +365,7 @@ export default function WelcomePage({
                   跳过
                 </Button>
               </div>
-              <p className="text-white/20 text-xs text-center">Cmd+Enter 快捷提交</p>
+              <p className="text-ink-disabled text-xs text-center">Cmd+Enter 快捷提交</p>
             </div>
           ) : (
             <div className="mt-4 space-y-2">
@@ -377,13 +377,13 @@ export default function WelcomePage({
                     onClick={() => handleSelect(option)}
                     className={`w-full text-left px-4 py-3 rounded-lg border transition-all duration-150 text-sm active:scale-[0.99] ${
                       isSelected
-                        ? 'border-brand-500/40 bg-brand-500/8 text-brand-300 shadow-glow'
-                        : 'border-white/[0.06] bg-white/[0.02] text-white/55 hover:border-white/[0.12] hover:text-white/75 hover:bg-white/[0.04] hover:translate-x-[2px]'
+                        ? 'border-brand-200 bg-brand-50 text-brand-500 shadow-glow'
+                        : 'border-rule bg-black/[0.02] text-ink-tertiary hover:border-rule-strong hover:text-ink-secondary hover:bg-black/[0.04] hover:translate-x-[2px]'
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span>{option}</span>
-                      {isSelected && <CheckCircle size={16} className="text-brand-400 shrink-0" />}
+                      {isSelected && <CheckCircle size={16} className="text-brand-600 shrink-0" />}
                     </div>
                   </button>
                 )
@@ -407,7 +407,7 @@ export default function WelcomePage({
                   setCurrentStep((prev) => prev - 1)
                   setError('')
                 }}
-                className="text-sm text-white/30 hover:text-white/50 transition-colors"
+                className="text-sm text-ink-tertiary hover:text-ink-tertiary transition-colors"
               >
                 <ChevronLeft size={14} className="inline mr-1" />
                 返回上一题
@@ -416,7 +416,7 @@ export default function WelcomePage({
             {onBack && currentStep === 0 && (
               <button
                 onClick={onBack}
-                className="text-sm text-white/30 hover:text-white/50 transition-colors"
+                className="text-sm text-ink-tertiary hover:text-ink-tertiary transition-colors"
               >
                 <ChevronLeft size={14} className="inline mr-1" />
                 返回工作台
@@ -426,7 +426,7 @@ export default function WelcomePage({
         )}
 
         {isCreating && (
-          <div className="mt-4 text-center text-sm text-white/40">
+          <div className="mt-4 text-center text-sm text-ink-tertiary">
             正在创建你的专属项目...
           </div>
         )}

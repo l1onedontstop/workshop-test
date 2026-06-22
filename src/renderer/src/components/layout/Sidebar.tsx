@@ -37,21 +37,21 @@ export default function Sidebar({ currentPage, onNavigate, onNewProject }: Sideb
 
   return (
     <aside
-      className={`no-drag flex flex-col border-r border-white/[0.04] bg-app-bg transition-all duration-250 ${
+      className={`no-drag flex flex-col border-r border-rule-subtle bg-app-sidebar transition-all duration-250 ${
         sidebarCollapsed ? 'w-16' : 'w-56'
       }`}
     >
       {/* Brand / collapse toggle */}
       <button
         onClick={toggleSidebar}
-        className="mx-2 mt-2 p-3 rounded-xl hover:bg-white/[0.05] text-white/30 hover:text-white/60 transition-colors flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-1 focus-visible:ring-offset-app-bg"
+        className="mx-2 mt-2 p-3 rounded-xl hover:bg-black/[0.04] text-ink-tertiary hover:text-ink-primary transition-colors flex items-center gap-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30 focus-visible:ring-offset-1 focus-visible:ring-offset-app-sidebar"
       >
         <ChevronLeft
           size={18}
           className={`shrink-0 transition-transform duration-250 ${sidebarCollapsed ? 'rotate-180' : ''}`}
         />
         {!sidebarCollapsed && (
-          <span className="text-sm font-semibold text-white/70 tracking-tight select-none">SparkForge</span>
+          <span className="text-sm font-semibold text-ink-secondary tracking-tight select-none">SparkForge</span>
         )}
       </button>
 
@@ -65,10 +65,10 @@ export default function Sidebar({ currentPage, onNavigate, onNewProject }: Sideb
               key={item.id}
               onClick={() => onNavigate(item.id)}
               title={sidebarCollapsed ? item.label : undefined}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/20 focus-visible:ring-offset-1 focus-visible:ring-offset-app-bg ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/30 focus-visible:ring-offset-1 focus-visible:ring-offset-app-sidebar ${
                 isActive
-                  ? 'bg-brand-500/8 text-brand-400 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-5 before:bg-brand-500 before:rounded-full'
-                  : 'text-white/45 hover:text-white/70 hover:bg-white/[0.04] hover:translate-x-[2px]'
+                  ? 'bg-brand-50 text-brand-600 before:absolute before:left-0 before:top-1/2 before:-translate-y-1/2 before:w-[3px] before:h-5 before:bg-brand-500 before:rounded-full'
+                  : 'text-ink-tertiary hover:text-ink-primary hover:bg-black/[0.04] hover:translate-x-[2px]'
               }`}
             >
               <Icon size={18} className="shrink-0" />
@@ -83,7 +83,7 @@ export default function Sidebar({ currentPage, onNavigate, onNewProject }: Sideb
         <div className="px-3 pb-3">
           <button
             onClick={onNewProject}
-            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-white/35 hover:text-white/60 hover:bg-white/[0.04] transition-colors font-medium"
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs text-ink-disabled hover:text-ink-secondary hover:bg-black/[0.03] transition-colors font-medium border border-dashed border-rule"
           >
             <Plus size={14} />
             新建项目
@@ -94,7 +94,7 @@ export default function Sidebar({ currentPage, onNavigate, onNewProject }: Sideb
         <div className="px-2 pb-3 flex justify-center">
           <button
             onClick={onNewProject}
-            className="p-2 rounded-xl text-white/30 hover:text-white/60 hover:bg-white/[0.06] transition-colors"
+            className="p-2 rounded-xl text-ink-tertiary hover:text-ink-primary hover:bg-black/[0.04] transition-colors"
             title="新建项目"
           >
             <Plus size={16} />
@@ -104,7 +104,7 @@ export default function Sidebar({ currentPage, onNavigate, onNewProject }: Sideb
 
       {/* Active project indicator */}
       {!sidebarCollapsed && (
-        <div className="px-3 py-3 border-t border-white/[0.04]">
+        <div className="px-3 py-3 border-t border-rule-subtle">
           <ProjectBadge />
         </div>
       )}
@@ -126,28 +126,28 @@ function ProjectBadge() {
     <div className="relative">
       <button
         onClick={() => setShowSwitcher(!showSwitcher)}
-        className="w-full text-left rounded-xl p-2 hover:bg-white/[0.03] transition-colors"
+        className="w-full text-left rounded-xl p-2 hover:bg-black/[0.03] transition-colors"
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-brand-500/15 border border-brand-500/20 flex items-center justify-center text-brand-400 text-xs font-semibold shrink-0">
+          <div className="w-7 h-7 rounded-lg bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-600 text-xs font-semibold shrink-0">
             {initial}
           </div>
           <div className="min-w-0 flex-1">
-            <div className="text-xs font-medium text-white/60 truncate">{activeProject.name}</div>
-            <div className="text-[10px] text-white/25 mt-0.5">
+            <div className="text-xs font-medium text-ink-secondary truncate">{activeProject.name}</div>
+            <div className="text-[11px] text-ink-tertiary mt-0.5">
               {activeProject.state.phase === 'onboarding' ? '初始化中' : '进行中'}
             </div>
           </div>
-          <span className="text-white/15 shrink-0">▾</span>
+          <span className="text-ink-disabled shrink-0">▾</span>
         </div>
       </button>
 
       {showSwitcher && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setShowSwitcher(false)} />
-          <div className="absolute bottom-full left-0 mb-2 w-48 bg-app-elevated border border-white/[0.08] rounded-xl shadow-lg z-50 overflow-hidden">
-            <div className="px-3 py-2 border-b border-white/[0.04]">
-              <span className="text-[10px] font-medium text-white/25">切换项目</span>
+          <div className="absolute bottom-full left-0 mb-2 w-48 bg-app-elevated border border-rule rounded-xl shadow-lg z-50 overflow-hidden">
+            <div className="px-3 py-2 border-b border-rule-subtle">
+              <span className="text-[11px] font-medium text-ink-tertiary">切换项目</span>
             </div>
             {projects.map((p) => (
               <button
@@ -155,8 +155,8 @@ function ProjectBadge() {
                 onClick={() => { setActiveProject(p.id); setShowSwitcher(false) }}
                 className={`w-full text-left px-3 py-2 text-xs transition-colors ${
                   p.id === activeProject.id
-                    ? 'bg-brand-500/8 text-brand-400'
-                    : 'text-white/45 hover:bg-white/[0.04] hover:text-white/70'
+                    ? 'bg-brand-50 text-brand-600'
+                    : 'text-ink-secondary hover:bg-black/[0.03] hover:text-ink-primary'
                 }`}
               >
                 <div className="truncate">{p.name}</div>

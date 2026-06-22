@@ -11,13 +11,13 @@
 
   html, body, #root {
     height: 100%;
-    background: #0b0b10;
+    background: #F7F4ED;
     font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* ── Custom scrollbar ── */
+  /* ── Custom scrollbar — warm brown on cream ── */
   @media (prefers-reduced-transparency: no-preference) {
     ::-webkit-scrollbar {
       width: 6px;
@@ -29,14 +29,14 @@
     }
 
     ::-webkit-scrollbar-thumb {
-      background: rgba(255, 255, 255, 0.08);
+      background: rgba(52, 43, 32, 0.12);
       border-radius: 999px;
       border: 1px solid transparent;
       background-clip: padding-box;
     }
 
     ::-webkit-scrollbar-thumb:hover {
-      background: rgba(255, 255, 255, 0.16);
+      background: rgba(52, 43, 32, 0.22);
       background-clip: padding-box;
     }
 
@@ -63,17 +63,16 @@
     -webkit-app-region: no-drag;
   }
 
-  /* ── Page transition ── */
+  /* ── Page transition (250ms for calm, deliberate warmth) ── */
   .page-transition {
-    animation: page-enter 200ms ease-out;
+    animation: page-enter 250ms ease-out;
   }
 }
 
 @layer utilities {
-  /* Motion-safe wrapper for custom animations */
   .motion-safe\:animate-page-enter {
     @media (prefers-reduced-motion: no-preference) {
-      animation: page-enter 200ms ease-out;
+      animation: page-enter 250ms ease-out;
     }
   }
 }
