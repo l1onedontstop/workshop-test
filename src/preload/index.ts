@@ -81,6 +81,9 @@ contextBridge.exposeInMainWorld('api', {
   writeScript: (topic: string, opts?: Record<string, unknown>) =>
     ipcRenderer.invoke('ai:writeScript', topic, opts || {}),
 
+  optimizeScript: (data: { script: string; weaknesses: string[]; suggestions: string[]; topic?: string }, opts?: Record<string, unknown>) =>
+    ipcRenderer.invoke('ai:optimizeScript', data, opts || {}),
+
   generateTopics: (opts?: Record<string, unknown>) =>
     ipcRenderer.invoke('ai:generateTopics', opts || {}),
 

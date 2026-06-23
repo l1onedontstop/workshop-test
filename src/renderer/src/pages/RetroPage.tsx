@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { extractJSON } from '../services/parseAIResponse'
+import { DIMENSION_LABELS } from '@common/dimensions'
 import {
   ArrowLeft,
   Loader2,
@@ -92,16 +93,6 @@ interface EvolutionSuggestion {
   newWeights: Record<string, number>
   rationale: string
   warnings: string[]
-}
-
-const DIMENSION_LABELS: Record<string, string> = {
-  hook: '开篇钩子',
-  rhythm: '叙事节奏',
-  sharpness: '观点锐度',
-  utility: '实用密度',
-  emotion: '情绪共鸣',
-  structure: '结构完整',
-  expression: '表达效果'
 }
 
 const DIMENSION_ICONS: Record<string, React.ComponentType<{ size?: number; className?: string }>> = {

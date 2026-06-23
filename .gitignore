@@ -5,3 +5,7 @@ dist/
 *.log
 resources/
 *.asar
+
+# Swarm databases
+.swarm/memory.db*
+ruvector.db

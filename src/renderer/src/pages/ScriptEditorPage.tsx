@@ -1,8 +1,14 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useReducer } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { extractJSON } from '../services/parseAIResponse'
+import { DIMENSION_LABELS, DIMENSION_SHORT_DESCRIPTIONS, DIMENSION_KEYS, DEFAULT_WEIGHTS } from '@common/dimensions'
+import type { DimensionKey } from '@common/dimensions'
+import { optimizeReducer, initOptimize } from '../reducers/optimizeReducer'
+import { loadingReducer, initLoading } from '../reducers/loadingReducer'
+import { reportReducer, initReport } from '../reducers/reportReducer'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
+import Badge from '../components/ui/Badge'
 import { Input, TextArea } from '../components/ui/Input'
 import {
   Sparkles,
@@ -31,7 +37,8 @@ import {
   Download,
   Volume2,
   Image,
-  FileSpreadsheet
+  Wand2,
+  Undo2
 } from 'lucide-react'
 
 interface RubricScores {
@@ -53,15 +60,25 @@ interface ScoreResult {
   overall: string
 }
 
-const DIMENSIONS = [
-  { key: 'hook', label: '开篇钩子', weight: '20%', icon: Target, desc: '前3秒能不能让人停下来' },
-  { key: 'rhythm', label: '叙事节奏', weight: '15%', icon: Zap, desc: '信息密度和情绪起伏' },
-  { key: 'sharpness', label: '观点锐度', weight: '15%', icon: Lightbulb, desc: '有没有让人"卧槽"的洞见' },
-  { key: 'utility', label: '实用密度', weight: '15%', icon: CheckCircle2, desc: '观众能拿走什么' },
-  { key: 'emotion', label: '情绪共鸣', weight: '15%', icon: Heart, desc: '会不会想转发/评论' },
-  { key: 'structure', label: '结构完整', weight: '10%', icon: Layout, desc: '开头-展开-高潮-结尾' },
-  { key: 'expression', label: '表达效果', weight: '10%', icon: Mic, desc: '口语化、画面感、适合口播' }
-] as const
+// Icon map for each dimension (UI-specific, stays in component)
+const DIM_ICONS: Record<DimensionKey, React.FC<{ size?: number }>> = {
+  hook: Target,
+  rhythm: Zap,
+  sharpness: Lightbulb,
+  utility: CheckCircle2,
+  emotion: Heart,
+  structure: Layout,
+  expression: Mic
+}
+
+// Build DIMENSIONS array from shared common/dimensions + local icons
+const DIMENSIONS = DIMENSION_KEYS.map(key => ({
+  key,
+  label: DIMENSION_LABELS[key],
+  weight: `${Math.round(DEFAULT_WEIGHTS[key] * 100)}%`,
+  icon: DIM_ICONS[key],
+  desc: DIMENSION_SHORT_DESCRIPTIONS[key]
+})) as readonly { key: DimensionKey; label: string; weight: string; icon: React.FC<{ size?: number }>; desc: string }[]
 
 function parseScoreResult(raw: string): ScoreResult | null {
   const parsed = extractJSON<ScoreResult>(raw, 'scores')
@@ -86,44 +103,17 @@ function buildPredictionPath(projectPath: string, today: string, seq: string, sa
   return `${projectPath}/predictions/${today}_${seq}_${safeTopic}.json`
 }
 
-function extractScript(raw: string): string {
-  // Layer 1: Try --- separator — use FIRST occurrence to grab voiceover only
-  const sepIndex = raw.indexOf('---')
-  if (sepIndex > 0) {
-    const scriptPart = raw.substring(0, sepIndex).trim()
-    if (scriptPart.length > 20) return scriptPart
-  }
-
-  // Layer 2: Try JSON extraction (find script/content field)
-  try {
-    const jsonMatch = raw.match(/\{[\s\S]*\}/)
-    if (jsonMatch) {
-      const parsed = JSON.parse(jsonMatch[0])
-      if (parsed.script && typeof parsed.script === 'string' && parsed.script.length > 20) {
-        return parsed.script.trim()
-      }
-      if (parsed.content && typeof parsed.content === 'string' && parsed.content.length > 20) {
-        return parsed.content.trim()
-      }
-    }
-  } catch {
-    // JSON parse failed, continue to next layer
-  }
-
-  // Layer 3: Pure JSON response (score-only, no script)
-  if (raw.trim().startsWith('{')) {
-    return ''
-  }
-
-  // Layer 4: Raw text long enough → likely a pure script without separator
-  if (raw.trim().length > 50) {
-    return raw.trim()
-  }
-
-  return ''
+/** Strip markdown fences and AI greeting prefixes from LLM output */
+function cleanAIScript(raw: string): string {
+  return raw
+    .replace(/```[\s\S]*?\n/g, '')
+    .replace(/```/g, '')
+    .replace(/^(好的|没问题|以下|好的老板|当然可以)[^\n]*\n/gm, '')
+    .trim()
 }
 
-import { parseFullScript, type ScriptSections } from '../services/scriptParser'
+import { parseFullScript, extractScript, type ScriptSections } from '../services/scriptParser'
+import OptimizeDiffView from '../components/OptimizeDiffView'
 
 // ── Section Card Component ────────────────────────────────
 
@@ -257,6 +247,21 @@ export default function ScriptEditorPage({
   const [reportContent, setReportContent] = useState('')
   const [reportLoading, setReportLoading] = useState(false)
   const [reportError, setReportError] = useState('')
+  const [scoreStale, setScoreStale] = useState(false)
+  const [autoSaveTrigger, setAutoSaveTrigger] = useState(0)
+
+  // ── AI Optimize workflow (reducer extracted to ../reducers/optimizeReducer) ──
+  const [optimize, optimizeDispatch] = useReducer(optimizeReducer, initOptimize)
+
+  // Auto-save after AI generation (triggered by handleGenerate)
+  useEffect(() => {
+    if (autoSaveTrigger === 0) return
+    const t = setTimeout(() => {
+      handleSave()
+    }, 500)
+    return () => clearTimeout(t)
+  }, [autoSaveTrigger])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   const loadScriptList = useCallback(async () => {
     if (!activeProject) return
@@ -321,7 +326,7 @@ export default function ScriptEditorPage({
         // Use voiceover section directly (avoids lastIndexOf('---') grabbing all sections)
         scriptText = sections.voiceover
         setScriptSections(sections)
-        setShowFullPlan(true)
+        setShowFullPlan(true) // Auto-expand production plan for new scripts
       } else {
         // Fallback: old format (script --- scores) or plain script
         scriptText = extractScript(raw)
@@ -331,7 +336,12 @@ export default function ScriptEditorPage({
       const scores = parseScoreResult(raw)
 
       setScript(scriptText)
-      if (scores) setScoreResult(scores)
+      if (scores) {
+        setScoreResult(scores)
+        optimizeDispatch({ type: 'ADD_SCORE', score: scores.total })
+        setScoreStale(false)
+      }
+      setAutoSaveTrigger(prev => prev + 1)
     } catch (err) {
       setError(translateAIError(err, 'AI 生成'))
     } finally {
@@ -351,6 +361,7 @@ export default function ScriptEditorPage({
       const scores = parseScoreResult(raw)
       if (scores) {
         setScoreResult(scores)
+        setScoreStale(false)
       } else {
         setError('无法解析评分结果，请重试或切换 AI 引擎')
       }
@@ -360,6 +371,70 @@ export default function ScriptEditorPage({
       setLoading(null)
     }
   }, [script])
+
+  // ── AI Optimize: unified helper for optimize / continue-optimize ──
+  const doOptimize = useCallback(async (scriptToOptimize: string) => {
+    optimizeDispatch({ type: 'START' })
+    setError('')
+    try {
+      const result = await window.api.optimizeScript({
+        script: scriptToOptimize,
+        weaknesses: scoreResult?.weaknesses || [],
+        suggestions: scoreResult?.suggestions || [],
+        topic: topic || undefined
+      }) as string
+      optimizeDispatch({ type: 'SUCCESS', script: cleanAIScript(result) })
+    } catch (err) {
+      setError(translateAIError(err, 'AI优化'))
+      optimizeDispatch({ type: 'FINISH' })
+    }
+  }, [scoreResult, topic])
+
+  const handleOptimize = useCallback(() => {
+    if (!script.trim() || script.trim().length < 20) return
+    doOptimize(script)
+  }, [script, doOptimize])
+
+  const handleContinueOptimize = useCallback(() => {
+    doOptimize(optimize.optimizedScript)
+  }, [optimize.optimizedScript, doOptimize])
+
+  const handleAcceptOptimize = useCallback(() => {
+    // Save snapshot for undo
+    optimizeDispatch({ type: 'ACCEPT', currentScript: script, currentScore: scoreResult?.total ?? null })
+    setScript(optimize.optimizedScript)
+    setScoreResult(null)
+    // Trigger re-score inline
+    setLoading('score')
+    setError('')
+    window.api.scoreScript(optimize.optimizedScript, {
+      projectPath: activeProject?.path || ''
+    }).then((raw: string) => {
+      const scores = parseScoreResult(raw)
+      if (scores) {
+        setScoreResult(scores)
+        optimizeDispatch({ type: 'ADD_SCORE', score: scores.total })
+        setScoreStale(false)
+      }
+    }).catch((err: unknown) => {
+      setError(translateAIError(err, '打分'))
+    }).finally(() => {
+      setLoading(null)
+    })
+  }, [optimize.optimizedScript, script, scoreResult, activeProject])
+
+  const handleDiscardOptimize = useCallback(() => {
+    optimizeDispatch({ type: 'DISCARD' })
+  }, [])
+
+  // ── Undo last optimization ──
+  const handleUndoOptimize = useCallback(() => {
+    const previous = optimize.history[optimize.history.length - 1]
+    if (!previous) return
+    setScript(previous.script)
+    optimizeDispatch({ type: 'UNDO', previousScript: previous.script })
+    setScoreResult(null)
+  }, [optimize.history])
 
   const handleSave = useCallback(async () => {
     if (!script.trim() || !activeProject) return
@@ -669,6 +744,70 @@ export default function ScriptEditorPage({
         />
         <h1 className="text-lg font-semibold text-ink-primary">创作工作台</h1>
         <div className="flex-1" />
+        {/* Separator: nav → eval */}
+        <div className="w-px h-6 bg-rule mx-1" />
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={handleRescore}
+          disabled={!script.trim() || loading !== null}
+          icon={<RefreshCw size={15} className={loading === 'score' ? 'animate-spin' : ''} />}
+        >
+          重新打分
+        </Button>
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={handleOptimize}
+          disabled={!script.trim() || script.trim().length < 20 || loading !== null || optimize.optimizing || !scoreResult}
+          loading={optimize.optimizing}
+          icon={optimize.optimizing ? undefined : <Wand2 size={15} />}
+          title={!scoreResult ? '请先点击「重新打分」获取优化方向' : 'AI根据评分弱项优化口播文案'}
+        >
+          {optimize.optimizing ? 'AI优化中...' : 'AI优化口播'}
+        </Button>
+        {/* Separator: eval → actions */}
+        <div className="w-px h-6 bg-rule mx-1" />
+        {optimize.canUndo && (
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={handleUndoOptimize}
+            icon={<Undo2 size={15} />}
+            title="撤销上一次优化，恢复优化前的脚本"
+            className="text-warning-text hover:text-warning-text/80"
+          >
+            撤销优化
+          </Button>
+        )}
+        <Button
+          variant={predictionLocked ? 'secondary' : 'primary'}
+          size="md"
+          onClick={() => {
+            if (!predictionLocked && scoreResult) {
+              setShowChecklist(true)
+            } else {
+              handleSave()
+            }
+          }}
+          disabled={!script.trim() || loading !== null}
+          icon={
+            predictionLocked ? <CheckCircle2 size={15} /> :
+            saved ? <CheckCircle2 size={15} /> :
+            <Save size={15} />
+          }
+          className={predictionLocked ? 'border-success-border text-success-text cursor-not-allowed' : ''}
+        >
+          {predictionLocked ? (
+            <>🔒 已锁定</>
+          ) : saved ? (
+            <>已保存</>
+          ) : (
+            <>保存定稿</>
+          )}
+        </Button>
+        {/* Separator: actions → tools */}
+        <div className="w-px h-6 bg-rule mx-1" />
         <div className="relative">
           <Button
             variant="secondary"
@@ -760,43 +899,8 @@ export default function ScriptEditorPage({
             </Card>
           )}
         </div>
-        <Button
-          variant="secondary"
-          size="md"
-          onClick={handleRescore}
-          disabled={!script.trim() || loading !== null}
-          icon={<RefreshCw size={15} className={loading === 'score' ? 'animate-spin' : ''} />}
-        >
-          重新打分
-        </Button>
-        <Button
-          variant={predictionLocked ? 'secondary' : 'primary'}
-          size="md"
-          onClick={() => {
-            if (!predictionLocked && scoreResult) {
-              setShowChecklist(true)
-            } else {
-              handleSave()
-            }
-          }}
-          disabled={!script.trim() || loading !== null}
-          icon={
-            predictionLocked ? <CheckCircle2 size={15} /> :
-            saved ? <CheckCircle2 size={15} /> :
-            <Save size={15} />
-          }
-          className={predictionLocked ? 'border-success-border text-success-text cursor-not-allowed' : ''}
-        >
-          {predictionLocked ? (
-            <>🔒 已锁定</>
-          ) : saved ? (
-            <>已保存</>
-          ) : (
-            <>保存定稿</>
-          )}
-        </Button>
         {/* Tool buttons */}
-        <div className="flex items-center gap-1.5 ml-2 pl-2 border-l border-rule">
+        <div className="flex items-center gap-1.5">
           <Button variant="ghost" size="md" onClick={async () => { try { const r = await window.api.exportChecklist({ script, topic, storyboard: [], style: {}, equipment: {} }); if (r.success) { await navigator.clipboard.writeText(r.markdown); alert('拍摄清单已复制到剪贴板！') } } catch {} }} disabled={!script.trim()} title="导出拍摄清单" icon={<Download size={16} />} />
           <Button variant="ghost" size="md" onClick={async () => { try { const r = await window.api.exportTeleprompter(script); if (r.success) { await navigator.clipboard.writeText(r.text); alert('提词器文本已复制！') } } catch {} }} disabled={!script.trim()} title="导出提词器" icon={<FileText size={16} />} />
           <Button variant="ghost" size="md" onClick={async () => { try { const r = await window.api.ttsGenerate(script, {}); if (r.success) alert('TTS 语音已生成：' + r.filepath); else alert('TTS 失败：' + r.error) } catch(e: any) { alert('TTS 错误：' + e.message) } }} disabled={!script.trim()} title="文字转语音" icon={<Volume2 size={16} />} />
@@ -807,7 +911,7 @@ export default function ScriptEditorPage({
       {/* Main content */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left: Editor */}
-        <div className="flex-1 flex flex-col p-6 overflow-y-auto">
+        <div className={`flex-1 flex flex-col p-6 overflow-y-auto ${optimize.showDiff ? 'min-h-[240px] max-h-[40vh]' : ''}`}>
           {/* Topic input */}
           <div className="mb-4 space-y-3">
             <div className="flex gap-3">
@@ -854,12 +958,12 @@ export default function ScriptEditorPage({
             value={script}
             onChange={(e) => {
               setScript(e.target.value)
-              // Clear scores when user edits
-              if (scoreResult) setScoreResult(null)
+              // Mark scores stale — keep visible as reference, don't destroy
+              if (scoreResult && !scoreStale) setScoreStale(true)
             }}
             placeholder={
               loading === 'generate'
-                ? 'AI 正在生成脚本...'
+                ? 'AI 正在为你创作口播文案，通常需要 20-60 秒...'
                 : '输入主题后点击"AI生成脚本"，或直接在这里写...'
             }
             className="flex-1 resize-none font-sans leading-relaxed"
@@ -873,6 +977,21 @@ export default function ScriptEditorPage({
             </div>
           )}
         </div>
+
+        {/* ── AI Optimize Diff View ── */}
+        {optimize.showDiff && optimize.optimizedScript && (
+          <OptimizeDiffView
+            script={script}
+            optimizedScript={optimize.optimizedScript}
+            scoreResult={scoreResult}
+            optimizeIteration={optimize.iteration}
+            optimizeScores={optimize.scores}
+            optimizing={optimize.optimizing}
+            onAccept={handleAcceptOptimize}
+            onContinue={handleContinueOptimize}
+            onDiscard={handleDiscardOptimize}
+          />
+        )}
 
         {/* Full production plan (expandable) */}
         {scriptSections && (
@@ -935,23 +1054,43 @@ export default function ScriptEditorPage({
           <h3 className="text-sm font-medium text-ink-tertiary mb-4 flex items-center gap-2">
             <Target size={14} />
             7 维评分
+            {scoreStale && scoreResult && (
+              <Badge className="text-[9px] bg-warning-surface text-warning-text border-warning-border rounded-full ml-auto">
+                ⚠ 脚本已修改
+              </Badge>
+            )}
           </h3>
 
           {scoreResult ? (
             <div className="space-y-4">
-              {/* Dimension scores */}
-              {DIMENSIONS.map((dim) => {
-                const score = scoreResult.scores[dim.key as keyof RubricScores]
+              {/* Stale warning + re-score button */}
+              {scoreStale && (
+                <div className="p-2 rounded-lg bg-warning-surface border border-warning-border flex items-center justify-between">
+                  <span className="text-[10px] text-warning-text">⚠ 脚本已修改，评分可能不准</span>
+                  <Button variant="secondary" size="sm" onClick={handleRescore} disabled={loading !== null}
+                    icon={<RefreshCw size={12} className={loading === 'score' ? 'animate-spin' : ''} />}>
+                    重新打分
+                  </Button>
+                </div>
+              )}
+
+              {/* Dimension scores — sorted lowest first (most actionable at top) */}
+              {[...DIMENSIONS]
+                .map(dim => ({ ...dim, score: scoreResult.scores[dim.key as keyof RubricScores] }))
+                .sort((a, b) => a.score - b.score)
+                .map((dim) => {
+                const score = dim.score
                 const Icon = dim.icon
+                const lowScore = score <= 5
                 return (
-                  <div key={dim.key}>
+                  <div key={dim.key} className={lowScore ? 'p-2 -mx-2 rounded-lg bg-danger-surface/30 border border-danger-border/30' : ''}>
                     <div className="flex items-center justify-between mb-1.5">
                       <div className="flex items-center gap-1.5">
-                        <Icon size={13} className="text-ink-tertiary" />
-                        <span className="text-xs text-ink-tertiary">{dim.label}</span>
+                        <Icon size={13} className={lowScore ? 'text-danger-text' : 'text-ink-tertiary'} />
+                        <span className={`text-xs ${lowScore ? 'text-danger-text font-medium' : 'text-ink-tertiary'}`}>{dim.label}</span>
                         <span className="text-[10px] text-ink-disabled">{dim.weight}</span>
                       </div>
-                      <span className="text-xs font-mono font-medium text-ink-primary">
+                      <span className={`text-xs font-mono font-medium ${lowScore ? 'text-danger-text' : 'text-ink-primary'}`}>
                         {score}/10
                       </span>
                     </div>
@@ -961,6 +1100,7 @@ export default function ScriptEditorPage({
                         style={{ width: `${(score / 10) * 100}%` }}
                       />
                     </div>
+                    {lowScore && <p className="text-[10px] text-danger-text/60 mt-1 italic">{dim.desc}</p>}
                   </div>
                 )
               })}
@@ -981,39 +1121,29 @@ export default function ScriptEditorPage({
                 "{scoreResult.overall}"
               </p>
 
-              {/* Strengths */}
-              {scoreResult.strengths.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-medium text-success-text/80 mb-1.5">
-                    👍 优势
-                  </h4>
-                  <ul className="space-y-1">
-                    {scoreResult.strengths.map((s, i) => (
-                      <li key={i} className="text-xs text-ink-tertiary flex gap-1.5">
-                        <span className="text-green-500/50 shrink-0">•</span>
-                        {s}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Weaknesses */}
-              {scoreResult.weaknesses.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-medium text-warning-text/80 mb-1.5">
-                    👎 待改进
-                  </h4>
-                  <ul className="space-y-1">
-                    {scoreResult.weaknesses.map((w, i) => (
-                      <li key={i} className="text-xs text-ink-tertiary flex gap-1.5">
-                        <span className="text-yellow-500/50 shrink-0">•</span>
-                        {w}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {/* Compact: Strengths + Weaknesses side by side */}
+              <div className="grid grid-cols-2 gap-2">
+                {scoreResult.strengths.length > 0 && (
+                  <div className="p-2 rounded-lg bg-success-surface/40 border border-success-border/30">
+                    <h4 className="text-[10px] font-medium text-success-text/80 mb-1">👍 优势</h4>
+                    <ul className="space-y-0.5">
+                      {scoreResult.strengths.slice(0, 2).map((s, i) => (
+                        <li key={i} className="text-[10px] text-ink-tertiary leading-relaxed">{s}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {scoreResult.weaknesses.length > 0 && (
+                  <div className="p-2 rounded-lg bg-warning-surface/40 border border-warning-border/30">
+                    <h4 className="text-[10px] font-medium text-warning-text/80 mb-1">👎 待改进</h4>
+                    <ul className="space-y-0.5">
+                      {scoreResult.weaknesses.slice(0, 2).map((w, i) => (
+                        <li key={i} className="text-[10px] text-ink-tertiary leading-relaxed">{w}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
 
               {/* Suggestions */}
               {scoreResult.suggestions.length > 0 && (

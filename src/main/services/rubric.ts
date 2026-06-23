@@ -6,73 +6,15 @@
 
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
-
-// ── Dimension name mapping (Chinese → English key) ───────
-
-const DIMENSION_KEY_MAP: Record<string, string> = {
-  '开篇钩子': 'hook',
-  '叙事节奏': 'rhythm',
-  '观点锐度': 'sharpness',
-  '实用密度': 'utility',
-  '情绪共鸣': 'emotion',
-  '结构完整': 'structure',
-  '表达效果': 'expression'
-}
-
-const DIMENSION_LABELS: Record<string, string> = {
-  hook: '开篇钩子',
-  rhythm: '叙事节奏',
-  sharpness: '观点锐度',
-  utility: '实用密度',
-  emotion: '情绪共鸣',
-  structure: '结构完整',
-  expression: '表达效果'
-}
-
-const DIMENSION_DESCRIPTIONS: Record<string, string> = {
-  hook: '前3秒能不能让人停下来不划走？',
-  rhythm: '信息密度和情绪起伏的控制',
-  sharpness: '有没有让人"卧槽"的洞见或反常识观点',
-  utility: '观众看完能拿走什么？能不能用上？',
-  emotion: '观众会不会想转发/评论/艾特人？',
-  structure: '开头-展开-高潮-结尾是否完整',
-  expression: '语言是否口语化、有画面感、适合口播'
-}
-
-const HIGH_STANDARDS: Record<string, string> = {
-  hook: '第一句话制造了强烈的好奇缺口或认知冲突，让人必须看完',
-  rhythm: '快慢交替、有呼吸感、每 15-20 秒有一个小转折或新信息',
-  sharpness: '至少一个观点是受众没听过的、但又觉得对的；或把复杂问题说透了',
-  utility: '有具体方法/步骤/数据/案例，看完知道怎么做',
-  emotion: '说中了受众的痛点/爽点/痒点，有"这就是我"的代入感',
-  structure: '有清晰的金字塔结构或故事线，结尾有 callback 或行动号召',
-  expression: '读起来像在说话而非念稿，有节奏感，句子短而有力'
-}
-
-const LOW_SIGNALS: Record<string, string> = {
-  hook: '开头是"大家好我是..."、铺垫过长、没有 hook',
-  rhythm: '平铺直叙、一段讲太久、没有起伏',
-  sharpness: '正确的废话、观点模糊、不敢下判断',
-  utility: '只有观点没有方法、泛泛而谈',
-  emotion: '隔靴搔痒、与受众无关、没有情绪触点',
-  structure: '戛然而止、虎头蛇尾、结构松散',
-  expression: '书面语、长句、拗口、像 AI 写的'
-}
-
-// Key order for consistent output
-const DIMENSION_KEYS = ['hook', 'rhythm', 'sharpness', 'utility', 'emotion', 'structure', 'expression'] as const
-
-// ── Default weights (fallback when rubric.md not available) ──
-
-const DEFAULT_WEIGHTS: Record<string, number> = {
-  hook: 0.20,
-  rhythm: 0.15,
-  sharpness: 0.15,
-  utility: 0.15,
-  emotion: 0.15,
-  structure: 0.10,
-  expression: 0.10
-}
+import {
+  DIMENSION_KEYS,
+  DIMENSION_LABELS,
+  DIMENSION_DESCRIPTIONS,
+  HIGH_STANDARDS,
+  LOW_SIGNALS,
+  DEFAULT_WEIGHTS,
+  DIMENSION_KEY_MAP
+} from '../../common/dimensions'
 
 // ── Parse rubric.md to extract current weights ────────────
 
@@ -297,6 +239,38 @@ ${dimSections}
 }
 
 export const SCRIPT_WRITER_PROMPT = buildScriptWriterPrompt(DEFAULT_WEIGHTS)
+
+// ── Optimize Script Prompt ──────────────────────────────────
+
+export const OPTIMIZE_SCRIPT_PROMPT = `你是一个短视频口播文案优化师，专门根据评分反馈来优化口播脚本。
+
+## 你的任务
+用户会提供：
+1. 当前的口播脚本
+2. 评分弱项（哪些维度得分低）
+3. 修改建议（如何改进）
+
+你需要基于这些反馈，重写整个口播文案，提升弱项得分，同时保持优势。
+
+## 优化原则
+1. **保持核心观点不变**：优化的是表达方式，不是换选题/换观点
+2. **针对弱项改进**：如果弱项是"节奏偏慢"→ 缩短句子、增加转折；如果是"钩子不够"→ 重写开头
+3. **保持优势**：评分高的维度尽量不改
+4. **口语化优先**：读起来像在说话，不是念稿
+5. **长度保持一致**：300-500字，不要明显更长或更短
+
+## 输出要求
+- 只输出优化后的完整口播文案（纯文本）
+- 不要加任何前缀、后缀、说明
+- 不要在开头说"好的"、"以下是优化版"等寒暄语
+- 直接从钩子第一句话开始
+- 不使用 Markdown 格式（不要加粗、列表标记等）
+
+## 关键原则
+- 改表达不改观点
+- 改结构不改主题
+- 改节奏不改人设
+- 长度和原版保持相近`
 
 // ── Publish Pack Prompt ────────────────────────────────────
 

@@ -3,6 +3,7 @@ import Store from './store'
 import {
   RUBRIC_SYSTEM_PROMPT,
   SCRIPT_WRITER_PROMPT,
+  OPTIMIZE_SCRIPT_PROMPT,
   PUBLISH_PACK_PROMPT,
   RETRO_ANALYSIS_PROMPT,
   RUBRIC_EVOLUTION_PROMPT,
@@ -276,6 +277,42 @@ export function registerAIHandlers(): void {
         temperature: opts.temperature ?? 0.8
       })
       return result
+    }
+  )
+
+  // ── Optimize a script based on scoring feedback ────────
+  ipcMain.handle(
+    'ai:optimizeScript',
+    async (
+      _event,
+      data: {
+        script: string
+        weaknesses: string[]
+        suggestions: string[]
+        topic?: string
+      },
+      opts: AIOptions = {}
+    ) => {
+      const feedback = [
+        data.topic && `主题：${data.topic}`,
+        data.weaknesses.length > 0 && `评分弱项：\n${data.weaknesses.map(w => `- ${w}`).join('\n')}`,
+        data.suggestions.length > 0 && `修改建议：\n${data.suggestions.map(s => `- ${s}`).join('\n')}`
+      ].filter(Boolean).join('\n\n')
+
+      const messages: AIMessage[] = [
+        { role: 'system', content: OPTIMIZE_SCRIPT_PROMPT },
+        {
+          role: 'user',
+          content: feedback
+            ? `## 反馈意见\n${feedback}\n\n## 原始脚本\n${data.script}\n\n请根据以上反馈优化这篇口播文案。`
+            : `## 原始脚本\n${data.script}\n\n请优化这篇口播文案。`
+        }
+      ]
+      return doChat(messages, {
+        ...opts,
+        maxTokens: opts.maxTokens || 4096,
+        temperature: opts.temperature ?? 0.8
+      })
     }
   )
 

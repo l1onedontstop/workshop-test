@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react'
 import { useAppStore } from '../stores/appStore'
-import { parseFullScript } from '../services/scriptParser'
+import { parseFullScript, extractScript } from '../services/scriptParser'
 import {
   ArrowLeft,
   Loader2,
@@ -61,21 +61,6 @@ function parseStrategyResult(raw: string): ContentStrategy | null {
 }
 
 // ── Helper: extract script from AI response (same logic as ScriptEditorPage) ──
-
-function extractScript(raw: string): string {
-  // Use parseFullScript to collect all voiceover paragraphs (handles multi-para format)
-  const sections = parseFullScript(raw)
-  if (sections?.voiceover) return sections.voiceover
-  // Legacy fallback
-  const sepIndex = raw.indexOf('---')
-  if (sepIndex > 0) {
-    const scriptPart = raw.substring(0, sepIndex).trim()
-    if (scriptPart.length > 20) return scriptPart
-  }
-  if (raw.trim().startsWith('{')) return ''
-  if (raw.trim().length > 50) return raw.trim()
-  return ''
-}
 
 function sanitizeFileName(name: string): string {
   return name
@@ -386,7 +371,33 @@ export default function PlanEditorPage({
           const fileName = `${today}_plan_${seq}_${safeName}.md`
           const scriptPath = `${activeProject.path}/scripts/${fileName}`
 
-          const content = `# ${selected[i].title}\n\n${script}\n`
+          // Save full 8-section production plan (not just voiceover)
+          const sections = parseFullScript(raw as string)
+          const content = [
+            `# ${selected[i].title}`,
+            '',
+            script,
+            '',
+            sections
+              ? [
+                  '---',
+                  sections.style || '',
+                  '---',
+                  sections.storyboard || '',
+                  '---',
+                  sections.equipment || '',
+                  '---',
+                  sections.scene || '',
+                  '---',
+                  sections.postProduction || '',
+                  '---',
+                  sections.cover || '',
+                  '---',
+                  sections.rawJson || '',
+                ].join('\n')
+              : '---',
+            ''
+          ].join('\n')
           await window.api.writeFile(scriptPath, content)
 
           results.push({ topicIndex: i, script, fileName })

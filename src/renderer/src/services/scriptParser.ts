@@ -47,6 +47,43 @@ function buildSections(parts: string[]): ScriptSections {
   return result
 }
 
+export function extractScript(raw: string): string {
+  // Layer 1: Try --- separator — use FIRST occurrence to grab voiceover only
+  const sepIndex = raw.indexOf('---')
+  if (sepIndex > 0) {
+    const scriptPart = raw.substring(0, sepIndex).trim()
+    if (scriptPart.length > 20) return scriptPart
+  }
+
+  // Layer 2: Try JSON extraction (find script/content field)
+  try {
+    const jsonMatch = raw.match(/\{[\s\S]*\}/)
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0])
+      if (parsed.script && typeof parsed.script === 'string' && parsed.script.length > 20) {
+        return parsed.script.trim()
+      }
+      if (parsed.content && typeof parsed.content === 'string' && parsed.content.length > 20) {
+        return parsed.content.trim()
+      }
+    }
+  } catch {
+    // JSON parse failed, continue to next layer
+  }
+
+  // Layer 3: Pure JSON response (score-only, no script)
+  if (raw.trim().startsWith('{')) {
+    return ''
+  }
+
+  // Layer 4: Raw text long enough → likely a pure script without separator
+  if (raw.trim().length > 50) {
+    return raw.trim()
+  }
+
+  return ''
+}
+
 export function parseFullScript(raw: string): ScriptSections | null {
   // Replace table header-separator rows (|---|...|) with placeholder
   // so they don't get mistaken for section dividers
