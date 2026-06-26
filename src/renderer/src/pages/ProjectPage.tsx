@@ -172,11 +172,46 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
   const [calendarDate, setCalendarDate] = useState(new Date())
   const [selectedDay, setSelectedDay] = useState<Date | null>(null)
   const [bufferState, setBufferState] = useState<{ count: number; color: string; bufferDays: number; message: string } | null>(null)
+  // Track which dates have published vs predicted-only content
+  const [publishedDates, setPublishedDates] = useState<Set<string>>(new Set())
+  const [predictedDates, setPredictedDates] = useState<Set<string>>(new Set())
 
   // Load cadence buffer state on mount / project change
   useEffect(() => {
     if (!activeProject) return
     window.api.cadenceBuffer(activeProject.path).then((data: any) => setBufferState(data)).catch(() => {})
+  }, [activeProject])
+
+  // Load prediction dates for calendar marking
+  useEffect(() => {
+    if (!activeProject) return
+    const loadDates = async () => {
+      try {
+        const preds = await window.api.listPredictions(activeProject.path) as Array<{ name: string; path: string }>
+        const pubSet = new Set<string>()
+        const predSet = new Set<string>()
+        for (const p of preds) {
+          try {
+            const raw = await window.api.readFile(p.path) as string
+            const data = JSON.parse(raw)
+            // Extract date from predictedAt or scriptFile name (YYYY-MM-DD_xxx)
+            const dateStr = data.predictedAt
+              ? new Date(data.predictedAt).toISOString().slice(0, 10)
+              : data.scriptFile?.slice(0, 10) || ''
+            if (dateStr) {
+              if (data.status === 'retro_completed' || data.publishedAt) {
+                pubSet.add(dateStr)
+              } else {
+                predSet.add(dateStr)
+              }
+            }
+          } catch { /* skip unreadable */ }
+        }
+        setPublishedDates(pubSet)
+        setPredictedDates(predSet)
+      } catch { /* no predictions */ }
+    }
+    loadDates()
   }, [activeProject])
 
   const handleManageScripts = useCallback(async () => {
@@ -423,9 +458,12 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
             }
 
             return cells.map((cell, i) => {
-              const isToday = cell.date.toDateString() === todayStr
-              const isSelected = selectedDay?.toDateString() === cell.date.toDateString()
-              const hasContent = predicted > 0 && cell.date <= today && cell.inMonth
+              const dateStr = cell.date.toISOString().slice(0, 10)
+              const isToday = dateStr === todayStr
+              const isSelected = selectedDay?.toISOString().slice(0, 10) === dateStr
+              const isPublished = publishedDates.has(dateStr)
+              const isPredicted = predictedDates.has(dateStr)
+              const hasContent = isPublished || isPredicted
               const isWeekend = cell.date.getDay() === 0 || cell.date.getDay() === 6
               const isFuture = cell.date > today
 
@@ -442,18 +480,23 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
                       ? 'bg-brand-100 text-brand-600 font-medium ring-1 ring-brand-300'
                       : isFuture
                       ? 'text-ink-disabled/50 cursor-default'
-                      : hasContent
-                      ? 'bg-success-surface/40 border border-success-border/20 text-success-text hover:bg-success-surface'
+                      : isPublished
+                      ? 'bg-success-surface/60 border border-success-border/30 text-success-text hover:bg-success-surface'
+                      : isPredicted
+                      ? 'bg-warning-surface/40 border border-warning-border/20 text-warning-text hover:bg-warning-surface/60'
                       : 'text-ink-secondary hover:bg-black/[0.04]'
                   }`}
                   style={calendarView === 'month' ? { minHeight: 32 } : {}}
                   disabled={!cell.inMonth || isFuture}
                 >
                   <span>{cell.date.getDate()}</span>
-                  {hasContent && (
+                  {isPublished && (
                     <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-success-text" />
                   )}
-                  {isWeekend && cell.inMonth && !isToday && !isFuture && (
+                  {isPredicted && !isPublished && (
+                    <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-ink-disabled/40 ring-1 ring-ink-disabled/20" />
+                  )}
+                  {isWeekend && cell.inMonth && !isToday && !isFuture && !hasContent && (
                     <div className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full bg-ink-disabled/30" />
                   )}
                 </button>
@@ -478,10 +521,13 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         )}
 
         {/* Legend */}
-        {predicted > 0 && (
+        {(publishedDates.size > 0 || predictedDates.size > 0) && (
           <div className="mt-2 pt-2 border-t border-rule-subtle flex items-center gap-4 text-[10px] text-ink-disabled">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-success-text" /> 已发布
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-ink-disabled/40 ring-1 ring-ink-disabled/20" /> 已预测未发布
             </span>
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-ink-disabled/30" /> 周末
