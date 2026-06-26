@@ -45,6 +45,20 @@ interface Window {
     ) => Promise<string>
 
     scoreScript: (script: string, opts?: Record<string, unknown>) => Promise<string>
+    predictScript: (
+      data: {
+        script: string
+        scores: Record<string, number>
+        total: number
+        strengths: string[]
+        weaknesses: string[]
+        projectPath?: string
+        mode?: 'cold-start' | 'calibration'
+        benchmarkRef?: string
+        historicalAnchors?: Array<{ name: string; composite: number; actualPlays: number }>
+      },
+      opts?: Record<string, unknown>
+    ) => Promise<string>
     writeScript: (topic: string, opts?: Record<string, unknown>) => Promise<string>
     generateTopics: (opts?: Record<string, unknown>) => Promise<string>
     generatePublishPack: (script: string, opts?: Record<string, unknown>) => Promise<string>

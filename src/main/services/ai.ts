@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import { existsSync, readFileSync } from 'fs'
 import { join } from 'path'
 import Store from './store'
+import { detectMode } from './prediction-guard'
 import {
   RUBRIC_SYSTEM_PROMPT,
   SCRIPT_WRITER_PROMPT,
@@ -12,6 +13,7 @@ import {
   TOPIC_INSPIRATION_PROMPT,
   PLAN_STRATEGY_PROMPT,
   SCRIPT_CHAT_PROMPT,
+  PREDICT_SCRIPT_PROMPT,
   loadProjectWeights,
   buildRubricPrompt,
   buildScriptWriterPrompt
@@ -587,6 +589,70 @@ export function registerAIHandlers(): void {
         }
       ]
       return doChat(messages, { ...opts, temperature: 0.9, maxTokens: 3072 })
+    }
+  )
+
+  // ── Blind prediction ──────────────────────────────────
+  ipcMain.handle(
+    'ai:predictScript',
+    async (
+      _event,
+      data: {
+        script: string
+        scores: Record<string, number>
+        total: number
+        strengths: string[]
+        weaknesses: string[]
+        projectPath?: string
+        mode?: 'cold-start' | 'calibration'
+        benchmarkRef?: string
+        historicalAnchors?: Array<{ name: string; composite: number; actualPlays: number }>
+      },
+      opts: AIOptions = {}
+    ) => {
+      const mode = data.mode || (
+        data.projectPath ? detectMode(data.projectPath) : 'cold-start'
+      )
+
+      const modeNote = mode === 'cold-start'
+        ? '\n\n## 模式提示\n当前为冷启动模式（校准样本 < 5）。你的预测应该：\n1. 概率分布更平（不要过度集中在某个 bucket）\n2. Confidence 标注为"🟠 低"\n3. 中枢给范围而不是单点，明确告诉用户前5条预测精度有限'
+        : '\n\n## 模式提示\n当前为校准模式（校准样本 >= 5）。你的预测应该：\n1. 概率分布可以有明确的中枢倾向\n2. Confidence 标注为"🟡 偏低"到"🟢 中等"\n3. 锚点对比给出具体倍数预期'
+
+      const messages: AIMessage[] = [
+        { role: 'system', content: PREDICT_SCRIPT_PROMPT },
+        {
+          role: 'user',
+          content: [
+            '## 脚本内容',
+            data.script,
+            '',
+            '## 7维评分',
+            ...Object.entries(data.scores).map(([k, v]) => {
+              const dimLabel: Record<string, string> = {
+                hook: '开头抓人', rhythm: '节奏控制', sharpness: '观点锐度',
+                utility: '实用价值', emotion: '情感冲击力', structure: '结构完整',
+                expression: '表达力'
+              }
+              return `- ${dimLabel[k] || k}: ${v}/10`
+            }),
+            `总分: ${data.total.toFixed(1)}/10`,
+            '',
+            '## 优势',
+            ...data.strengths.map(s => `- ${s}`),
+            '',
+            '## 待改进',
+            ...data.weaknesses.map(w => `- ${w}`),
+            data.benchmarkRef ? `\n## 对标账号\n${data.benchmarkRef}` : '',
+            data.historicalAnchors && data.historicalAnchors.length > 0
+              ? `\n## 历史锚点（用于锚点对比）\n${data.historicalAnchors.map(a =>
+                  `- ${a.name}: composite ${a.composite}/10, 实际播放 ${a.actualPlays}`
+                ).join('\n')}`
+              : '',
+            modeNote
+          ].filter(Boolean).join('\n')
+        }
+      ]
+      return doChat(messages, { ...opts, temperature: 0.3, maxTokens: 3072 })
     }
   )
 }

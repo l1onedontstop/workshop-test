@@ -99,7 +99,7 @@ function cleanAIScript(raw: string): string {
   )
 }
 
-import { parseFullScript, extractScript, stripJsonBlocks, type ScriptSections, type RubricScores, type ScoreResult } from '../services/scriptParser'
+import { parseFullScript, extractScript, stripJsonBlocks, type ScriptSections, type RubricScores, type ScoreResult, type AIPredictionResult, type PredictionBucket } from '../services/scriptParser'
 import OptimizeDiffView from '../components/OptimizeDiffView'
 import SectionCard from '../components/ui/SectionCard'
 
@@ -129,6 +129,119 @@ function renderMarkdownTable(md: string): string {
   }
   html += '</table>'
   return html
+}
+
+// ── Build cheat-on-content style prediction markdown ──────
+
+function buildPredictionMarkdown(
+  topic: string,
+  safeTopic: string,
+  script: string,
+  pred: Record<string, unknown>
+): string {
+  const lines = [
+    `# ${topic} — 预测日志`,
+    '',
+    `**Article ID**: ${pred.inputSnapshot?.scriptHash || pred.id || 'N/A'}`,
+    `**预测时间**: ${pred.date || ''}`,
+    `**Confidence**: ${pred.modeAwareness?.confidence || '🟠 低'}`,
+    `**Rubric Version**: ${pred.rubricVersion || 'v0'}`,
+    `**Script Path**: scripts/${pred.scriptFile || ''}`,
+    `**Script Hash**: ${pred.inputSnapshot?.scriptHash || ''}`,
+    `**Prediction Basis**: pre_shoot`,
+    '',
+    '## 预测 v1',
+    '',
+    '> 本段 immutable，写完不可修改。如需重做请创建新文件。',
+    '',
+    `**Bucket**: \`${pred.bucket || pred.prediction?.bucket || 'N/A'}\``,
+    '',
+    '**概率分布**:',
+  ]
+
+  const probDist = (pred.probabilityDistribution || pred.prediction?.probabilityDistribution || []) as Array<{ range: string; probability: number }>
+  if (probDist.length > 0) {
+    probDist.forEach(b => { lines.push(`- \`${b.range}\` → ${b.probability}%`) })
+  } else {
+    lines.push('- N/A（冷启动 — 无概率分布）')
+  }
+
+  lines.push(
+    '',
+    '> 加起来必须 100%。Cold-start 期分布应该更平——诚实地反映不确定。',
+    '',
+    `**中枢**: ~${pred.centralEstimate || pred.prediction?.centralEstimate || 'N/A'}`,
+    '',
+    '**一句话 reason**:',
+    `> ${pred.bet || pred.prediction?.oneLineReason || 'N/A'}`,
+    '',
+    '---',
+    '',
+    '## 推理因素',
+    ''
+  )
+
+  const reasoningFactors = pred.reasoningFactors
+  if (Array.isArray(reasoningFactors) && reasoningFactors.length > 0) {
+    lines.push('| 因素 | 方向 | 置信度 | 说明 |', '|---|---|---|---|')
+    reasoningFactors.forEach((f: Record<string, unknown>) => {
+      lines.push(`| ${f.factor} | ${f.direction} | ${f.confidence} | ${f.explanation} |`)
+    })
+  } else {
+    lines.push('N/A（冷启动）')
+  }
+
+  lines.push('', '---', '', '## 锚点对比', '')
+
+  const anchorComp = pred.anchorComparison as Record<string, unknown> | null
+  if (anchorComp?.available && Array.isArray(anchorComp.samples) && anchorComp.samples.length > 0) {
+    lines.push('| 对照样本 | composite | 实绩 | 异同 |', '|---|---|---|---|')
+    ;(anchorComp.samples as Array<Record<string, unknown>>).forEach(s => {
+      lines.push(`| ${s.name} | ${s.composite} | ${s.actualPerformance} | ${s.keyDifferences} |`)
+    })
+    if (anchorComp.summary) lines.push('', anchorComp.summary as string)
+  } else {
+    lines.push('校准池样本不足，无 comparable 锚点。**锚点对比 N/A**。')
+  }
+
+  lines.push('', '---', '', '## 反事实场景', '')
+
+  const cfs = (pred.counterfactualScenarios || []) as Array<Record<string, unknown>>
+  if (cfs.length > 0) {
+    cfs.forEach(cf => {
+      lines.push(`### ${cf.scenario}（${cf.probability}% 预期）`)
+      if (cf.verification) lines.push(`- 验证：${cf.verification}`)
+      if (cf.refutation) lines.push(`- 推翻：${cf.refutation}`)
+      if (cf.learning) lines.push(`- 学习：${cf.learning}`)
+      lines.push('')
+    })
+  } else {
+    lines.push('N/A（冷启动 — 无反事实场景）', '')
+  }
+
+  lines.push('---', '', '## 关键校准假设', '')
+
+  const ch = (pred.calibrationHypothesis || pred.calibrationAssumptions || []) as string[]
+  if (ch.length > 0) {
+    ch.forEach(h => { lines.push(`- ${h}`) })
+  } else {
+    lines.push('- N/A')
+  }
+
+  lines.push(
+    '',
+    '---',
+    '',
+    '## 复盘',
+    '',
+    '> 以下段落由 T+3d 复盘时追加。',
+    '> hook 允许追加本段；不允许改预测段任何字符。',
+    '',
+    '（待填 — 发布后 3 天回到复盘页面输入实际数据）',
+    ''
+  )
+
+  return lines.join('\n')
 }
 
 function translateAIError(err: unknown, context: string): string {
@@ -178,8 +291,6 @@ export default function ScriptEditorPage({
   const predictionLocked = useAppStore((s) => s.predictionLocked)
   const predictionData = useAppStore((s) => s.predictionData)
   const setPredictionLocked = useAppStore((s) => s.setPredictionLocked)
-  const [showChecklist, setShowChecklist] = useState(false)
-  const [checklistItems, setChecklistItems] = useState([false, false, false])
   const [benchmarkAvailable, setBenchmarkAvailable] = useState(false)
   const [showScriptList, setShowScriptList] = useState(false)
   const [scriptList, setScriptList] = useState<Array<{ name: string; path: string }>>([])
@@ -195,6 +306,18 @@ export default function ScriptEditorPage({
   const [autoSaveTrigger, setAutoSaveTrigger] = useState(0)
   const [isDirty, setIsDirty] = useState(false)
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  // ── Blind prediction review workflow ──
+  const [showPredictionReview, setShowPredictionReview] = useState(false)
+  const [predictionReviewStage, setPredictionReviewStage] = useState<'loading' | 'review' | 'correcting' | 'confirming' | 'error'>('loading')
+  const [aiPrediction, setAIPrediction] = useState<AIPredictionResult | null>(null)
+  const [predictionLoading, setPredictionLoading] = useState(false)
+  const [predictionError, setPredictionError] = useState('')
+  const [predictionMode, setPredictionMode] = useState<'cold-start' | 'calibration'>('cold-start')
+  // Correction fields
+  const [correctedBucket, setCorrectedBucket] = useState('')
+  const [correctedCentral, setCorrectedCentral] = useState('')
+  const [correctedProbs, setCorrectedProbs] = useState<PredictionBucket[]>([])
+  const [correctionNote, setCorrectionNote] = useState('')
   const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── AI Optimize workflow (reducer extracted to ../reducers/optimizeReducer) ──
@@ -207,6 +330,128 @@ export default function ScriptEditorPage({
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chat.messages])
+
+  // ── Prediction helpers ──────────────────────────────────
+
+  function parsePredictionResult(raw: string): AIPredictionResult | null {
+    const parsed = extractJSON<AIPredictionResult>(raw, 'prediction')
+    if (!parsed || !parsed.prediction || !parsed.prediction.bucket) return null
+    return parsed
+  }
+
+  // ── Start blind prediction flow ──────────────────────────
+
+  const handleStartPrediction = useCallback(async () => {
+    if (!script.trim() || !scoreResult || !activeProject) return
+
+    setShowPredictionReview(true)
+    setPredictionReviewStage('loading')
+    setPredictionLoading(true)
+    setPredictionError('')
+    setAIPrediction(null)
+
+    try {
+      const modeResult = await window.api.predictionDetectMode(activeProject.path) as
+        { mode: 'cold-start' | 'calibration'; limits?: unknown }
+      setPredictionMode(modeResult.mode)
+
+      let benchmarkRef = ''
+      try {
+        const benchmarks = await window.api.benchmarkList(activeProject.path) as Array<{ name: string }>
+        if (benchmarks && benchmarks.length > 0) {
+          benchmarkRef = `对标账号：${benchmarks.map(b => b.name).join('、')}`
+        }
+      } catch { /* no benchmarks */ }
+
+      let historicalAnchors: Array<{ name: string; composite: number; actualPlays: number }> = []
+      try {
+        const pool = await window.api.calibrationPool(activeProject.path) as
+          { samples: Array<{ predictionFile: string; topic: string; predictedTotal: number; actualPlays: number }> }
+        if (pool?.samples?.length > 0) {
+          historicalAnchors = pool.samples.slice(0, 3).map(s => ({
+            name: s.topic || s.predictionFile.replace('.json', ''),
+            composite: s.predictedTotal,
+            actualPlays: s.actualPlays
+          }))
+        }
+      } catch { /* no calibration data */ }
+
+      const raw = await window.api.predictScript({
+        script,
+        scores: scoreResult.scores,
+        total: scoreResult.total,
+        strengths: scoreResult.strengths,
+        weaknesses: scoreResult.weaknesses,
+        projectPath: activeProject.path,
+        mode: modeResult.mode,
+        benchmarkRef: benchmarkRef || undefined,
+        historicalAnchors: historicalAnchors.length > 0 ? historicalAnchors : undefined
+      }) as string
+
+      const parsed = parsePredictionResult(raw)
+      if (!parsed) {
+        throw new Error('AI预测结果格式异常，请重试或切换 AI 引擎')
+      }
+
+      // Ensure mode awareness fields exist
+      if (!parsed.modeAwareness) {
+        parsed.modeAwareness = {
+          confidence: modeResult.mode === 'cold-start' ? '🟠 低' : '🟡 偏低',
+          uncertaintyNotes: modeResult.mode === 'cold-start'
+            ? '冷启动阶段，预测精度有限'
+            : '基于历史校准样本'
+        }
+      }
+      if (modeResult.mode === 'cold-start' && !parsed.modeAwareness.coldStartWarning) {
+        parsed.modeAwareness.coldStartWarning = '前5条预测精度有限，bucket 仅供参考方向'
+      }
+
+      // Ensure probability distribution sums to ~100
+      const probs = parsed.prediction.probabilityDistribution
+      if (probs.length > 0) {
+        const sum = probs.reduce((s, b) => s + b.probability, 0)
+        if (Math.abs(sum - 100) > 5) {
+          // Normalize to 100
+          probs.forEach(b => { b.probability = Math.round(b.probability * 100 / sum) })
+        }
+      }
+
+      setAIPrediction(parsed)
+      setPredictionReviewStage('review')
+    } catch (err) {
+      setPredictionError(err instanceof Error ? err.message : 'AI预测生成失败')
+      setPredictionReviewStage('error')
+    } finally {
+      setPredictionLoading(false)
+    }
+  }, [script, scoreResult, activeProject])
+
+  // ── Correction workflow ──────────────────────────────────
+
+  const handleStartCorrection = useCallback(() => {
+    if (!aiPrediction) return
+    setCorrectedBucket(aiPrediction.prediction.bucket)
+    setCorrectedCentral(aiPrediction.prediction.centralEstimate)
+    setCorrectedProbs([...aiPrediction.prediction.probabilityDistribution])
+    setCorrectionNote('')
+    setPredictionReviewStage('correcting')
+  }, [aiPrediction])
+
+  const handleSubmitCorrection = useCallback(() => {
+    if (!aiPrediction) return
+    // Apply user corrections directly
+    const updated: AIPredictionResult = {
+      ...aiPrediction,
+      prediction: {
+        ...aiPrediction.prediction,
+        bucket: correctedBucket,
+        centralEstimate: correctedCentral,
+        probabilityDistribution: correctedProbs
+      }
+    }
+    setAIPrediction(updated)
+    setPredictionReviewStage('confirming')
+  }, [aiPrediction, correctedBucket, correctedCentral, correctedProbs])
 
   const handleChatSend = useCallback(async () => {
     const feedback = chat.input.trim()
@@ -555,65 +800,107 @@ export default function ScriptEditorPage({
         // Simple script hash
         const scriptHash = Array.from(script).reduce((h, c) => (h * 31 + c.charCodeAt(0)) & 0xffffffff, 0).toString(16)
 
+        // Use AI prediction data if user went through the review flow
+        const aiPred = aiPrediction
+
         const prediction = {
           // 1. Header
           date: today,
           id: `${today}_${nextSeq}`,
           shortTitle: safeTopic,
-          mode: 'cold-start' as const,
-          confidence: '🟠 低' as const,
+          mode: predictionMode,
+          confidence: aiPred?.modeAwareness?.confidence || '🟠 低',
+          rubricVersion: 'v0',
 
           // 2. Input snapshot
           inputSnapshot: {
             scriptHash,
             benchmarkRef,
-            scriptLength: script.length
+            scriptLength: script.length,
+            scores: scoreResult.scores,
+            total: scoreResult.total
           },
 
           // 3. Prediction body
           scores: scoreResult.scores,
           total: scoreResult.total,
           composite: scoreResult.total,
-          bet: `预测 composite ${scoreResult.total.toFixed(1)}/10 — ${scoreResult.overall}`,
+          bet: aiPred?.prediction?.oneLineReason
+            || aiPrediction?.prediction?.oneLineReason
+            || `预测 composite ${scoreResult.total.toFixed(1)}/10 — ${scoreResult.overall}`,
+          bucket: aiPred?.prediction?.bucket || null,
+          probabilityDistribution: aiPred?.prediction?.probabilityDistribution || [],
+          centralEstimate: aiPred?.prediction?.centralEstimate || null,
           strengths: scoreResult.strengths,
           weaknesses: scoreResult.weaknesses,
 
-          // 4. Reasoning factors
-          reasoningFactors: {
-            anchorComparison: benchmarkRef !== '无对标数据' ? '有对标数据可参照' : '无锚点对比（冷启动）',
-            benchmarkSupport: benchmarkRef,
-            uncertaintyNotes: '新号冷启动阶段，预测精度有限。随复盘数据积累，预测会越来越准。'
+          // 4. Reasoning factors (AI or fallback)
+          reasoningFactors: aiPred?.reasoningFactors?.length
+            ? aiPred.reasoningFactors
+            : {
+                anchorComparison: benchmarkRef !== '无对标数据' ? '有对标数据可参照' : '无锚点对比（冷启动）',
+                benchmarkSupport: benchmarkRef,
+                uncertaintyNotes: '新号冷启动阶段，预测精度有限。随复盘数据积累，预测会越来越准。'
+              },
+
+          // 5. Anchor comparison (AI or fallback)
+          anchorComparison: aiPred?.anchorComparison || {
+            available: benchmarkRef !== '无对标数据',
+            samples: [],
+            summary: benchmarkRef !== '无对标数据'
+              ? '与对标账号同类型视频对比：对标账号平均表现作为参照系'
+              : '暂无对标数据，待导入对标账号后可启用锚点对比'
           },
 
-          // 5. Anchor comparison
-          anchorComparison: benchmarkRef !== '无对标数据'
-            ? `与对标账号同类型视频对比：对标账号平均表现作为参照系`
-            : '暂无对标数据，待导入对标账号后可启用锚点对比',
+          // 6. Counterfactual (AI or fallback)
+          counterfactual: aiPred?.counterfactualScenarios?.length
+            ? aiPred.counterfactualScenarios.map(c =>
+                `${c.scenario}（${c.probability}%）\n验证：${c.verification || '—'}\n推翻：${c.refutation || '—'}\n学习：${c.learning || '—'}`
+              ).join('\n\n')
+            : '如果钩子更换为更强的情感冲突开头，预测 composite 可能提升 0.5-1.0 分。',
+          counterfactualScenarios: aiPred?.counterfactualScenarios || [],
 
-          // 6. Counterfactual
-          counterfactual: `如果钩子更换为更强的情感冲突开头，预测 composite 可能提升 0.5-1.0 分。如果受众更窄（如纯技术人群），AB 维度可能下降。`,
+          // 7. Key calibration assumptions (AI or fallback)
+          calibrationAssumptions: aiPred?.calibrationHypothesis?.length
+            ? aiPred.calibrationHypothesis
+            : [
+                '假设 rubric v0 等权评分能反映实际表现',
+                '假设冷启动用户的前 5 条视频完播率偏低但互动率正常',
+                '假设抖音算法对新号首条有额外流量倾斜'
+              ],
+          calibrationHypothesis: aiPred?.calibrationHypothesis || [],
 
-          // 7. Key calibration assumptions
-          calibrationAssumptions: [
-            '假设 rubric v0 等权评分能反映实际表现',
-            '假设冷启动用户的前 5 条视频完播率偏低但互动率正常',
-            '假设抖音算法对新号首条有额外流量倾斜'
-          ],
+          // Mode awareness
+          modeAwareness: aiPred?.modeAwareness || {
+            confidence: '🟠 低',
+            uncertaintyNotes: '冷启动阶段，预测精度有限。随复盘数据积累会越来越准。',
+            coldStartWarning: '前5条预测精度有限，bucket 仅供参考方向而非精确数值'
+          },
 
-          // Legacy fields
+          // Legacy fields (RetroPage compatibility)
           scriptFile: fileName,
           topic: topic || '未命名脚本',
           scriptContent: script,
           overall: scoreResult.overall,
           suggestions: scoreResult.suggestions,
           predictedAt: timestamp,
-          status: 'predicted',
+          status: 'predicted' as const,
           publishedAt: null,
           publishUrl: null,
           actualData: null
         }
         await window.api.writeFile(predPath, JSON.stringify(prediction, null, 2))
+
+        // Generate cheat-on-content .prediction.md file
+        const predMd = buildPredictionMarkdown(topic || '未命名脚本', safeTopic, script, prediction)
+        const predMdPath = predPath.replace('.json', '.prediction.md')
+        await window.api.writeFile(predMdPath, predMd)
+
         setPredictionLocked(true, prediction)
+        // Reset prediction review state
+        setShowPredictionReview(false)
+        setAIPrediction(null)
+        setPredictionReviewStage('loading')
 
         // Generate readable prediction report
         const dimLabels: Record<string, string> = {
@@ -811,7 +1098,7 @@ export default function ScriptEditorPage({
           size="md"
           onClick={() => {
             if (!predictionLocked && scoreResult) {
-              setShowChecklist(true)
+              handleStartPrediction()
             } else {
               handleSave()
             }
@@ -1242,87 +1529,283 @@ export default function ScriptEditorPage({
         </Card>
       </div>
 
-      {/* Pre-flight checklist overlay */}
-      {showChecklist && (
+      {/* ── Blind prediction review dialog ── */}
+      {showPredictionReview && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60">
-          <Card level="elevated" className="w-full max-w-md mx-4 p-6 shadow-2xl">
-            <h3 className="text-lg font-semibold text-ink-primary mb-2">🔒 预测前检查清单</h3>
-            <p className="text-sm text-ink-tertiary mb-6">
-              写完即锁定，不可修改。确认以下事项：
-            </p>
+          <Card level="elevated" className="w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-rule-subtle bg-brand-50 shrink-0">
+              <div className="flex items-center gap-2">
+                <Sparkles size={18} className="text-brand-600" />
+                <h3 className="text-base font-semibold text-ink-primary">🔮 AI 盲预测</h3>
+              </div>
+              <Button variant="ghost" size="sm" onClick={() => { setShowPredictionReview(false); setAIPrediction(null) }} icon={<X size={16} />}>
+                关闭
+              </Button>
+            </div>
 
-            <div className="space-y-3 mb-6">
-              {[
-                '脚本已定稿，不会再改了',
-                '对标账号已导入（建议但非必须）',
-                '下面是盲预测——写完不可修改'
-              ].map((item, i) => (
+            {/* Body — scrollable */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+              {/* Loading */}
+              {predictionReviewStage === 'loading' && (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 size={32} className="animate-spin text-brand-600 mb-4" />
+                  <p className="text-sm text-ink-secondary">AI 正在生成盲预测...</p>
+                  <p className="text-xs text-ink-disabled mt-1">基于 7 维评分 + 对标数据 + 历史锚点</p>
+                  <p className="text-xs text-ink-disabled">通常需要 15-40 秒</p>
+                </div>
+              )}
+
+              {/* Error */}
+              {predictionReviewStage === 'error' && (
+                <div className="flex flex-col items-center justify-center py-8">
+                  <AlertCircle size={28} className="text-danger-text mb-2" />
+                  <p className="text-sm text-danger-text mb-1">预测生成失败</p>
+                  <p className="text-xs text-ink-disabled mb-4">{predictionError}</p>
+                  <div className="flex gap-2">
+                    <Button variant="secondary" size="sm" onClick={() => { setShowPredictionReview(false); setAIPrediction(null) }}>取消</Button>
+                    <Button variant="primary" size="sm" onClick={handleStartPrediction} icon={<RefreshCw size={14} />}>重试</Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Review / Confirming stages */}
+              {(predictionReviewStage === 'review' || predictionReviewStage === 'confirming') && aiPrediction && (
+                <>
+                  {/* Mode banner */}
+                  <div className={`px-4 py-2.5 rounded-lg text-sm ${
+                    predictionMode === 'cold-start'
+                      ? 'bg-warning-surface border border-warning-border text-warning-text'
+                      : 'bg-success-surface border border-success-border text-success-text'
+                  }`}>
+                    {predictionMode === 'cold-start'
+                      ? `🟠 冷启动模式 · 置信度：${aiPrediction.modeAwareness?.confidence || '低'} · ${aiPrediction.modeAwareness?.coldStartWarning || '前5条预测精度有限'}`
+                      : `🟢 校准模式 · 置信度：${aiPrediction.modeAwareness?.confidence || '中等'} · 基于≥5条历史样本`}
+                  </div>
+
+                  {/* Prediction Body — Bucket + Probability */}
+                  <div className="p-4 rounded-xl border border-brand-200 bg-brand-50">
+                    <h4 className="text-sm font-semibold text-ink-primary mb-3">📊 播放量预测</h4>
+                    <div className="flex items-center gap-3 mb-3">
+                      <span className="text-xs text-ink-tertiary">押注区间：</span>
+                      <span className="px-3 py-1 rounded-lg bg-brand-600 text-white text-sm font-bold">⬤ {aiPrediction.prediction.bucket}</span>
+                      <span className="text-xs text-ink-tertiary">中枢 ~{aiPrediction.prediction.centralEstimate}</span>
+                    </div>
+                    {/* Probability bars */}
+                    <div className="space-y-1.5">
+                      {aiPrediction.prediction.probabilityDistribution.map((b, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="w-16 text-right text-[10px] text-ink-disabled">{b.range}</span>
+                          <div className="flex-1 h-4 bg-black/[0.04] rounded-full overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                b.range === aiPrediction.prediction.bucket ? 'bg-brand-600' : 'bg-ink-disabled/30'
+                              }`}
+                              style={{ width: `${b.probability}%` }}
+                            />
+                          </div>
+                          <span className={`w-8 text-[10px] font-mono ${b.range === aiPrediction.prediction.bucket ? 'text-brand-600 font-bold' : 'text-ink-disabled'}`}>{b.probability}%</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-ink-tertiary mt-2 italic">"{aiPrediction.prediction.oneLineReason}"</p>
+                  </div>
+
+                  {/* Reasoning Factors */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-ink-primary mb-2">🔍 推理因素</h4>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-[11px]">
+                        <thead>
+                          <tr className="border-b border-rule text-ink-disabled">
+                            <th className="text-left py-1.5 pr-2">因素</th>
+                            <th className="text-left py-1.5 px-2">方向</th>
+                            <th className="text-left py-1.5 px-2">置信度</th>
+                            <th className="text-left py-1.5 pl-2">说明</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {aiPrediction.reasoningFactors.map((f, i) => (
+                            <tr key={i} className="border-b border-rule-subtle text-ink-secondary">
+                              <td className="py-1.5 pr-2 font-medium">{f.factor}</td>
+                              <td className={`py-1.5 px-2 ${f.direction.includes('+') ? 'text-success-text' : f.direction.includes('-') ? 'text-danger-text' : 'text-ink-disabled'}`}>{f.direction}</td>
+                              <td className="py-1.5 px-2">{f.confidence}</td>
+                              <td className="py-1.5 pl-2">{f.explanation}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Anchor Comparison */}
+                  <div>
+                    <h4 className="text-sm font-semibold text-ink-primary mb-2">⚓ 锚点对比</h4>
+                    {aiPrediction.anchorComparison.available && aiPrediction.anchorComparison.samples.length > 0 ? (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-[11px]">
+                          <thead>
+                            <tr className="border-b border-rule text-ink-disabled">
+                              <th className="text-left py-1.5 pr-2">对照</th>
+                              <th className="text-left py-1.5 px-2">Composite</th>
+                              <th className="text-left py-1.5 px-2">实绩</th>
+                              <th className="text-left py-1.5 pl-2">差异</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {aiPrediction.anchorComparison.samples.map((s, i) => (
+                              <tr key={i} className="border-b border-rule-subtle text-ink-secondary">
+                                <td className="py-1.5 pr-2">{s.name}</td>
+                                <td className="py-1.5 px-2 font-mono">{s.composite}</td>
+                                <td className="py-1.5 px-2">{s.actualPerformance}</td>
+                                <td className="py-1.5 pl-2">{s.keyDifferences}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-ink-disabled p-3 rounded-lg bg-black/[0.02]">锚点对比 N/A — 校准样本不足，无 comparable 样本</p>
+                    )}
+                    {aiPrediction.anchorComparison.summary && (
+                      <p className="text-xs text-ink-disabled mt-1">{aiPrediction.anchorComparison.summary}</p>
+                    )}
+                  </div>
+
+                  {/* Counterfactual Scenarios */}
+                  <details className="group">
+                    <summary className="text-sm font-semibold text-ink-primary mb-2 cursor-pointer flex items-center gap-1">
+                      <ChevronDown size={14} className="group-open:rotate-180 transition-transform" /> 🤔 反事实场景（{aiPrediction.counterfactualScenarios.length} 条）
+                    </summary>
+                    <div className="space-y-2 mt-2 pl-5">
+                      {aiPrediction.counterfactualScenarios.map((cf, i) => (
+                        <div key={i} className="p-3 rounded-lg bg-black/[0.02] border border-rule-subtle text-xs">
+                          <p className="font-medium text-ink-secondary mb-1">{cf.scenario}（{cf.probability}% 概率）</p>
+                          {cf.verification ? <p className="text-success-text">✅ {cf.verification}</p> : null}
+                          {cf.refutation ? <p className="text-danger-text">❌ {cf.refutation}</p> : null}
+                          {cf.learning ? <p className="text-brand-600 mt-0.5">📝 {cf.learning}</p> : null}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+
+                  {/* Calibration Hypothesis */}
+                  {aiPrediction.calibrationHypothesis.length > 0 && (
+                    <div>
+                      <h4 className="text-sm font-semibold text-ink-primary mb-2">🎯 关键校准假设</h4>
+                      <ul className="space-y-1 pl-5">
+                        {aiPrediction.calibrationHypothesis.map((h, i) => (
+                          <li key={i} className="text-xs text-ink-secondary list-disc">{h}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {predictionReviewStage === 'confirming' && (
+                    <div className="p-3 rounded-lg bg-success-surface border border-success-border">
+                      <p className="text-xs text-success-text flex items-center gap-1.5">
+                        <CheckCircle2 size={14} /> 修正已应用，请确认最终预测
+                      </p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Correcting stage */}
+              {predictionReviewStage === 'correcting' && aiPrediction && (
+                <div className="space-y-4">
+                  <p className="text-sm text-ink-secondary">✏️ 调整以下字段来修正 AI 的预测：</p>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-ink-tertiary">押注区间（Bucket）</label>
+                    <select
+                      value={correctedBucket}
+                      onChange={(e) => setCorrectedBucket(e.target.value)}
+                      className="w-full bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-ink-primary"
+                    >
+                      {['<5w', '5-30w', '30-100w', '100-150w', '>150w'].map(b => (
+                        <option key={b} value={b}>{b}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-ink-tertiary">中枢估计</label>
+                    <input
+                      type="text"
+                      value={correctedCentral}
+                      onChange={(e) => setCorrectedCentral(e.target.value)}
+                      className="w-full bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-ink-primary"
+                      placeholder="例如：50w"
+                    />
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-ink-tertiary">概率分布（必须加起来 100%）</label>
+                    {correctedProbs.map((b, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <span className="w-16 text-[10px] text-ink-disabled">{b.range}</span>
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={b.probability}
+                          onChange={(e) => {
+                            const next = [...correctedProbs]
+                            next[i] = { ...next[i], probability: parseInt(e.target.value) || 0 }
+                            setCorrectedProbs(next)
+                          }}
+                          className="flex-1"
+                        />
+                        <span className="w-8 text-xs font-mono">{b.probability}%</span>
+                      </div>
+                    ))}
+                    <p className={`text-[10px] ${correctedProbs.reduce((s, b) => s + b.probability, 0) === 100 ? 'text-success-text' : 'text-danger-text'}`}>
+                      当前总和：{correctedProbs.reduce((s, b) => s + b.probability, 0)}%
+                    </p>
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs text-ink-tertiary">修正说明（可选）</label>
+                    <textarea
+                      value={correctionNote}
+                      onChange={(e) => setCorrectionNote(e.target.value)}
+                      className="w-full h-16 bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-ink-primary resize-none"
+                      placeholder="为什么调整这些值..."
+                    />
+                  </div>
+
+                  <div className="flex gap-2">
+                    <Button variant="secondary" size="md" onClick={() => setPredictionReviewStage('review')} className="flex-1">
+                      取消修正
+                    </Button>
+                    <Button variant="primary" size="md" onClick={handleSubmitCorrection} className="flex-1" icon={<CheckCircle2 size={14} />}>
+                      应用修正
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer actions */}
+            {(predictionReviewStage === 'review' || predictionReviewStage === 'confirming') && aiPrediction && (
+              <div className="px-6 py-4 border-t border-rule-subtle flex gap-3 shrink-0 bg-black/[0.01]">
+                <Button variant="secondary" size="md" onClick={handleStartCorrection} className="flex-1" icon={<Wand2 size={14} />}>
+                  有问题，我要修正
+                </Button>
                 <Button
-                  key={i}
-                  variant="ghost"
+                  variant="primary"
                   size="md"
                   onClick={() => {
-                    const next = [...checklistItems]
-                    next[i] = !next[i]
-                    setChecklistItems(next)
+                    handleSave()
                   }}
-                  className={`w-full justify-start ${
-                    checklistItems[i]
-                      ? 'bg-success-surface border border-success-border text-success-text'
-                      : 'border border-rule'
-                  }`}
+                  className="flex-1"
+                  icon={<CheckCircle2 size={14} />}
                 >
-                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                    checklistItems[i]
-                      ? 'bg-success border-success'
-                      : 'border-rule-strong'
-                  }`}>
-                    {checklistItems[i] && <CheckCircle2 size={12} className="text-white" />}
-                  </div>
-                  {item}
+                  {predictionReviewStage === 'confirming' ? '确认并锁定预测' : '没问题，确认预测'}
                 </Button>
-              ))}
-            </div>
-
-            {/* Prediction preview */}
-            {scoreResult && (
-              <div className="p-3 rounded-lg bg-black/[0.02] border border-rule-subtle mb-4">
-                <p className="text-xs text-ink-tertiary mb-1">预测总览</p>
-                <p className="text-sm text-ink-secondary">
-                  Composite: <span className="text-brand-600 font-bold">{scoreResult.total.toFixed(1)}/10</span>
-                  {' · '}7 维评分
-                  {' · '}Bet: {scoreResult.overall.slice(0, 40)}...
-                </p>
               </div>
             )}
-
-            <div className="flex gap-3">
-              <Button
-                variant="secondary"
-                size="md"
-                onClick={() => { setShowChecklist(false); setChecklistItems([false, false, false]) }}
-                className="flex-1"
-              >
-                取消
-              </Button>
-              <Button
-                variant="primary"
-                size="md"
-                onClick={() => {
-                  setShowChecklist(false)
-                  setChecklistItems([false, false, false])
-                  handleSave()
-                }}
-                disabled={!checklistItems[0]}
-                className="flex-1"
-                icon={<CheckCircle2 size={16} />}
-              >
-                确认并锁定预测
-              </Button>
-            </div>
-            <p className="text-xs text-ink-disabled text-center mt-3">
-              至少确认第 1 项（脚本已定稿）才能继续
-            </p>
           </Card>
         </div>
       )}

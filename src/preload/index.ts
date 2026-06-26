@@ -81,6 +81,21 @@ contextBridge.exposeInMainWorld('api', {
   scoreScript: (script: string, opts?: Record<string, unknown>) =>
     ipcRenderer.invoke('ai:scoreScript', script, opts || {}),
 
+  predictScript: (
+    data: {
+      script: string
+      scores: Record<string, number>
+      total: number
+      strengths: string[]
+      weaknesses: string[]
+      projectPath?: string
+      mode?: 'cold-start' | 'calibration'
+      benchmarkRef?: string
+      historicalAnchors?: Array<{ name: string; composite: number; actualPlays: number }>
+    },
+    opts?: Record<string, unknown>
+  ) => ipcRenderer.invoke('ai:predictScript', data, opts || {}),
+
   writeScript: (topic: string, opts?: Record<string, unknown>) =>
     ipcRenderer.invoke('ai:writeScript', topic, opts || {}),
 

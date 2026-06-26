@@ -24,6 +24,59 @@ export interface ScoreResult {
   overall: string
 }
 
+// ── AI Prediction Result Types ──────────────────────────
+
+export interface PredictionBucket {
+  range: string
+  probability: number
+}
+
+export interface ReasoningFactor {
+  factor: string
+  direction: string
+  confidence: string
+  explanation: string
+}
+
+export interface AnchorSample {
+  name: string
+  composite: number
+  actualPerformance: string
+  keyDifferences: string
+}
+
+export interface CounterfactualScenario {
+  scenario: string
+  probability: number
+  verification: string
+  refutation: string
+  learning: string
+}
+
+export interface AIPredictionResult {
+  prediction: {
+    bucket: string
+    probabilityDistribution: PredictionBucket[]
+    centralEstimate: string
+    oneLineReason: string
+  }
+  reasoningFactors: ReasoningFactor[]
+  anchorComparison: {
+    available: boolean
+    samples: AnchorSample[]
+    summary: string
+  }
+  counterfactualScenarios: CounterfactualScenario[]
+  calibrationHypothesis: string[]
+  modeAwareness?: {
+    confidence: string
+    uncertaintyNotes: string
+    coldStartWarning?: string
+  }
+}
+
+// ── Script Sections ──────────────────────────────────────
+
 export interface ScriptSections {
   voiceover: string
   style: string
