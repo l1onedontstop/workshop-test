@@ -1,24 +1,8 @@
 import { Target, Wand2, X, FileText, Sparkles, Undo2, CheckCircle2, AlertCircle, Lightbulb } from 'lucide-react'
 import Button from './ui/Button'
 import Badge from './ui/Badge'
-import Card from './ui/Card'
-
-interface ScoreResult {
-  scores: {
-    hook: number
-    rhythm: number
-    sharpness: number
-    utility: number
-    emotion: number
-    structure: number
-    expression: number
-  }
-  total: number
-  strengths: string[]
-  weaknesses: string[]
-  suggestions: string[]
-  overall: string
-}
+import SectionCard from './ui/SectionCard'
+import type { ScoreResult } from '../services/scriptParser'
 
 interface OptimizeDiffViewProps {
   script: string
@@ -30,50 +14,6 @@ interface OptimizeDiffViewProps {
   onAccept: () => void
   onContinue: () => void
   onDiscard: () => void
-}
-
-// ── Section Card Component ──
-
-function SectionCard({
-  icon,
-  title,
-  color,
-  fullWidth,
-  children
-}: {
-  icon: React.ReactNode
-  title: string
-  color: 'purple' | 'blue' | 'green' | 'orange' | 'red' | 'yellow' | 'cyan'
-  fullWidth?: boolean
-  children: React.ReactNode
-}) {
-  const colorMap: Record<string, string> = {
-    purple: 'border-brand-200 bg-brand-50',
-    blue: 'border-info-border bg-info-surface',
-    green: 'border-success-border bg-success-surface',
-    orange: 'border-warning-border bg-warning-surface',
-    red: 'border-danger-border bg-danger-surface',
-    yellow: 'border-warning-border bg-warning-surface',
-    cyan: 'border-info-border bg-info-surface'
-  }
-  const textColorMap: Record<string, string> = {
-    purple: 'text-brand-600',
-    blue: 'text-info-text',
-    green: 'text-success-text',
-    orange: 'text-warning-text',
-    red: 'text-danger-text',
-    yellow: 'text-warning-text',
-    cyan: 'text-info-text'
-  }
-  return (
-    <div className={`rounded-xl border p-4 ${colorMap[color]} ${fullWidth ? 'col-span-2' : ''}`}>
-      <div className={`flex items-center gap-2 mb-2 ${textColorMap[color]}`}>
-        {icon}
-        <span className="text-xs font-medium">{title}</span>
-      </div>
-      {children}
-    </div>
-  )
 }
 
 export default function OptimizeDiffView({

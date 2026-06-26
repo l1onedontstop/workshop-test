@@ -3,6 +3,27 @@
  * and multi-paragraph voiceover format (from Plan-generated scripts).
  */
 
+// ── Shared Types ───────────────────────────────────────────
+
+export interface RubricScores {
+  hook: number
+  rhythm: number
+  sharpness: number
+  utility: number
+  emotion: number
+  structure: number
+  expression: number
+}
+
+export interface ScoreResult {
+  scores: RubricScores
+  total: number
+  strengths: string[]
+  weaknesses: string[]
+  suggestions: string[]
+  overall: string
+}
+
 export interface ScriptSections {
   voiceover: string
   style: string
