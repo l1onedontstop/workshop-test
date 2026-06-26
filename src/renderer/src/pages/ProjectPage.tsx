@@ -16,6 +16,7 @@ import {
   Zap,
   Calendar,
   ChevronRight,
+  ChevronLeft,
   Play
 } from 'lucide-react'
 import { useMemo, useState, useCallback, useEffect } from 'react'
@@ -165,6 +166,11 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
 
   const [scriptsList, setScriptsList] = useState<Array<{ name: string; path: string }>>([])
   const [scriptsLoading, setScriptsLoading] = useState(false)
+
+  // Calendar state
+  const [calendarView, setCalendarView] = useState<'week' | 'month'>('week')
+  const [calendarDate, setCalendarDate] = useState(new Date())
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null)
   const [bufferState, setBufferState] = useState<{ count: number; color: string; bufferDays: number; message: string } | null>(null)
 
   // Load cadence buffer state on mount / project change
@@ -303,60 +309,182 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         <div className="flex items-center gap-2 mb-3">
           <Calendar size={16} className="text-brand-600" />
           <h3 className="text-sm font-medium text-ink-tertiary">内容日历</h3>
-          <span className="text-[10px] text-ink-disabled ml-auto">
-            {(() => {
-              const today = new Date()
-              const weekStart = new Date(today)
-              weekStart.setDate(today.getDate() - today.getDay() + 1)
-              const weekEnd = new Date(weekStart)
-              weekEnd.setDate(weekStart.getDate() + 6)
-              return `${weekStart.getMonth() + 1}/${weekStart.getDate()} - ${weekEnd.getMonth() + 1}/${weekEnd.getDate()}`
-            })()}
-          </span>
+          {/* Navigation */}
+          <div className="flex items-center gap-0.5 ml-2">
+            <button
+              onClick={() => {
+                const d = new Date(calendarDate)
+                if (calendarView === 'week') d.setDate(d.getDate() - 7)
+                else d.setMonth(d.getMonth() - 1)
+                setCalendarDate(d)
+                setSelectedDay(null)
+              }}
+              className="p-1 rounded hover:bg-black/[0.04] transition-colors"
+            >
+              <ChevronLeft size={14} className="text-ink-disabled" />
+            </button>
+            <span className="text-xs text-ink-primary font-medium min-w-[80px] text-center">
+              {calendarView === 'week'
+                ? (() => {
+                    const ws = new Date(calendarDate)
+                    ws.setDate(ws.getDate() - ws.getDay() + 1)
+                    const we = new Date(ws); we.setDate(ws.getDate() + 6)
+                    return `${ws.getMonth() + 1}/${ws.getDate()} - ${we.getMonth() + 1}/${we.getDate()}`
+                  })()
+                : `${calendarDate.getFullYear()}年${calendarDate.getMonth() + 1}月`
+              }
+            </span>
+            <button
+              onClick={() => {
+                const d = new Date(calendarDate)
+                if (calendarView === 'week') d.setDate(d.getDate() + 7)
+                else d.setMonth(d.getMonth() + 1)
+                setCalendarDate(d)
+                setSelectedDay(null)
+              }}
+              className="p-1 rounded hover:bg-black/[0.04] transition-colors"
+            >
+              <ChevronRight size={14} className="text-ink-disabled" />
+            </button>
+          </div>
+          {/* Today button */}
+          <button
+            onClick={() => { setCalendarDate(new Date()); setSelectedDay(null) }}
+            className="text-[10px] text-brand-600 hover:text-brand-500 font-medium px-2 py-0.5 rounded border border-brand-200 hover:bg-brand-50 transition-colors"
+          >
+            今天
+          </button>
+          {/* View toggle */}
+          <div className="flex items-center gap-0 ml-auto bg-black/[0.04] rounded-lg p-0.5">
+            {(['week', 'month'] as const).map(v => (
+              <button
+                key={v}
+                onClick={() => { setCalendarView(v); setSelectedDay(null) }}
+                className={`text-[10px] px-3 py-1 rounded-md transition-colors ${
+                  calendarView === v
+                    ? 'bg-white shadow-sm text-ink-primary font-medium'
+                    : 'text-ink-disabled hover:text-ink-tertiary'
+                }`}
+              >
+                {v === 'week' ? '周' : '月'}
+              </button>
+            ))}
+          </div>
         </div>
-        <div className="grid grid-cols-7 gap-1.5">
-          {['一', '二', '三', '四', '五', '六', '日'].map((d) => (
-            <div key={d} className="text-center text-[10px] text-ink-disabled font-medium py-1">{d}</div>
+
+        {/* Week day headers */}
+        <div className="grid grid-cols-7 gap-1.5 mb-1">
+          {['一', '二', '三', '四', '五', '六', '日'].map((d, i) => (
+            <div key={d} className={`text-center text-[10px] font-medium py-1 ${i >= 5 ? 'text-ink-disabled/50' : 'text-ink-disabled'}`}>{d}</div>
           ))}
+        </div>
+
+        {/* Calendar grid */}
+        <div className="grid grid-cols-7 gap-1.5">
           {(() => {
             const today = new Date()
-            const weekStart = new Date(today)
-            weekStart.setDate(today.getDate() - today.getDay() + 1)
-            const days: Array<{ date: Date; hasContent: boolean }> = []
-            for (let i = 0; i < 7; i++) {
-              const d = new Date(weekStart)
-              d.setDate(weekStart.getDate() + i)
-              const hasContent = predicted > 0 && i < published + 1 // Mark past published dates
-              days.push({ date: d, hasContent })
+            const todayStr = today.toDateString()
+            const cells: Array<{ date: Date; inMonth: boolean }> = []
+
+            if (calendarView === 'week') {
+              // Week view
+              const weekStart = new Date(calendarDate)
+              weekStart.setDate(weekStart.getDate() - weekStart.getDay() + 1)
+              for (let i = 0; i < 7; i++) {
+                const d = new Date(weekStart)
+                d.setDate(weekStart.getDate() + i)
+                cells.push({ date: d, inMonth: true })
+              }
+            } else {
+              // Month view
+              const monthFirst = new Date(calendarDate.getFullYear(), calendarDate.getMonth(), 1)
+              const startDay = monthFirst.getDay() || 7 // Monday=1 ... Sunday=7
+              // Fill leading days from prev month
+              for (let i = 1; i < startDay; i++) {
+                const d = new Date(monthFirst)
+                d.setDate(d.getDate() - (startDay - i))
+                cells.push({ date: d, inMonth: false })
+              }
+              // Fill current month days
+              const daysInMonth = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0).getDate()
+              for (let i = 1; i <= daysInMonth; i++) {
+                cells.push({ date: new Date(calendarDate.getFullYear(), calendarDate.getMonth(), i), inMonth: true })
+              }
+              // Fill trailing days to complete last week
+              const remaining = 7 - (cells.length % 7)
+              if (remaining < 7) {
+                const lastDay = new Date(calendarDate.getFullYear(), calendarDate.getMonth() + 1, 0)
+                for (let i = 1; i <= remaining; i++) {
+                  const d = new Date(lastDay)
+                  d.setDate(lastDay.getDate() + i)
+                  cells.push({ date: d, inMonth: false })
+                }
+              }
             }
-            return days.map((d, i) => {
-              const isToday = d.date.toDateString() === today.toDateString()
-              const isPlanned = d.hasContent
+
+            return cells.map((cell, i) => {
+              const isToday = cell.date.toDateString() === todayStr
+              const isSelected = selectedDay?.toDateString() === cell.date.toDateString()
+              const hasContent = predicted > 0 && cell.date <= today && cell.inMonth
+              const isWeekend = cell.date.getDay() === 0 || cell.date.getDay() === 6
+              const isFuture = cell.date > today
+
               return (
-                <div
+                <button
                   key={i}
-                  className={`text-center py-2 rounded-lg text-xs ${
-                    isToday
-                      ? 'bg-brand-600 text-white font-semibold'
-                      : isPlanned
-                      ? 'bg-success-surface border border-success-border/30 text-success-text'
-                      : 'bg-black/[0.02] text-ink-disabled'
+                  onClick={() => setSelectedDay(isSelected ? null : cell.date)}
+                  className={`text-center py-1.5 rounded-lg text-xs transition-colors relative ${
+                    !cell.inMonth
+                      ? 'text-ink-disabled/30 cursor-default'
+                      : isToday
+                      ? 'bg-brand-600 text-white font-semibold hover:bg-brand-500'
+                      : isSelected
+                      ? 'bg-brand-100 text-brand-600 font-medium ring-1 ring-brand-300'
+                      : isFuture
+                      ? 'text-ink-disabled/50 cursor-default'
+                      : hasContent
+                      ? 'bg-success-surface/40 border border-success-border/20 text-success-text hover:bg-success-surface'
+                      : 'text-ink-secondary hover:bg-black/[0.04]'
                   }`}
+                  style={calendarView === 'month' ? { minHeight: 32 } : {}}
+                  disabled={!cell.inMonth || isFuture}
                 >
-                  {d.date.getDate()}
-                  {isPlanned && <div className="w-1 h-1 rounded-full bg-success-text mx-auto mt-0.5" />}
-                </div>
+                  <span>{cell.date.getDate()}</span>
+                  {hasContent && (
+                    <div className="absolute bottom-0.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-success-text" />
+                  )}
+                  {isWeekend && cell.inMonth && !isToday && !isFuture && (
+                    <div className="absolute top-0.5 right-0.5 w-1 h-1 rounded-full bg-ink-disabled/30" />
+                  )}
+                </button>
               )
             })
           })()}
         </div>
+
+        {/* Selected day info */}
+        {selectedDay && (
+          <div className="mt-3 pt-3 border-t border-rule-subtle flex items-center justify-between">
+            <span className="text-xs text-ink-secondary">
+              📅 {selectedDay.getFullYear()}/{selectedDay.getMonth() + 1}/{selectedDay.getDate()}
+              {selectedDay.toDateString() === new Date().toDateString() ? ' · 今天' : ''}
+            </span>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" onClick={() => onNewScript?.()}>
+                + 写脚本
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Legend */}
         {predicted > 0 && (
-          <div className="mt-3 pt-3 border-t border-rule-subtle flex items-center gap-4 text-[10px] text-ink-disabled">
+          <div className="mt-2 pt-2 border-t border-rule-subtle flex items-center gap-4 text-[10px] text-ink-disabled">
             <span className="flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-success-text" /> 已发布
             </span>
             <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-ink-disabled" /> 待排期
+              <span className="w-2 h-2 rounded-full bg-ink-disabled/30" /> 周末
             </span>
           </div>
         )}
