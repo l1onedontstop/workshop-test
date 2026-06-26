@@ -12,7 +12,11 @@ import {
   Brain,
   Clock,
   Layout,
-  Trash2
+  Trash2,
+  Zap,
+  Calendar,
+  ChevronRight,
+  Play
 } from 'lucide-react'
 import { useMemo, useState, useCallback } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
@@ -239,6 +243,110 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
           )
         })}
       </div>
+
+      {/* ── One-Click Workflow: Fast Track ── */}
+      <Card level="subtle" className="mb-8 p-5 bg-gradient-to-r from-brand-50/50 to-info-surface/50 border-brand-200">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="p-2 rounded-lg bg-brand-100">
+            <Zap size={18} className="text-brand-600" />
+          </div>
+          <div>
+            <h3 className="text-sm font-semibold text-ink-primary">快速创作 · 一键成片</h3>
+            <p className="text-xs text-ink-tertiary">从选题到发布，3 步串联 — 省去页面跳转</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3">
+          {[
+            { step: 1, label: 'AI选题', desc: '智能推荐爆款选题', action: onTopicInspiration, color: 'bg-brand-100 text-brand-600 border-brand-200' },
+            { step: 2, label: '写脚本', desc: '一键生成+评分', action: onNewScript, color: 'bg-info-surface text-info-text border-info-border' },
+            { step: 3, label: '发布包', desc: '标题·简介·话题标签', action: onPublish, color: 'bg-success-surface text-success-text border-success-border' }
+          ].map((s, i, arr) => (
+            <div key={s.step} className="flex items-center gap-3 flex-1">
+              <button
+                onClick={s.action}
+                className={`flex-1 flex items-center gap-3 p-3 rounded-xl border ${s.color} hover:scale-[1.02] transition-transform text-left`}
+              >
+                <span className="w-6 h-6 rounded-full bg-white/60 flex items-center justify-center text-xs font-bold">{s.step}</span>
+                <div>
+                  <div className="text-xs font-medium">{s.label}</div>
+                  <div className="text-[10px] opacity-60">{s.desc}</div>
+                </div>
+                <Play size={14} className="ml-auto opacity-40" />
+              </button>
+              {i < arr.length - 1 && <ChevronRight size={14} className="text-ink-disabled shrink-0" />}
+            </div>
+          ))}
+        </div>
+      </Card>
+
+      {/* ── Content Calendar ── */}
+      <Card level="subtle" className="mb-8 p-5">
+        <div className="flex items-center gap-2 mb-3">
+          <Calendar size={16} className="text-brand-600" />
+          <h3 className="text-sm font-medium text-ink-tertiary">内容日历</h3>
+          <span className="text-[10px] text-ink-disabled ml-auto">
+            {(() => {
+              const today = new Date()
+              const weekStart = new Date(today)
+              weekStart.setDate(today.getDate() - today.getDay() + 1)
+              const weekEnd = new Date(weekStart)
+              weekEnd.setDate(weekStart.getDate() + 6)
+              return `${weekStart.getMonth() + 1}/${weekStart.getDate()} - ${weekEnd.getMonth() + 1}/${weekEnd.getDate()}`
+            })()}
+          </span>
+        </div>
+        <div className="grid grid-cols-7 gap-1.5">
+          {['一', '二', '三', '四', '五', '六', '日'].map((d) => (
+            <div key={d} className="text-center text-[10px] text-ink-disabled font-medium py-1">{d}</div>
+          ))}
+          {(() => {
+            const today = new Date()
+            const weekStart = new Date(today)
+            weekStart.setDate(today.getDate() - today.getDay() + 1)
+            const days: Array<{ date: Date; hasContent: boolean }> = []
+            for (let i = 0; i < 7; i++) {
+              const d = new Date(weekStart)
+              d.setDate(weekStart.getDate() + i)
+              const hasContent = predicted > 0 && i < published + 1 // Mark past published dates
+              days.push({ date: d, hasContent })
+            }
+            return days.map((d, i) => {
+              const isToday = d.date.toDateString() === today.toDateString()
+              const isPlanned = d.hasContent
+              return (
+                <div
+                  key={i}
+                  className={`text-center py-2 rounded-lg text-xs ${
+                    isToday
+                      ? 'bg-brand-600 text-white font-semibold'
+                      : isPlanned
+                      ? 'bg-success-surface border border-success-border/30 text-success-text'
+                      : 'bg-black/[0.02] text-ink-disabled'
+                  }`}
+                >
+                  {d.date.getDate()}
+                  {isPlanned && <div className="w-1 h-1 rounded-full bg-success-text mx-auto mt-0.5" />}
+                </div>
+              )
+            })
+          })()}
+        </div>
+        {predicted > 0 && (
+          <div className="mt-3 pt-3 border-t border-rule-subtle flex items-center gap-4 text-[10px] text-ink-disabled">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-success-text" /> 已发布
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-ink-disabled" /> 待排期
+            </span>
+          </div>
+        )}
+        {predicted === 0 && (
+          <p className="text-center text-xs text-ink-disabled py-4">
+            暂无排期内容 — 写完脚本并发布后，日历会自动标记
+          </p>
+        )}
+      </Card>
 
       {/* Pipeline bar — compact */}
       {predicted > 0 && (

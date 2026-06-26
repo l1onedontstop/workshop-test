@@ -34,9 +34,9 @@ const STEPS = [
     options: ['2-3小时（试一试）', '5-8小时（认真做）', '10+小时（全力投入）']
   },
   {
-    title: '对标账号',
-    description: '有你欣赏的同行IP吗？（可选）',
-    options: [] // Free text
+    title: '对标账户',
+    description: '你想要对标什么账户？（可选，可跳过）',
+    options: [] // Free text — customized for step 4
   },
   {
     title: '内容形态',
@@ -44,6 +44,17 @@ const STEPS = [
     options: ['口播出镜（对着镜头讲）', '画外音+画面（不出镜）', '混合（出镜+素材）', '不确定，让AI推荐']
   }
 ]
+
+function detectPlatform(url: string): string {
+  if (!url) return '其他'
+  const u = url.toLowerCase()
+  if (u.includes('douyin.com') || u.includes('iesdouyin.com')) return '抖音'
+  if (u.includes('bilibili.com') || u.includes('b23.tv')) return 'B站'
+  if (u.includes('xiaohongshu.com') || u.includes('xhslink.com')) return '小红书'
+  if (u.includes('youtube.com') || u.includes('youtu.be')) return 'YouTube'
+  if (u.includes('shipinhao') || u.includes('channels.weixin')) return '视频号'
+  return '其他'
+}
 
 interface WelcomePageProps {
   onCreated?: (projectId?: string) => void
@@ -65,6 +76,8 @@ export default function WelcomePage({
   const [currentStep, setCurrentStep] = useState(0)
   const [answers, setAnswers] = useState<Record<number, string>>({})
   const [freeText, setFreeText] = useState('')
+  const [benchmarkName, setBenchmarkName] = useState('')
+  const [benchmarkUrl, setBenchmarkUrl] = useState('')
   const [otherInput, setOtherInput] = useState('')
   const [showOtherInput, setShowOtherInput] = useState(false)
   const [projectName, setProjectName] = useState('')
@@ -79,13 +92,21 @@ export default function WelcomePage({
   const isFreeTextStep = step.options.length === 0
 
   const handleFreeTextNext = () => {
-    const updatedAnswers = { ...answers, [currentStep]: freeText }
+    // Step 4 (benchmark): store structured {name, url} or empty string
+    const value = currentStep === 4
+      ? (benchmarkName.trim() || benchmarkUrl.trim()
+          ? JSON.stringify({ name: benchmarkName.trim(), url: benchmarkUrl.trim() })
+          : '')
+      : freeText
+    const updatedAnswers = { ...answers, [currentStep]: value }
     setAnswers(updatedAnswers)
     if (isLast) {
       setShowNameInput(true)
     } else {
       setCurrentStep((prev) => prev + 1)
       setFreeText('')
+      setBenchmarkName('')
+      setBenchmarkUrl('')
       setError('')
     }
   }
@@ -131,15 +152,38 @@ export default function WelcomePage({
       const experience = a[2] || ''
       const identity = [industry, experience].filter(Boolean).join(' | ') || '新手创作者'
 
-      await window.api.createProject(name, {
+      // Parse benchmark from step 4 (may be structured JSON or plain text)
+      let benchmarkText = a[4] || ''
+      let benchmarkMeta: { name?: string; url?: string } | null = null
+      try {
+        if (benchmarkText && benchmarkText.startsWith('{')) {
+          benchmarkMeta = JSON.parse(benchmarkText)
+          benchmarkText = benchmarkMeta?.name || benchmarkText
+        }
+      } catch { /* keep as plain text */ }
+
+      const result = await window.api.createProject(name, {
         industry,
         targetAudience: a[1] || '',
         contentExperience: experience,
         weeklyTime: a[3] || '',
-        benchmark: a[4] || '',
+        benchmark: benchmarkText,
+        benchmarkName: benchmarkMeta?.name || '',
+        benchmarkUrl: benchmarkMeta?.url || '',
         contentType: a[5] || '',
         identity
-      })
+      }) as { path?: string }
+
+      // Auto-import benchmark account if user provided one
+      if (benchmarkMeta?.name && result?.path) {
+        const platform = detectPlatform(benchmarkMeta.url || '')
+        window.api.benchmarkImport(result.path, {
+          name: benchmarkMeta.name,
+          platform,
+          url: benchmarkMeta.url || ''
+        }).catch(() => { /* silent fail — user can import manually later */ })
+      }
+
       await loadProjects(true)
       setIsCreating(false)
       setCreated(true)
@@ -344,6 +388,44 @@ export default function WelcomePage({
                 </Button>
               </div>
             </div>
+          ) : isFreeTextStep && currentStep === 4 ? (
+            /* ── Step 5: Benchmark account structured input ── */
+            <div className="mt-4 space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs text-ink-tertiary">对标账户名称</label>
+                <input
+                  type="text"
+                  value={benchmarkName}
+                  onChange={(e) => setBenchmarkName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleFreeTextNext() }}
+                  placeholder="例如：老蒋的财经世界"
+                  className="w-full bg-black/[0.04] border border-rule rounded-lg px-3.5 py-2.5 text-sm text-ink-primary placeholder:text-ink-disabled transition-all duration-150 focus:outline-none focus:border-brand-200 focus:bg-black/[0.04] focus:ring-1 focus:ring-brand-200"
+                  autoFocus
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-ink-tertiary">账户主页链接</label>
+                <input
+                  type="text"
+                  value={benchmarkUrl}
+                  onChange={(e) => setBenchmarkUrl(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleFreeTextNext() }}
+                  placeholder="https://...（抖音/B站/小红书主页链接）"
+                  className="w-full bg-black/[0.04] border border-rule rounded-lg px-3.5 py-2.5 text-sm text-ink-primary placeholder:text-ink-disabled transition-all duration-150 focus:outline-none focus:border-brand-200 focus:bg-black/[0.04] focus:ring-1 focus:ring-brand-200"
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button variant="primary" className="flex-1" onClick={handleFreeTextNext} icon={<ArrowRight size={16} />}>
+                  继续
+                </Button>
+                <Button variant="ghost" onClick={handleFreeTextNext}>
+                  跳过
+                </Button>
+              </div>
+              <p className="text-ink-disabled text-xs text-center">
+                输入对标账户信息后，AI 将在项目创建后自动分析。也可以跳过，后续在左侧"对标账户"中补充
+              </p>
+            </div>
           ) : isFreeTextStep ? (
             <div className="mt-4 space-y-3">
               <textarea
@@ -354,7 +436,7 @@ export default function WelcomePage({
                     handleFreeTextNext()
                   }
                 }}
-                placeholder="输入对标账号的名称或链接，也可以跳过..."
+                placeholder="输入你的想法..."
                 className="w-full h-24 bg-black/[0.04] border border-rule rounded-lg px-3.5 py-2.5 text-sm text-ink-primary placeholder:text-ink-disabled resize-none transition-all duration-150 focus:outline-none focus:border-brand-200 focus:bg-black/[0.04] focus:ring-1 focus:ring-brand-200"
               />
               <div className="flex gap-3">

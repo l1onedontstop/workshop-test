@@ -51,6 +51,11 @@ interface AppState {
   sidebarCollapsed: boolean
   toggleSidebar: () => void
 
+  // Prediction state (cross-page persistence)
+  predictionLocked: boolean
+  predictionData: Record<string, unknown> | null
+  setPredictionLocked: (locked: boolean, data?: Record<string, unknown> | null) => void
+
   // AI Settings
   aiProvider: string
   setAIProvider: (provider: string) => Promise<void>
@@ -115,6 +120,12 @@ export const useAppStore = create<AppState>((set, get) => ({
   // ── Navigation ──
   sidebarCollapsed: false,
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
+
+  // ── Prediction State ──
+  predictionLocked: false,
+  predictionData: null,
+  setPredictionLocked: (locked: boolean, data?: Record<string, unknown> | null) =>
+    set({ predictionLocked: locked, predictionData: data ?? null }),
 
   // ── AI Settings ──
   aiProvider: 'deepseek',

@@ -45,6 +45,64 @@ const PROVIDERS = [
   { id: 'doubao', label: '豆包 (字节)', desc: '高并发低延迟，性价比好' }
 ] as const
 
+function CookieInput() {
+  const [cookie, setCookie] = useState('')
+  const [saved, setSaved] = useState(false)
+  const [loggingIn, setLoggingIn] = useState(false)
+
+  useEffect(() => {
+    window.api.getSetting('douyinCookie').then((v) => {
+      if (v) setCookie(String(v))
+    }).catch(() => {})
+  }, [])
+
+  const handleSave = async () => {
+    await window.api.setSetting('douyinCookie', cookie.trim())
+    setSaved(true)
+    setTimeout(() => setSaved(false), 2000)
+  }
+
+  const handleLogin = async () => {
+    setLoggingIn(true)
+    try {
+      await (window.api as any).loginDouyin()
+    } catch (e) {
+      console.error('Login failed:', e)
+    }
+    setLoggingIn(false)
+  }
+
+  return (
+    <div className="space-y-3">
+      <Button variant="primary" onClick={handleLogin} disabled={loggingIn}>
+        {loggingIn ? '打开中...' : '🔑 一键登录抖音（自动获取Cookie）'}
+      </Button>
+      <p className="text-xs text-ink-disabled">
+        点击后弹出迷你浏览器窗口，扫码/手机登录抖音。登录完成后关闭窗口，Cookie 自动保存。
+      </p>
+      <div className="flex gap-3">
+        <div className="flex-1">
+          <textarea
+            value={cookie}
+            onChange={(e) => setCookie(e.target.value)}
+            placeholder="或手动粘贴抖音 Cookie..."
+            rows={2}
+            className="w-full bg-black/[0.04] border border-rule rounded-lg px-3.5 py-2.5 text-sm text-white placeholder:text-ink-disabled resize-none focus:outline-none focus:border-brand-200"
+          />
+        </div>
+        <Button
+          variant="primary"
+          onClick={handleSave}
+          disabled={!cookie.trim()}
+          icon={saved ? <CheckCircle size={16} /> : undefined}
+        >
+          {saved ? '已保存' : '保存'}
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export default function SettingsPage({ onBack }: { onBack?: () => void }) {
   const {
     aiProvider,
@@ -346,11 +404,29 @@ export default function SettingsPage({ onBack }: { onBack?: () => void }) {
         </Card>
       )}
 
+      {/* Douyin Cookie */}
+      <Card className="mt-4 p-6">
+        <h2 className="text-white font-medium mb-3">抖音 Cookie 设置</h2>
+        <p className="text-xs text-ink-disabled mb-3">
+          粘贴浏览器中抖音的 Cookie，用于爬取个人账号视频数据。不设置则使用 AI 推断分析。
+        </p>
+        <CookieInput />
+        <details className="mt-3 text-xs text-ink-disabled">
+          <summary className="cursor-pointer hover:text-ink-tertiary">如何获取 Cookie？</summary>
+          <ol className="mt-2 space-y-1 list-decimal list-inside">
+            <li>在浏览器中打开 <code className="text-brand-600">douyin.com</code> 并登录</li>
+            <li>按 F12 打开开发者工具 → <b>Network</b> 标签</li>
+            <li>刷新页面，点击任意请求 → 找到 <b>Cookie</b> 请求头</li>
+            <li>复制完整的 Cookie 值粘贴到上方输入框</li>
+          </ol>
+        </details>
+      </Card>
+
       {/* About */}
       <Card className="mt-4 p-6">
         <h2 className="text-white font-medium mb-3">关于 SparkForge</h2>
         <div className="space-y-2 text-sm text-ink-tertiary">
-          <p>版本：1.0.0</p>
+          <p>版本：v1.2.0</p>
           <p>基于 cheat-on-content 方法论构建</p>
           <p>所有数据存储在本地，不经过任何第三方服务器</p>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { parseFullScript, extractScript } from '../services/scriptParser'
 import {
@@ -110,7 +110,7 @@ export default function PlanEditorPage({
   const [strategy, setStrategy] = useState<ContentStrategy | null>(null)
 
   // Step 4: Script generation
-  const [scriptProgress, setScriptProgress] = useState({ current: 0, total: 0 })
+  const [scriptProgress, setScriptProgress] = useState({ current: 0, total: 0, etaSeconds: 0 })
   const [generatedScripts, setGeneratedScripts] = useState<
     Array<{ topicIndex: number; script: string; fileName: string }>
   >([])
@@ -119,6 +119,48 @@ export default function PlanEditorPage({
   const [schedule, setSchedule] = useState<
     Array<{ date: string; topicIndex: number; topicTitle: string; scriptFile: string }>
   >([])
+
+  // ── Wizard draft persistence (localStorage) ──
+  const DRAFT_KEY = `plan_draft_${planId}`
+  const draftLoadedRef = useRef(false)
+  const [draftRestored, setDraftRestored] = useState(false)
+
+  // Save draft to localStorage whenever wizard state changes
+  const saveDraft = useCallback(() => {
+    try {
+      const draft = {
+        step,
+        personaAnswers,
+        personaSubStep,
+        personaNotes,
+        aiTraits,
+        topicCandidates,
+        selectedTopics: Array.from(selectedTopics),
+        strategy,
+        savedAt: Date.now()
+      }
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draft))
+    } catch { /* localStorage full or disabled */ }
+  }, [step, personaAnswers, personaSubStep, personaNotes, aiTraits, topicCandidates, selectedTopics, strategy, DRAFT_KEY])
+
+  // Auto-save draft on state changes (debounced)
+  useEffect(() => {
+    if (!draftLoadedRef.current) return // Don't overwrite before loading
+    const t = setTimeout(saveDraft, 300)
+    return () => clearTimeout(t)
+  }, [saveDraft])
+
+  // Clear draft when plan is finalized
+  const clearDraft = useCallback(() => {
+    try { localStorage.removeItem(DRAFT_KEY) } catch {}
+  }, [DRAFT_KEY])
+
+  // Auto-dismiss recovery banner after 6 seconds
+  useEffect(() => {
+    if (!draftRestored) return
+    const t = setTimeout(() => setDraftRestored(false), 6000)
+    return () => clearTimeout(t)
+  }, [draftRestored])
 
   // Load plan on mount
   useEffect(() => {
@@ -192,6 +234,36 @@ export default function PlanEditorPage({
       }
     })()
   }, [activeProject, planId])
+
+  // Restore draft from localStorage (runs AFTER plan-load, so draft overrides server)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY)
+      if (!raw) { draftLoadedRef.current = true; return }
+      const draft = JSON.parse(raw)
+      if (draft.savedAt && Date.now() - draft.savedAt > 86400000) {
+        localStorage.removeItem(DRAFT_KEY)
+        draftLoadedRef.current = true
+        return
+      }
+      // Only restore fields that are ahead of server state
+      if (draft.step) setStep(draft.step)
+      if (draft.personaAnswers?.length) setPersonaAnswers(draft.personaAnswers)
+      if (typeof draft.personaSubStep === 'number') setPersonaSubStep(draft.personaSubStep)
+      if (draft.personaNotes) setPersonaNotes(draft.personaNotes)
+      if (draft.aiTraits?.length) setAiTraits(draft.aiTraits)
+      if (draft.topicCandidates?.length) {
+        setTopicCandidates(draft.topicCandidates)
+        if (draft.selectedTopics?.length) setSelectedTopics(new Set(draft.selectedTopics))
+      }
+      if (draft.strategy) setStrategy(draft.strategy)
+      if (draft.step && draft.step > 1) setDraftRestored(true)
+      draftLoadedRef.current = true
+    } catch {
+      localStorage.removeItem(DRAFT_KEY)
+      draftLoadedRef.current = true
+    }
+  }, [DRAFT_KEY])
 
   const savePlan = useCallback(
     async (updates: Record<string, unknown>) => {
@@ -352,17 +424,41 @@ export default function PlanEditorPage({
 
     setLoading(true)
     setError('')
-    setScriptProgress({ current: 0, total: selected.length })
+    setScriptProgress({ current: 0, total: selected.length, etaSeconds: 0 })
     const results: Array<{ topicIndex: number; script: string; fileName: string }> = []
+    const genStartTimes: number[] = []
 
     for (let i = 0; i < selected.length; i++) {
-      setScriptProgress({ current: i + 1, total: selected.length })
+      // Calculate ETA from completed scripts
+      if (i > 0 && genStartTimes.length > 0) {
+        const avgMs = genStartTimes.reduce((s, t) => s + t, 0) / genStartTimes.length
+        const remaining = selected.length - i
+        setScriptProgress({ current: i + 1, total: selected.length, etaSeconds: Math.round(avgMs * remaining / 1000) })
+      } else {
+        setScriptProgress({ current: i + 1, total: selected.length, etaSeconds: 0 })
+      }
+      const t0 = Date.now()
       try {
-        const raw = await window.api.writeScript(selected[i].title, {
-          industry: activeProject.opts?.industry || '',
-          audience: activeProject.opts?.targetAudience || '',
-          projectPath: activeProject.path
-        })
+        let raw: unknown
+        let retries = 0
+        const MAX_RETRIES = 1
+        while (retries <= MAX_RETRIES) {
+          try {
+            raw = await window.api.writeScript(selected[i].title, {
+              industry: activeProject.opts?.industry || '',
+              audience: activeProject.opts?.targetAudience || '',
+              projectPath: activeProject.path
+            })
+            break
+          } catch (fetchErr) {
+            if (retries < MAX_RETRIES) {
+              retries++
+              await new Promise((r) => setTimeout(r, 1500))
+              continue
+            }
+            throw fetchErr
+          }
+        }
         const script = extractScript(raw as string)
         if (script) {
           const today = new Date().toISOString().slice(0, 10)
@@ -392,8 +488,6 @@ export default function PlanEditorPage({
                   sections.postProduction || '',
                   '---',
                   sections.cover || '',
-                  '---',
-                  sections.rawJson || '',
                 ].join('\n')
               : '---',
             ''
@@ -405,8 +499,10 @@ export default function PlanEditorPage({
           // Update topic entry in plan
           selected[i].scriptFile = fileName
         }
+        genStartTimes.push(Date.now() - t0)
       } catch {
-        // Skip failed generation, continue with next
+        // Track timing even on failure, skip to next
+        genStartTimes.push(Date.now() - t0)
       }
     }
 
@@ -460,6 +556,7 @@ export default function PlanEditorPage({
     }
 
     setSaved(true)
+    clearDraft() // Wizard complete — clean up draft
   }
 
   // ── UI helpers ──
@@ -511,6 +608,16 @@ export default function PlanEditorPage({
         <div className="flex-1" />
         {saved && <span className="text-xs text-success-text">已保存</span>}
       </div>
+
+      {/* Draft recovery banner */}
+      {draftRestored && (
+        <div className="px-6 py-2 bg-warning-surface/50 border-b border-warning-border/30 flex items-center justify-between">
+          <p className="text-xs text-warning-text flex items-center gap-1.5">
+            <span>🔄</span> 已恢复上次未完成的进度（{STEP_LABELS[step - 1]}），继续编辑
+          </p>
+          <button onClick={() => setDraftRestored(false)} className="text-xs text-ink-disabled hover:text-ink-tertiary">✕</button>
+        </div>
+      )}
 
       {/* Step content */}
       <div className="flex-1 overflow-y-auto p-6">
@@ -918,6 +1025,13 @@ export default function PlanEditorPage({
                   <Loader2 size={32} className="animate-spin text-brand-600/50 mx-auto mb-4" />
                   <p className="text-sm text-ink-tertiary">
                     正在生成第 {scriptProgress.current}/{scriptProgress.total} 个脚本...
+                    {scriptProgress.etaSeconds > 0 && (
+                      <span className="text-ink-disabled ml-1">
+                        · 预计剩余 {scriptProgress.etaSeconds >= 60
+                          ? `${Math.floor(scriptProgress.etaSeconds / 60)}分${scriptProgress.etaSeconds % 60}秒`
+                          : `${scriptProgress.etaSeconds}秒`}
+                      </span>
+                    )}
                   </p>
                   <div className="mt-4 h-2 bg-black/[0.04] rounded-full max-w-md mx-auto overflow-hidden">
                     <div

@@ -121,9 +121,9 @@ export default function OptimizeDiffView({
         />
       </div>
 
-      {/* Stacked card layout */}
-      <div className="p-4 space-y-3 max-h-[480px] overflow-y-auto">
-        {/* Optimization focus — shows original scoring feedback */}
+      {/* Side-by-side card layout */}
+      <div className="p-4 max-h-[520px] overflow-y-auto">
+        {/* Optimization focus bar */}
         {scoreResult && (scoreResult.weaknesses.length > 0 || scoreResult.suggestions.length > 0) && (
           <SectionCard icon={<Target size={14} />} title="优化方向（基于最近一次评分）" color="orange" fullWidth>
             <div className="space-y-1.5">
@@ -149,7 +149,7 @@ export default function OptimizeDiffView({
         )}
 
         {/* Change summary bar */}
-        <div className="flex items-center justify-center gap-4 px-4 py-2 bg-black/[0.02] rounded-lg border border-rule-subtle text-[10px] text-ink-disabled">
+        <div className="flex items-center justify-center gap-4 px-4 py-2 mb-3 bg-black/[0.02] rounded-lg border border-rule-subtle text-[10px] text-ink-disabled">
           <span>字数：{script.length} → <span className="text-brand-600 font-medium">{optimizedScript.length}</span></span>
           <span className="text-rule">|</span>
           <span>段落：{script.split('\n\n').filter(Boolean).length} → <span className="text-brand-600 font-medium">{optimizedScript.split('\n\n').filter(Boolean).length}</span></span>
@@ -161,19 +161,19 @@ export default function OptimizeDiffView({
           </span>
         </div>
 
-        {/* Original script */}
-        <SectionCard icon={<FileText size={15} />} title="原始脚本" color="orange" fullWidth>
-          <div className="text-sm text-ink-secondary leading-7 whitespace-pre-wrap font-sans">
-            {script}
-          </div>
-        </SectionCard>
-
-        {/* Optimized script */}
-        <SectionCard icon={<Sparkles size={15} />} title="AI 优化版" color="green" fullWidth>
-          <div className="text-sm text-ink-primary leading-7 whitespace-pre-wrap font-sans">
-            {optimizedScript}
-          </div>
-        </SectionCard>
+        {/* Side-by-side: Original (left) | Optimized (right) */}
+        <div className="grid grid-cols-2 gap-3">
+          <SectionCard icon={<FileText size={15} />} title="原始脚本" color="orange" fullWidth>
+            <div className="text-sm text-ink-secondary leading-7 whitespace-pre-wrap font-sans max-h-[380px] overflow-y-auto">
+              {script}
+            </div>
+          </SectionCard>
+          <SectionCard icon={<Sparkles size={15} />} title="AI 优化版" color="green" fullWidth>
+            <div className="text-sm text-ink-primary leading-7 whitespace-pre-wrap font-sans max-h-[380px] overflow-y-auto">
+              {optimizedScript}
+            </div>
+          </SectionCard>
+        </div>
       </div>
 
       {/* Action buttons */}

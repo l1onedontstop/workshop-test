@@ -1,6 +1,6 @@
 {
   "name": "sparkforge",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "SparkForge — 个人影响力锻造工坊",
   "main": "./out/main/index.js",
   "author": "IP工坊",

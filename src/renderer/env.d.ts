@@ -67,6 +67,13 @@ interface Window {
     personaGet: (projectPath: string) => Promise<unknown | null>
     personaClear: (projectPath: string) => Promise<unknown>
 
+    // Social Crawl (Self Account)
+    socialCrawl: (projectPath: string, opts: { platform: string; url: string; accountName: string; manualData?: string }) => Promise<unknown>
+    getSelfAccount: (projectPath: string) => Promise<unknown | null>
+    setNoSelfAccount: (projectPath: string) => Promise<{ success: boolean }>
+    deleteSelfAccount: (projectPath: string) => Promise<{ success: boolean }>
+    getSelfInsight: (projectPath: string) => Promise<unknown | null>
+
     // Settings
     getSetting: (key: string) => Promise<unknown>
     setSetting: (key: string, value: unknown) => Promise<boolean>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useReducer } from 'react'
+import { useState, useCallback, useEffect, useReducer, useRef } from 'react'
 import { useAppStore } from '../stores/appStore'
 import { extractJSON } from '../services/parseAIResponse'
 import { DIMENSION_LABELS, DIMENSION_SHORT_DESCRIPTIONS, DIMENSION_KEYS, DEFAULT_WEIGHTS } from '@common/dimensions'
@@ -38,7 +38,11 @@ import {
   Volume2,
   Image,
   Wand2,
-  Undo2
+  Undo2,
+  MessageCircle,
+  Send,
+  ChevronUp,
+  User
 } from 'lucide-react'
 
 interface RubricScores {
@@ -103,16 +107,17 @@ function buildPredictionPath(projectPath: string, today: string, seq: string, sa
   return `${projectPath}/predictions/${today}_${seq}_${safeTopic}.json`
 }
 
-/** Strip markdown fences and AI greeting prefixes from LLM output */
+/** Strip markdown fences, AI greeting prefixes, and JSON blocks from LLM output */
 function cleanAIScript(raw: string): string {
-  return raw
-    .replace(/```[\s\S]*?\n/g, '')
-    .replace(/```/g, '')
-    .replace(/^(好的|没问题|以下|好的老板|当然可以)[^\n]*\n/gm, '')
-    .trim()
+  return stripJsonBlocks(
+    raw
+      .replace(/```[\s\S]*?\n/g, '')
+      .replace(/```/g, '')
+      .replace(/^(好的|没问题|以下|好的老板|当然可以|OK|Sure|Here)[^\n]*\n/gm, '')
+  )
 }
 
-import { parseFullScript, extractScript, type ScriptSections } from '../services/scriptParser'
+import { parseFullScript, extractScript, stripJsonBlocks, type ScriptSections } from '../services/scriptParser'
 import OptimizeDiffView from '../components/OptimizeDiffView'
 
 // ── Section Card Component ────────────────────────────────
@@ -230,14 +235,16 @@ export default function ScriptEditorPage({
   const [loading, setLoading] = useState<'generate' | 'score' | 'delete' | null>(null)
   const [error, setError] = useState('')
   const [saved, setSaved] = useState(false)
-  const [predictionLocked, setPredictionLocked] = useState(false)
+  // ── Prediction state from store (cross-page persistence) ──
+  const predictionLocked = useAppStore((s) => s.predictionLocked)
+  const predictionData = useAppStore((s) => s.predictionData)
+  const setPredictionLocked = useAppStore((s) => s.setPredictionLocked)
   const [showChecklist, setShowChecklist] = useState(false)
   const [checklistItems, setChecklistItems] = useState([false, false, false])
   const [benchmarkAvailable, setBenchmarkAvailable] = useState(false)
   const [showScriptList, setShowScriptList] = useState(false)
   const [scriptList, setScriptList] = useState<Array<{ name: string; path: string }>>([])
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
-  const [predictionData, setPredictionData] = useState<Record<string, unknown> | null>(null)
   const [scriptSections, setScriptSections] = useState<ScriptSections | null>(null)
   const [showFullPlan, setShowFullPlan] = useState(false)
   const [currentScriptFile, setCurrentScriptFile] = useState<string | null>(null)
@@ -249,9 +256,86 @@ export default function ScriptEditorPage({
   const [reportError, setReportError] = useState('')
   const [scoreStale, setScoreStale] = useState(false)
   const [autoSaveTrigger, setAutoSaveTrigger] = useState(0)
+  const [isDirty, setIsDirty] = useState(false)
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false)
+  const autoSaveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── AI Optimize workflow (reducer extracted to ../reducers/optimizeReducer) ──
   const [optimize, optimizeDispatch] = useReducer(optimizeReducer, initOptimize)
+
+  // ── Conversational optimization chat ──
+  const [chatOpen, setChatOpen] = useState(false)
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; ts: string }>>([])
+  const [chatInput, setChatInput] = useState('')
+  const [chatLoading, setChatLoading] = useState(false)
+  const [chatError, setChatError] = useState('')
+  const chatEndRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }, [chatMessages])
+
+  const handleChatSend = useCallback(async () => {
+    const feedback = chatInput.trim()
+    if (!feedback || chatLoading || !script.trim()) return
+    const now = new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+    setChatInput('')
+    setChatError('')
+    const newMsgs = [...chatMessages, { role: 'user' as const, content: feedback, ts: now }]
+    setChatMessages(newMsgs)
+    setChatLoading(true)
+    try {
+      // Build conversation: include current script as context in first message
+      const apiMessages = newMsgs.map((m, i) => {
+        if (i === 0 && m.role === 'user') {
+          return {
+            role: m.role,
+            content: `## 当前脚本\n${script}\n\n## 用户反馈\n${m.content}`
+          }
+        }
+        return { role: m.role, content: m.content }
+      })
+      const result = await window.api.chatScript({
+        messages: apiMessages,
+        projectPath: activeProject?.path || ''
+      }) as string
+      const cleaned = cleanAIScript(result)
+      setChatMessages(prev => [...prev, { role: 'assistant', content: cleaned, ts: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) }])
+    } catch (err) {
+      setChatError(err instanceof Error ? err.message : '对话失败')
+    } finally {
+      setChatLoading(false)
+    }
+  }, [chatInput, chatLoading, script, chatMessages, activeProject])
+
+  const handleChatAccept = useCallback(() => {
+    // Accept the last assistant response as the new script
+    const lastAI = [...chatMessages].reverse().find(m => m.role === 'assistant')
+    if (lastAI) {
+      optimizeDispatch({ type: 'ACCEPT', currentScript: script, currentScore: scoreResult?.total ?? null })
+      setScript(lastAI.content)
+      setScoreResult(null)
+      setScoreStale(false)
+      // Trigger re-score
+      setLoading('score')
+      window.api.scoreScript(lastAI.content, { projectPath: activeProject?.path || '' })
+        .then((raw: string) => {
+          const scores = parseScoreResult(raw)
+          if (scores) {
+            setScoreResult(scores)
+            optimizeDispatch({ type: 'ADD_SCORE', score: scores.total })
+          }
+        })
+        .catch(() => {})
+        .finally(() => setLoading(null))
+    }
+  }, [chatMessages, script, scoreResult, activeProject])
+
+  const handleChatClose = useCallback(() => {
+    setChatOpen(false)
+    setChatMessages([])
+    setChatError('')
+  }, [])
 
   // Auto-save after AI generation (triggered by handleGenerate)
   useEffect(() => {
@@ -272,6 +356,9 @@ export default function ScriptEditorPage({
       // ignore
     }
   }, [activeProject])
+
+  // Preload script list on mount (eager, not lazy)
+  useEffect(() => { loadScriptList() }, [loadScriptList])
 
   useEffect(() => {
     if (showScriptList) loadScriptList()
@@ -495,8 +582,6 @@ export default function ScriptEditorPage({
               scriptSections.postProduction || '',
               '---',
               scriptSections.cover || '',
-              '---',
-              scriptSections.rawJson || '',
             ].join('\n')
           : '---',
         '',
@@ -603,8 +688,7 @@ export default function ScriptEditorPage({
           actualData: null
         }
         await window.api.writeFile(predPath, JSON.stringify(prediction, null, 2))
-        setPredictionData(prediction)
-        setPredictionLocked(true)
+        setPredictionLocked(true, prediction)
 
         // Generate readable prediction report
         const dimLabels: Record<string, string> = {
@@ -702,6 +786,7 @@ export default function ScriptEditorPage({
       // Refresh store
       await refreshActiveProject()
 
+      setIsDirty(false)
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (err) {
@@ -739,7 +824,13 @@ export default function ScriptEditorPage({
         <Button
           variant="ghost"
           size="md"
-          onClick={onBack}
+          onClick={() => {
+            if (isDirty && script.trim()) {
+              setShowLeaveConfirm(true)
+            } else {
+              onBack()
+            }
+          }}
           icon={<ArrowLeft size={18} />}
         />
         <h1 className="text-lg font-semibold text-ink-primary">创作工作台</h1>
@@ -765,6 +856,16 @@ export default function ScriptEditorPage({
           title={!scoreResult ? '请先点击「重新打分」获取优化方向' : 'AI根据评分弱项优化口播文案'}
         >
           {optimize.optimizing ? 'AI优化中...' : 'AI优化口播'}
+        </Button>
+        <Button
+          variant="secondary"
+          size="md"
+          onClick={() => setChatOpen(true)}
+          disabled={!script.trim() || loading !== null}
+          icon={<MessageCircle size={15} />}
+          title="与AI对话，精准描述你想怎么改"
+        >
+          对话优化
         </Button>
         {/* Separator: eval → actions */}
         <div className="w-px h-6 bg-rule mx-1" />
@@ -953,13 +1054,47 @@ export default function ScriptEditorPage({
             )}
           </div>
 
+          {/* ── Script Templates ── */}
+          {!script.trim() && (
+            <div className="mb-4">
+              <p className="text-[10px] text-ink-disabled mb-2">📋 选择口播模板，快速填充结构：</p>
+              <div className="flex flex-wrap gap-2">
+                {([
+                  { label: '观点型', icon: '💡', hint: '核心观点 → 论据 → 反常识 → 结论', template: '【开口钩子】先抛一个反常识的观点\n\n【我的观点】用一句话亮出你的核心判断\n\n【为什么】2-3 个支撑论据，每个配一个案例\n\n【反常识】大多数人以为...但实际上...\n\n【金句收尾】一个让人想转发的结论' },
+                  { label: '故事型', icon: '📖', hint: '故事开头 → 冲突 → 转折 → 启发', template: '【故事开头】讲一个真实发生的场景/经历\n\n【冲突升级】问题越来越严重，你的感受\n\n【转折点】一个关键的认知改变或行动\n\n【启发总结】从这个故事中提炼的通用道理\n\n【行动号召】引导观众思考/评论' },
+                  { label: '对比型', icon: '⚖️', hint: '方案A vs 方案B → 优劣 → 推荐', template: '【问题引入】你面临过这个选择吗？\n\n【方案A】传统做法是什么 → 效果如何\n\n【方案B】新做法/工具是什么 → 为什么更好\n\n【关键差异】两者的本质区别在哪\n\n【我的推荐】适合你的选择 + 理由' },
+                  { label: '教程型', icon: '📝', hint: '问题 → 步骤123 → 结果', template: '【痛点引入】你是不是也遇到过...\n\n【常见误区】大多数人都会踩的坑\n\n【正确做法】Step 1 → Step 2 → Step 3\n\n【关键细节】最容易忽略但最重要的一步\n\n【效果展示】做完之后你会看到的变化' },
+                  { label: '悬念型', icon: '🎯', hint: '悬念 → 解密 → 反转 → 行动', template: '【悬念开头】有件事我必须告诉你...\n\n【铺垫】为什么这件事很重要\n\n【逐步解密】真相一层层揭开\n\n【反转】你以为是这样，其实是这样\n\n【行动】看完之后你应该做什么' }
+                ] as const).map((tpl) => (
+                  <button
+                    key={tpl.label}
+                    onClick={() => setScript(tpl.template)}
+                    className="px-3 py-2 rounded-lg border border-rule-subtle bg-black/[0.02] hover:border-brand-200 hover:bg-brand-50/50 transition-colors text-left group"
+                    title={tpl.hint}
+                  >
+                    <div className="text-xs font-medium text-ink-secondary group-hover:text-brand-600 flex items-center gap-1">
+                      <span>{tpl.icon}</span> {tpl.label}
+                    </div>
+                    <div className="text-[10px] text-ink-disabled mt-0.5">{tpl.hint}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Script editor */}
           <TextArea
             value={script}
             onChange={(e) => {
               setScript(e.target.value)
+              setIsDirty(true)
               // Mark scores stale — keep visible as reference, don't destroy
               if (scoreResult && !scoreStale) setScoreStale(true)
+              // Auto-save draft after 2s of no typing
+              if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current)
+              autoSaveTimerRef.current = setTimeout(() => {
+                if (e.target.value.trim()) handleSave()
+              }, 2000)
             }}
             placeholder={
               loading === 'generate'
@@ -1359,6 +1494,31 @@ export default function ScriptEditorPage({
         </div>
       )}
 
+      {/* ── Leave confirm dialog ── */}
+      {showLeaveConfirm && (
+        <div className="fixed inset-0 z-[150] flex items-center justify-center bg-black/60">
+          <Card level="elevated" className="w-full max-w-sm mx-4 p-6 shadow-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-warning-surface">
+                <AlertCircle size={20} className="text-warning-text" />
+              </div>
+              <div>
+                <h3 className="text-sm font-semibold text-ink-primary">未保存的更改</h3>
+                <p className="text-xs text-ink-tertiary">你有未保存的脚本内容，离开后将会丢失。</p>
+              </div>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="secondary" size="md" onClick={() => setShowLeaveConfirm(false)} className="flex-1">
+                继续编辑
+              </Button>
+              <Button variant="danger" size="md" onClick={onBack} className="flex-1">
+                放弃并离开
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Prediction locked indicator */}
       {predictionLocked && predictionData && (
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl bg-success-surface border border-success-border text-success-text text-sm shadow-lg backdrop-blur-sm flex items-center gap-3">
@@ -1374,7 +1534,6 @@ export default function ScriptEditorPage({
               try {
                 const predFileName = (predictionData as Record<string, unknown>).scriptFile as string || ''
                 const baseName = predFileName.replace(/\.md$/, '')
-                // Find the matching prediction .json to derive report path
                 const preds = await window.api.listPredictions(activeProject.path) as Array<{ name: string; path: string }>
                 const reportPred = preds.find((p) => p.name.includes(baseName))
                 if (reportPred) {
@@ -1383,7 +1542,6 @@ export default function ScriptEditorPage({
                   setReportContent(content)
                   setShowReportModal(true)
                 } else {
-                  // Fallback: construct report path directly from script filename
                   const today = predFileName.slice(0, 10)
                   const safeTopic = baseName.replace(/^\d{4}-\d{2}-\d{2}_\d{3}_/, '')
                   const predPath = `${activeProject.path}/predictions/${predFileName.replace(/\.md$/, '.json')}`
@@ -1418,6 +1576,100 @@ export default function ScriptEditorPage({
           >
             ✕
           </Button>
+        </div>
+      )}
+
+      {/* ── Chat-based optimization panel ── */}
+      {chatOpen && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 border-t border-brand-200 bg-app-bg shadow-2xl transition-all duration-300"
+          style={{ maxHeight: '50vh' }}>
+          {/* Chat header */}
+          <div className="flex items-center justify-between px-6 py-3 border-b border-rule-subtle bg-brand-50">
+            <div className="flex items-center gap-2">
+              <MessageCircle size={16} className="text-brand-600" />
+              <span className="text-sm font-medium text-ink-primary">对话优化脚本</span>
+              <span className="text-[10px] text-ink-disabled">描述你想怎么改，AI精准执行</span>
+            </div>
+            <div className="flex items-center gap-2">
+              {chatMessages.length > 0 && (
+                <Button variant="primary" size="sm" onClick={handleChatAccept}
+                  icon={<CheckCircle2 size={14} />}>
+                  接受优化结果
+                </Button>
+              )}
+              <Button variant="ghost" size="sm" onClick={handleChatClose} icon={<X size={14} />}>
+                关闭
+              </Button>
+            </div>
+          </div>
+
+          {/* Messages */}
+          <div className="overflow-y-auto px-6 py-3 space-y-3" style={{ maxHeight: 'calc(50vh - 110px)' }}>
+            {chatMessages.length === 0 && (
+              <div className="text-center py-8">
+                <MessageCircle size={28} className="text-ink-disabled mx-auto mb-2" />
+                <p className="text-sm text-ink-tertiary mb-1">描述你希望怎么改这篇脚本</p>
+                <p className="text-xs text-ink-disabled">例如：</p>
+                <div className="flex flex-wrap gap-1.5 justify-center mt-2">
+                  {['开头不够抓人，加悬念', '中间数据太少', '语气太正式，口语化', '结尾加行动号召', '缩短到200字左右'].map(hint => (
+                    <button key={hint} className="px-2 py-1 rounded-full text-[10px] bg-black/[0.04] border border-rule text-ink-tertiary hover:border-brand-200 hover:text-brand-600 transition-colors"
+                      onClick={() => setChatInput(hint)}>{hint}</button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {chatMessages.map((m, i) => (
+              <div key={i} className={`flex gap-2 ${m.role === 'user' ? 'flex-row-reverse' : ''}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                  m.role === 'user' ? 'bg-brand-600 text-white' : 'bg-brand-100 text-brand-600'
+                }`}>
+                  {m.role === 'user' ? <User size={12} /> : <Sparkles size={12} />}
+                </div>
+                <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm leading-relaxed whitespace-pre-wrap ${
+                  m.role === 'user'
+                    ? 'bg-brand-600 text-white rounded-br-sm'
+                    : 'bg-black/[0.04] border border-rule-subtle text-ink-secondary rounded-bl-sm'
+                }`}>
+                  {m.role === 'assistant'
+                    ? m.content.length > 400
+                      ? m.content.slice(0, 300) + '...' + '\n\n（内容较长，点击"接受优化结果"查看完整脚本）'
+                      : m.content
+                    : m.content}
+                  <div className={`text-[9px] mt-1 ${m.role === 'user' ? 'text-white/50' : 'text-ink-disabled'}`}>{m.ts}</div>
+                </div>
+              </div>
+            ))}
+            {chatLoading && (
+              <div className="flex items-center gap-2 pl-8">
+                <Loader2 size={14} className="animate-spin text-brand-600" />
+                <span className="text-xs text-ink-disabled">AI 正在改写...</span>
+              </div>
+            )}
+            {chatError && (
+              <div className="flex items-center gap-2 text-danger-text text-xs p-2 rounded-lg bg-danger-surface">
+                <AlertCircle size={12} /> {chatError}
+              </div>
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Input */}
+          <div className="px-6 py-3 border-t border-rule-subtle flex gap-3">
+            <input
+              type="text"
+              value={chatInput}
+              onChange={(e) => setChatInput(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleChatSend() } }}
+              placeholder={chatLoading ? 'AI 正在回复...' : '描述你想怎么改，例如：开头加一个数据、语气更犀利...'}
+              disabled={chatLoading}
+              className="flex-1 bg-black/[0.04] border border-rule rounded-lg px-3 py-2 text-sm text-white placeholder:text-ink-disabled focus:outline-none focus:border-brand-200 disabled:opacity-50"
+            />
+            <Button variant="primary" size="md" onClick={handleChatSend}
+              disabled={!chatInput.trim() || chatLoading}
+              icon={chatLoading ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}>
+              发送
+            </Button>
+          </div>
         </div>
       )}
     </div>

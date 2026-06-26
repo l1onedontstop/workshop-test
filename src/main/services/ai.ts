@@ -1,4 +1,6 @@
 import { ipcMain } from 'electron'
+import { existsSync, readFileSync } from 'fs'
+import { join } from 'path'
 import Store from './store'
 import {
   RUBRIC_SYSTEM_PROMPT,
@@ -9,10 +11,38 @@ import {
   RUBRIC_EVOLUTION_PROMPT,
   TOPIC_INSPIRATION_PROMPT,
   PLAN_STRATEGY_PROMPT,
+  SCRIPT_CHAT_PROMPT,
   loadProjectWeights,
   buildRubricPrompt,
   buildScriptWriterPrompt
 } from './rubric'
+
+// ── Self-account insight loader ───────────────────────────
+function getSelfInsight(projectPath: string): string {
+  const selfPath = join(projectPath, 'samples', 'self', 'meta.json')
+  if (!existsSync(selfPath)) return ''
+  try {
+    const self = JSON.parse(readFileSync(selfPath, 'utf-8'))
+    if (!self.aiAnalysis) return ''
+    const a = self.aiAnalysis
+    const parts: string[] = []
+    if (a.accountSummary) parts.push(`你当前账号定位：${a.accountSummary}`)
+    if (a.contentPillars?.length) parts.push(`你的内容支柱：${a.contentPillars.join('、')}`)
+    if (a.styleFeatures?.length) parts.push(`你的风格特征：${a.styleFeatures.join('、')}`)
+    if (a.strengths?.length) parts.push(`你的强项：${a.strengths.join('；')}`)
+    if (a.weaknesses?.length) parts.push(`你的弱项：${a.weaknesses.join('；')}`)
+    if (a.reusablePatterns?.length) parts.push(`你可复用的模式：${a.reusablePatterns.join('；')}`)
+    if (a.personaAdvice) {
+      const recLabel = a.personaAdvice.recommended === 'keep' ? '继续现有风格' :
+                       a.personaAdvice.recommended === 'optimize' ? '在现有基础上优化' : '转型新方向'
+      parts.push(`人设建议：${recLabel} — ${a.personaAdvice.reasoning || ''}`)
+      if (a.personaAdvice.recommended === 'keep') parts.push(`深化方向：${a.personaAdvice.keepCurrent || ''}`)
+      if (a.personaAdvice.recommended === 'optimize') parts.push(`优化方向：${a.personaAdvice.optimizeDirection || ''}`)
+      if (a.personaAdvice.recommended === 'transform') parts.push(`转型方向：${a.personaAdvice.transformOption || ''}`)
+    }
+    return parts.filter(Boolean).join('\n')
+  } catch { return '' }
+}
 
 // ── Provider Registry ────────────────────────────────────
 
@@ -263,9 +293,19 @@ export function registerAIHandlers(): void {
         .filter(Boolean)
         .join('，')
 
-      const userPrompt = userContext
+      // Inject self-account analysis for style matching
+      let selfInsight = ''
+      if (opts.projectPath) {
+        selfInsight = getSelfInsight(opts.projectPath)
+      }
+
+      let userPrompt = userContext
         ? `背景：${userContext}\n\n请根据以下主题写一篇短视频脚本：${topic}`
         : `请根据以下主题写一篇短视频脚本：${topic}`
+
+      if (selfInsight) {
+        userPrompt = `## 你的账号现有数据（请匹配风格）\n${selfInsight}\n\n---\n\n${userPrompt}`
+      }
 
       const messages: AIMessage[] = [
         { role: 'system', content: systemPrompt },
@@ -485,6 +525,29 @@ export function registerAIHandlers(): void {
         }
       ]
       return doChat(messages, { ...opts, temperature: 0.8, maxTokens: 2048 })
+    }
+  )
+
+  // ── Conversational script chat ─────────────────────────
+  ipcMain.handle(
+    'ai:chatScript',
+    async (
+      _event,
+      data: {
+        messages: Array<{ role: string; content: string }>
+        projectPath?: string
+      },
+      opts: AIOptions = {}
+    ) => {
+      const messages: AIMessage[] = [
+        { role: 'system', content: SCRIPT_CHAT_PROMPT },
+        ...data.messages.map(m => ({ role: m.role as 'user' | 'assistant', content: m.content }))
+      ]
+      return doChat(messages, {
+        ...opts,
+        maxTokens: opts.maxTokens || 4096,
+        temperature: opts.temperature ?? 0.8
+      })
     }
   )
 

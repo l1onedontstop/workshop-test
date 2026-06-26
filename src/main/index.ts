@@ -26,6 +26,7 @@ import { registerVideoHandlers } from './services/video'
 import { registerCadenceHandlers, generateSessionReport } from './services/cadence'
 import { registerPredictionGuardHandlers } from './services/prediction-guard'
 import { registerIPStrategyHandlers } from './services/ip-strategy'
+import { registerSocialCrawlHandlers } from './services/social-crawl'
 import { info as logInfo } from './services/logger'
 
 // Expose app version to renderer
@@ -99,6 +100,7 @@ function registerHandlers(): void {
   registerCadenceHandlers()
   registerPredictionGuardHandlers()
   registerIPStrategyHandlers()
+  registerSocialCrawlHandlers()
   // SessionStart cadence report
   const report = generateSessionReport()
   logInfo('main', 'SessionStart', { summary: report.summary })

@@ -75,6 +75,9 @@ contextBridge.exposeInMainWorld('api', {
   aiChat: (messages: Array<{ role: string; content: string }>, opts?: Record<string, unknown>) =>
     ipcRenderer.invoke('ai:chat', messages, opts || {}),
 
+  chatScript: (data: { messages: Array<{ role: string; content: string }>; projectPath?: string }, opts?: Record<string, unknown>) =>
+    ipcRenderer.invoke('ai:chatScript', data, opts || {}),
+
   scoreScript: (script: string, opts?: Record<string, unknown>) =>
     ipcRenderer.invoke('ai:scoreScript', script, opts || {}),
 
@@ -115,6 +118,24 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('settings:set', key, value),
 
   getAllSettings: () => ipcRenderer.invoke('settings:getAll'),
+
+  // ── Social Crawl (Self Account) ──
+  socialCrawl: (projectPath: string, opts: { platform: string; url: string; accountName: string; manualData?: string }) =>
+    ipcRenderer.invoke('social-crawl:crawl', projectPath, opts),
+
+  loginDouyin: () => ipcRenderer.invoke('social-crawl:loginDouyin'),
+
+  getSelfAccount: (projectPath: string) =>
+    ipcRenderer.invoke('social-crawl:getSelf', projectPath),
+
+  setNoSelfAccount: (projectPath: string) =>
+    ipcRenderer.invoke('social-crawl:setNoSelfAccount', projectPath),
+
+  deleteSelfAccount: (projectPath: string) =>
+    ipcRenderer.invoke('social-crawl:deleteSelf', projectPath),
+
+  getSelfInsight: (projectPath: string) =>
+    ipcRenderer.invoke('social-crawl:getSelfInsight', projectPath),
 
   // ── Benchmark ──
   benchmarkImport: (
@@ -243,7 +264,7 @@ contextBridge.exposeInMainWorld('api', {
   predictionDetectMode: (projectPath: string) => ipcRenderer.invoke('prediction:detectMode', projectPath),
   predictionValidate: (path: string, data: unknown) => ipcRenderer.invoke('prediction:validate', path, data),
   // ── IP Strategy ──
-  ipStrategyGenerate: (answers: Record<string, string>) => ipcRenderer.invoke('ip-strategy:generate', answers),
+  ipStrategyGenerate: (answers: Record<string, string>, projectPath?: string) => ipcRenderer.invoke('ip-strategy:generate', answers, projectPath),
   ipStrategyGet: (projectPath: string) => ipcRenderer.invoke('ip-strategy:get', projectPath),
   ipStrategySave: (projectPath: string, blueprint: unknown) => ipcRenderer.invoke('ip-strategy:save', projectPath, blueprint),
   ipStrategyRefine: (blueprint: unknown, feedback: string, answers?: Record<string, string>) => ipcRenderer.invoke('ip-strategy:refine', blueprint, feedback, answers || {}),

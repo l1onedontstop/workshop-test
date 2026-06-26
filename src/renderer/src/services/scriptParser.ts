@@ -11,7 +11,6 @@ export interface ScriptSections {
   scene: string
   postProduction: string
   cover: string
-  rawJson: string
 }
 
 function buildSections(parts: string[]): ScriptSections {
@@ -34,16 +33,16 @@ function buildSections(parts: string[]): ScriptSections {
     equipment: '',
     scene: '',
     postProduction: '',
-    cover: '',
-    rawJson: ''
+    cover: ''
   }
   const keys = ['style', 'storyboard', 'equipment', 'scene', 'postProduction', 'cover'] as const
-  for (let i = 0; i < rest.length - 1 && i < keys.length; i++) {
+  const maxSections = Math.min(rest.length, keys.length)
+  for (let i = 0; i < maxSections; i++) {
     result[keys[i]] = rest[i].trim()
   }
-  if (rest.length > 0) {
-    result.rawJson = rest[rest.length - 1].trim()
-  }
+  // Note: rest[rest.length - 1] (the 8th section / scoring JSON) is intentionally
+  // ignored — it's parsed separately via parseScoreResult and should never appear
+  // in the saved script content.
   return result
 }
 
@@ -52,7 +51,7 @@ export function extractScript(raw: string): string {
   const sepIndex = raw.indexOf('---')
   if (sepIndex > 0) {
     const scriptPart = raw.substring(0, sepIndex).trim()
-    if (scriptPart.length > 20) return scriptPart
+    if (scriptPart.length > 20) return stripJsonBlocks(scriptPart)
   }
 
   // Layer 2: Try JSON extraction (find script/content field)
@@ -61,10 +60,10 @@ export function extractScript(raw: string): string {
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0])
       if (parsed.script && typeof parsed.script === 'string' && parsed.script.length > 20) {
-        return parsed.script.trim()
+        return stripJsonBlocks(parsed.script.trim())
       }
       if (parsed.content && typeof parsed.content === 'string' && parsed.content.length > 20) {
-        return parsed.content.trim()
+        return stripJsonBlocks(parsed.content.trim())
       }
     }
   } catch {
@@ -78,10 +77,25 @@ export function extractScript(raw: string): string {
 
   // Layer 4: Raw text long enough → likely a pure script without separator
   if (raw.trim().length > 50) {
-    return raw.trim()
+    return stripJsonBlocks(raw.trim())
   }
 
   return ''
+}
+
+/**
+ * Strip JSON blocks (markdown-fenced or bare) from script text.
+ * Handles AI models that occasionally embed JSON in the voiceover output.
+ */
+export function stripJsonBlocks(text: string): string {
+  // Remove markdown-fenced JSON blocks
+  let cleaned = text.replace(/```json[\s\S]*?```/gi, '')
+  cleaned = cleaned.replace(/```\s*(\{[\s\S]*?\})\s*```/g, '')
+  // Remove bare JSON objects at the end of the text (common AI leakage)
+  cleaned = cleaned.replace(/\n\n\{[\s\S]*\}$/, '')
+  // Remove trailing ``` without opening fence
+  cleaned = cleaned.replace(/```/g, '')
+  return cleaned.trim()
 }
 
 export function parseFullScript(raw: string): ScriptSections | null {
@@ -108,5 +122,19 @@ export function parseFullScript(raw: string): ScriptSections | null {
   const parts = safe.split(/\r?\n---\r?\n/)
   if (parts.length < 3) return null
 
-  return buildSections(parts.map(p => p.replace(/<!TS>/g, '')))
+  const sections = buildSections(parts.map(p => p.replace(/<!TS>/g, '')))
+
+  // Strip any JSON that leaked into the voiceover text
+  if (sections.voiceover) {
+    sections.voiceover = stripJsonBlocks(sections.voiceover)
+  }
+
+  // Also clean JSON from other sections
+  for (const key of ['style', 'storyboard', 'equipment', 'scene', 'postProduction', 'cover'] as const) {
+    if (sections[key]) {
+      sections[key] = stripJsonBlocks(sections[key])
+    }
+  }
+
+  return sections
 }

@@ -137,7 +137,7 @@ export default function BlueprintPage({
     setLoading(true);
     setError("");
     try {
-      const result = await window.api.ipStrategyGenerate(a);
+      const result = await window.api.ipStrategyGenerate(a, activeProject?.path);
       const data = result as BlueprintData & { success?: boolean; error?: string };
       if (data && data.success !== false) {
         setBlueprint(data);

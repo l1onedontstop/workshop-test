@@ -7,6 +7,23 @@ import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import { join } from 'path'
 import { doChat } from './ai'
 
+// ── Self-account insight for persona enrichment ───────────
+function getSelfInsightForPersona(projectPath: string): string {
+  const selfPath = join(projectPath, 'samples', 'self', 'meta.json')
+  if (!existsSync(selfPath)) return ''
+  try {
+    const self = JSON.parse(readFileSync(selfPath, 'utf-8'))
+    if (!self.aiAnalysis) return ''
+    const a = self.aiAnalysis
+    return [
+      a.audienceInference ? `自有账号受众推断：${a.audienceInference}` : '',
+      a.accountSummary ? `自有账号定位：${a.accountSummary}` : '',
+      a.styleFeatures?.length ? `自有账号风格：${a.styleFeatures.join('、')}` : '',
+      a.strengths?.length ? `自有账号强项：${a.strengths.join('；')}` : ''
+    ].filter(Boolean).join('\n')
+  } catch { return '' }
+}
+
 const PERSONA_PROMPT = `你是一个受众画像分析师。根据用户提供的视频数据和观众反馈，构建详细的受众画像。
 
 **重要：你必须以合法JSON格式输出，只输出纯JSON对象，不要使用markdown代码块包装。**
@@ -85,16 +102,19 @@ export function registerPersonaHandlers(): void {
       return { success: false, error: '还没有已完成复盘的视频，先复盘一条吧' }
     }
 
+    const selfInsight = getSelfInsightForPersona(projectPath)
+
     const messages = [
       { role: 'system' as const, content: PERSONA_PROMPT },
       {
         role: 'user' as const,
         content: [
+          selfInsight ? `## 自有账号数据参考\n${selfInsight}\n` : '',
           `## 视频数据汇总（${retroData.length} 条已复盘）`,
           ...retroData,
           '',
           '请基于以上数据构建受众画像。'
-        ].join('\n')
+        ].filter(Boolean).join('\n')
       }
     ]
 
