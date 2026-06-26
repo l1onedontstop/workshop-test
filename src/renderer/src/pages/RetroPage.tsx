@@ -224,9 +224,12 @@ export default function RetroPage({ onBack }: { onBack: () => void }) {
           navTarget: 'retro'
         })
 
-        // Update buffer count
-        await window.api.updateProjectState(activeProject.path, {
-          bufferCount: Math.max(0, (activeProject.state.bufferCount || 1) - 1)
+        // Update cadence buffer via publish (retro completes a publish cycle)
+        const videoId = selectedPred.scriptFile.replace('.md', '')
+        await window.api.cadencePublish(activeProject.path, videoId, {
+          url: actualData.videoUrl || '',
+          platform: '',
+          predictionFile: selectedPred.scriptFile.replace('.md', '.json')
         })
 
         await refreshActiveProject()

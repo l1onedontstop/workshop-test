@@ -22,6 +22,21 @@ interface Project {
     totalPublished: number
     totalPredicted: number
     bufferCount: number
+    shoots?: Array<{
+      id: string
+      scriptFile: string
+      shotAt: string
+      published: boolean
+      publishedAt?: string
+      url?: string
+      platform?: string
+      prediction_file?: string
+      scripts_path?: string
+      ad_hoc?: boolean
+    }>
+    pending_retros?: string[]
+    calibrationSamples?: number
+    targetPublishCadenceDays?: number
     activities: ActivityEntry[]
   }
 }

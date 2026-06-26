@@ -18,7 +18,7 @@ import {
   ChevronRight,
   Play
 } from 'lucide-react'
-import { useMemo, useState, useCallback } from 'react'
+import { useMemo, useState, useCallback, useEffect } from 'react'
 import ConfirmDialog from '../components/ConfirmDialog'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
@@ -82,9 +82,21 @@ function getCoachSuggestion(
   totalPredicted: number,
   totalPublished: number,
   activities: Array<{ type: string; timestamp: string }>,
-  callbacks: { onNewScript?: () => void; onPublish?: () => void; onRetro?: () => void; onTopicInspiration?: () => void }
+  callbacks: { onNewScript?: () => void; onPublish?: () => void; onRetro?: () => void; onTopicInspiration?: () => void },
+  bufferColor?: string | null
 ): CoachSuggestion {
   const pending = totalPredicted - totalPublished
+
+  // Buffer-based suggestions take priority
+  if (bufferColor === 'red') {
+    return { title: '库存告急', message: '缓冲区已空——今天必须拍摄新内容，否则发布节奏会断档。', actionLabel: '去写脚本', action: callbacks.onNewScript, variant: 'warning' }
+  }
+  if (bufferColor === 'orange') {
+    return { title: '库存偏低', message: '缓冲区即将耗尽，建议优先安排拍摄，保持内容持续输出。', actionLabel: '去拍摄', action: callbacks.onNewScript, variant: 'warning' }
+  }
+  if (bufferColor === 'blue') {
+    return { title: '库存积压', message: '缓冲区过满——先发布已有库存，暂停拍新内容，避免内容积压贬值。', actionLabel: '去发布', action: callbacks.onPublish, variant: 'primary' }
+  }
 
   if (totalPredicted === 0) {
     return { title: '万事开头难', message: '你还没有写过脚本。内容和选题想再多，不如先写出第一条——拍出来才是真正的开始。', actionLabel: '写第一条脚本', action: callbacks.onNewScript, variant: 'primary' }
@@ -153,6 +165,13 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
 
   const [scriptsList, setScriptsList] = useState<Array<{ name: string; path: string }>>([])
   const [scriptsLoading, setScriptsLoading] = useState(false)
+  const [bufferState, setBufferState] = useState<{ count: number; color: string; bufferDays: number; message: string } | null>(null)
+
+  // Load cadence buffer state on mount / project change
+  useEffect(() => {
+    if (!activeProject) return
+    window.api.cadenceBuffer(activeProject.path).then((data: any) => setBufferState(data)).catch(() => {})
+  }, [activeProject])
 
   const handleManageScripts = useCallback(async () => {
     if (!activeProject) return
@@ -163,8 +182,8 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
   }, [activeProject])
 
   const coachSuggestion = useMemo(
-    () => getCoachSuggestion(activeProject.state.totalPredicted || 0, activeProject.state.totalPublished || 0, activities, { onNewScript, onPublish, onRetro, onTopicInspiration }),
-    [activeProject.state.totalPredicted, activeProject.state.totalPublished, activities.length]
+    () => getCoachSuggestion(activeProject.state.totalPredicted || 0, activeProject.state.totalPublished || 0, activities, { onNewScript, onPublish, onRetro, onTopicInspiration }, bufferState?.color),
+    [activeProject.state.totalPredicted, activeProject.state.totalPublished, activities.length, bufferState?.color]
   )
 
   const styles = VARIANT_STYLES[coachSuggestion.variant]
@@ -348,14 +367,47 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         )}
       </Card>
 
-      {/* Pipeline bar — compact */}
+      {/* Pipeline bar — compact with cadence buffer indicator */}
       {predicted > 0 && (
         <Card level="subtle" className="mb-8 p-4">
+          {/* Buffer status indicator */}
+          {bufferState && (
+            <div className={`mb-3 px-3 py-2 rounded-lg flex items-center gap-3 ${
+              bufferState.color === 'red' ? 'bg-danger-text/10 border border-danger-text/20' :
+              bufferState.color === 'orange' ? 'bg-warning-surface border border-warning-border' :
+              bufferState.color === 'green' ? 'bg-success-surface border border-success-border/30' :
+              bufferState.color === 'blue' ? 'bg-info-surface border border-info-border' :
+              'bg-black/[0.02] border border-rule-subtle'
+            }`}>
+              <span className={`w-3 h-3 rounded-full shrink-0 ${
+                bufferState.color === 'red' ? 'bg-danger-text' :
+                bufferState.color === 'orange' ? 'bg-warning' :
+                bufferState.color === 'green' ? 'bg-success-text' :
+                bufferState.color === 'blue' ? 'bg-info-text' :
+                'bg-ink-disabled'
+              }`} />
+              <span className={`text-sm font-medium ${
+                bufferState.color === 'red' ? 'text-danger-text' :
+                bufferState.color === 'orange' ? 'text-warning-text' :
+                bufferState.color === 'green' ? 'text-success-text' :
+                bufferState.color === 'blue' ? 'text-info-text' :
+                'text-ink-tertiary'
+              }`}>
+                {bufferState.color === 'red' ? '红色预警' :
+                 bufferState.color === 'orange' ? '橙色预警' :
+                 bufferState.color === 'green' ? '绿色健康' :
+                 bufferState.color === 'blue' ? '蓝色积压' : '未知'}
+                {' · '}缓冲 {bufferState.bufferDays} 天
+              </span>
+              <span className="text-xs text-ink-tertiary ml-auto">{bufferState.message}</span>
+            </div>
+          )}
+          {/* Pipeline stats */}
           <div className="flex items-center gap-3 text-xs">
             <span className="text-ink-tertiary font-medium">管道</span>
             {[
               { label: '脚本', n: predicted },
-              { label: '待拍', n: buffer },
+              { label: '待拍', n: bufferState?.count ?? buffer },
               { label: '已发', n: published },
               { label: '待复盘', n: published }
             ].map((s, i, arr) => (
@@ -365,7 +417,7 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
                 {i < arr.length - 1 && <span className="text-ink-disabled mx-0.5">·</span>}
               </span>
             ))}
-            {buffer === 0 && (
+            {!bufferState && buffer === 0 && (
               <span className="ml-auto text-[11px] text-danger-text/70 font-medium">库存告急</span>
             )}
           </div>
@@ -492,10 +544,17 @@ export default function ProjectPage({ onNewScript, onTopicInspiration, onPublish
         variant={confirmDialog?.type === 'shoot' ? 'warning' : (confirmDialog?.type === 'reset' || confirmDialog?.type === 'delete') ? 'danger' : 'success'}
         onPrimary={async () => {
           if (confirmDialog?.type === 'shoot') {
-            await window.api.logActivity(activeProject.path, { type: 'script_published', timestamp: new Date().toISOString(), label: '确认拍摄', detail: '管线标记为已拍摄' })
+            const scripts = await window.api.listScripts(activeProject.path)
+            const shootId = scripts.length > 0 ? (scripts[0] as any).name?.replace('.md', '') || `shoot_${Date.now()}` : `shoot_${Date.now()}`
+            const scriptFilename = scripts.length > 0 ? (scripts[0] as any).name : ''
+            await window.api.cadenceShoot(activeProject.path, shootId, scriptFilename)
+            await window.api.cadenceBuffer(activeProject.path).then((data: any) => setBufferState(data)).catch(() => {})
             await refreshActiveProject(); onPublish?.()
           } else if (confirmDialog?.type === 'publish') {
-            await window.api.logActivity(activeProject.path, { type: 'script_published', timestamp: new Date().toISOString(), label: '确认发布', detail: '管线标记为已发布' })
+            const scripts = await window.api.listScripts(activeProject.path)
+            const publishId = scripts.length > 0 ? (scripts[0] as any).name?.replace('.md', '') || `publish_${Date.now()}` : `publish_${Date.now()}`
+            await window.api.cadencePublish(activeProject.path, publishId, { url: '', platform: '' })
+            await window.api.cadenceBuffer(activeProject.path).then((data: any) => setBufferState(data)).catch(() => {})
             await refreshActiveProject(); onRetro?.()
           } else if (confirmDialog?.type === 'reset') { handleResetAll(); return }
           else if (confirmDialog?.type === 'delete') { handleDeleteProject(); return }

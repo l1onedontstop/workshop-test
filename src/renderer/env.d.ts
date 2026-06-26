@@ -195,7 +195,7 @@ interface Window {
 
     // Cadence / Buffer
     cadenceBuffer: (projectPath: string) => Promise<unknown>
-    cadenceShoot: (projectPath: string, videoId: string, scriptFile: string) => Promise<unknown>
+    cadenceShoot: (projectPath: string, videoId: string, scriptFile: string, metadata?: Record<string, unknown>) => Promise<unknown>
     cadencePublish: (projectPath: string, videoId: string, publishData: unknown) => Promise<unknown>
     cadenceReport: () => Promise<unknown>
 

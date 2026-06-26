@@ -91,10 +91,9 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
           scriptFile: selectedScript?.name,
           navTarget: 'publish'
         })
-        // Update state
-        await window.api.updateProjectState(activeProject.path, {
-          totalPublished: (activeProject.state.totalPublished || 0) + 1
-        })
+        // Update cadence buffer via publish
+        const videoId = selectedScript?.name?.replace('.md', '') || `publish_${Date.now()}`
+        await window.api.cadencePublish(activeProject.path, videoId, { url: '', platform: '' })
         await refreshActiveProject()
       }
     } catch (err) {

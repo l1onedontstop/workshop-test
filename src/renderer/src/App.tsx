@@ -18,6 +18,7 @@ import PersonaPage from './pages/PersonaPage'
 import DashboardPage from './pages/DashboardPage'
 import BlueprintPage from './pages/BlueprintPage'
 import TrendMatchPage from './pages/TrendMatchPage'
+import StatusPage from './pages/StatusPage'
 import { useAppStore } from './stores/appStore'
 
 type Page =
@@ -36,6 +37,7 @@ type Page =
   | 'dashboard'
   | 'blueprint'
   | 'trend-match'
+  | 'status'
 
 export default function App() {
   const [page, setPage] = useState<Page>('welcome')
@@ -89,7 +91,8 @@ export default function App() {
     page !== 'topic-pool' &&
     page !== 'persona' &&
     page !== 'dashboard' &&
-    page !== 'trend-match'
+    page !== 'trend-match' &&
+    page !== 'status'
 
   if (initialLoading) {
     return (
@@ -206,6 +209,7 @@ export default function App() {
               }}
             />
           )}
+          {page === 'status' && <StatusPage onBack={() => setPage('project')} />}
           {page === 'settings' && <SettingsPage onBack={() => setPage('project')} />}
         </main>
         </ErrorBoundary>

@@ -10,7 +10,8 @@ import {
   Plus,
   BarChart3,
   Sparkles,
-  Flame
+  Flame,
+  Activity
 } from 'lucide-react'
 import { useAppStore } from '../../stores/appStore'
 
@@ -29,6 +30,7 @@ const navItems = [
   { id: 'benchmark', label: '对标', icon: Target },
   { id: 'persona', label: '受众', icon: Users },
   { id: 'plan-list', label: '方案', icon: Layout },
+  { id: 'status', label: '节奏', icon: Activity },
   { id: 'settings', label: '设置', icon: Settings }
 ] as const
 

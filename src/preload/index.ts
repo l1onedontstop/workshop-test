@@ -272,7 +272,7 @@ contextBridge.exposeInMainWorld('api', {
   videoCompose: (data: unknown) => ipcRenderer.invoke('video:compose', data),
   // ── Cadence / Buffer ──
   cadenceBuffer: (projectPath: string) => ipcRenderer.invoke('cadence:buffer', projectPath),
-  cadenceShoot: (projectPath: string, videoId: string, scriptFile: string) => ipcRenderer.invoke('cadence:shoot', projectPath, videoId, scriptFile),
+  cadenceShoot: (projectPath: string, videoId: string, scriptFile: string, metadata?: Record<string, unknown>) => ipcRenderer.invoke('cadence:shoot', projectPath, videoId, scriptFile, metadata || {}),
   cadencePublish: (projectPath: string, videoId: string, publishData: unknown) => ipcRenderer.invoke('cadence:publish', projectPath, videoId, publishData),
   cadenceReport: () => ipcRenderer.invoke('cadence:report'),
   // ── Prediction Guard ──
