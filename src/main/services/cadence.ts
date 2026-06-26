@@ -203,6 +203,7 @@ export function generateSessionReport() {
         calibrationSamples,
         confidence
       },
+      lastTrendsRunAt: (state.state as any)?.lastTrendsRunAt || null,
       mode: calibrationSamples >= 5 ? 'calibration' : 'cold-start'
     })
   }

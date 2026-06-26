@@ -2,6 +2,9 @@
 // Weibo & Zhihu use real JSON endpoints; Douyin & Tophub use AI fallback.
 
 import { ipcMain } from 'electron'
+import { createHash } from 'crypto'
+import { existsSync, readFileSync, writeFileSync, mkdirSync, appendFileSync } from 'fs'
+import { join, dirname } from 'path'
 import { doChat } from './ai'
 
 interface TrendItem {
@@ -165,11 +168,133 @@ async function fetchTrendsFromSource(sourceId: string): Promise<{ success: boole
 
 const TREND_MATCH_PROMPT = '你是一个短视频选题策划专家。分析以下热点，找出与用户行业/人设相关的热点，并建议切入角度。\n\n**重要：你必须以合法JSON格式输出。**\n输出格式：{"matches": [{"hotTitle": "...", "relevance": "high|medium|low", "suggestedAngle": "建议的切入角度", "reason": "为什么这个热点适合你"}], "summary": "整体建议"}'
 
+// ── Trends history cache (for dedup) ─────────────────
+
+const TRENDS_HISTORY_FILE = '.cheat-cache/trends-history.jsonl'
+const DEDUP_MONTHS = 6
+
+function sha256(text: string): string {
+  return createHash('sha256').update(text).digest('hex')
+}
+
+function ensureCacheDir(projectPath: string): string {
+  const dir = join(projectPath, '.cheat-cache')
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+  return dir
+}
+
+function historyFilePath(projectPath: string): string {
+  return join(projectPath, TRENDS_HISTORY_FILE)
+}
+
+function appendToHistory(projectPath: string, titles: string[]): void {
+  ensureCacheDir(projectPath)
+  const path = historyFilePath(projectPath)
+  const now = new Date().toISOString()
+  const lines = titles.map((title) =>
+    JSON.stringify({ id: sha256(title), title, timestamp: now }) + '\n'
+  )
+  appendFileSync(path, lines.join(''), 'utf-8')
+}
+
+function isDuplicate(projectPath: string, trendTitle: string): boolean {
+  const path = historyFilePath(projectPath)
+  if (!existsSync(path)) return false
+
+  const targetId = sha256(trendTitle)
+  const cutoff = new Date()
+  cutoff.setMonth(cutoff.getMonth() - DEDUP_MONTHS)
+
+  try {
+    const content = readFileSync(path, 'utf-8')
+    const lines = content.split('\n').filter(Boolean)
+    for (const line of lines) {
+      const entry = JSON.parse(line)
+      if (entry.id === targetId && new Date(entry.timestamp) >= cutoff) {
+        return true
+      }
+    }
+  } catch {
+    // Corrupt line — ignore
+  }
+  return false
+}
+
+function loadProjectStateFile(projectPath: string): Record<string, unknown> | null {
+  const statePath = join(projectPath, '.cheat-state.json')
+  if (!existsSync(statePath)) return null
+  try {
+    return JSON.parse(readFileSync(statePath, 'utf-8'))
+  } catch {
+    return null
+  }
+}
+
+function saveProjectStateFile(projectPath: string, state: Record<string, unknown>): void {
+  writeFileSync(join(projectPath, '.cheat-state.json'), JSON.stringify(state, null, 2), 'utf-8')
+}
+
+// ── pool helpers (for trend:addToPool) ─────────────────
+
+interface PoolTopic {
+  id: string
+  title: string
+  angle: string
+  hook: string
+  audienceResonance: string
+  difficulty: number
+  category: string
+  reason: string
+  status: 'candidate' | 'used' | 'archived'
+  createdAt: string
+}
+
+interface PoolData {
+  topics: PoolTopic[]
+  updatedAt: string
+}
+
+function loadPool(projectPath: string): PoolData {
+  const path = join(projectPath, 'candidates.json')
+  if (existsSync(path)) {
+    try {
+      return JSON.parse(readFileSync(path, 'utf-8'))
+    } catch { /* corrupt file */ }
+  }
+  return { topics: [], updatedAt: new Date().toISOString() }
+}
+
+function savePool(projectPath: string, data: PoolData): void {
+  writeFileSync(join(projectPath, 'candidates.json'), JSON.stringify({ ...data, updatedAt: new Date().toISOString() }, null, 2))
+}
+
 export function registerTrendHandlers(): void {
   ipcMain.handle('trend:sources', async () => TREND_SOURCES)
 
-  ipcMain.handle('trend:fetch', async (_event, sourceId: string) => {
-    return fetchTrendsFromSource(sourceId)
+  ipcMain.handle('trend:fetch', async (_event, sourceId: string, projectPath?: string) => {
+    const result = await fetchTrendsFromSource(sourceId)
+
+    // Append to history cache for dedup
+    if (projectPath && result.trends.length > 0) {
+      const titles = result.trends.map((t) => t.title)
+      appendToHistory(projectPath, titles)
+
+      // Filter out duplicates (seen in last 6 months)
+      const deduped = result.trends.filter((t) => !isDuplicate(projectPath, t.title))
+      if (deduped.length < result.trends.length) {
+        result.trends = deduped
+      }
+
+      // Update project state
+      const state = loadProjectStateFile(projectPath)
+      if (state) {
+        if (!state.state) state.state = {}
+        ;(state.state as Record<string, unknown>).lastTrendsRunAt = new Date().toISOString()
+        saveProjectStateFile(projectPath, state)
+      }
+    }
+
+    return result
   })
 
   ipcMain.handle(
@@ -214,6 +339,47 @@ export function registerTrendHandlers(): void {
       } catch {
         return { matches: [], summary: '匹配分析失败' }
       }
+    }
+  )
+
+  // ── Add trends to candidate pool ──────────────────────
+  ipcMain.handle(
+    'trend:addToPool',
+    async (
+      _event,
+      projectPath: string,
+      trends: Array<{ title: string; category: string; source: string; description: string; difficulty?: number }>
+    ) => {
+      const pool = loadPool(projectPath)
+      const now = new Date().toISOString()
+
+      const newTopics: PoolTopic[] = trends.map((t, i) => ({
+        id: `trend_${Date.now()}_${i}`,
+        title: t.title,
+        angle: t.description || t.title,
+        hook: '',
+        audienceResonance: '',
+        difficulty: t.difficulty || 3,
+        category: t.category || '趋势解读',
+        reason: t.description || t.source || '',
+        status: 'candidate' as const,
+        createdAt: now
+      }))
+
+      pool.topics = [...newTopics, ...pool.topics]
+      savePool(projectPath, pool)
+
+      // Update project state: track trends added
+      const state = loadProjectStateFile(projectPath)
+      if (state) {
+        if (!state.state) state.state = {}
+        const prev = Number((state.state as Record<string, unknown>).lastTrendsAddedCount) || 0
+        ;(state.state as Record<string, unknown>).lastTrendsAddedCount = prev + newTopics.length
+        ;(state.state as Record<string, unknown>).lastTrendsRunAt = now
+        saveProjectStateFile(projectPath, state)
+      }
+
+      return { added: newTopics.length, total: pool.topics.length }
     }
   )
 }

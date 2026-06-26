@@ -204,14 +204,17 @@ contextBridge.exposeInMainWorld('api', {
   // ── Trend ──
   trendSources: () => ipcRenderer.invoke('trend:sources'),
 
-  trendFetch: (sourceId: string) =>
-    ipcRenderer.invoke('trend:fetch', sourceId),
+  trendFetch: (sourceId: string, projectPath?: string) =>
+    ipcRenderer.invoke('trend:fetch', sourceId, projectPath),
 
   trendMatch: (
     projectPath: string,
     trends: unknown[],
     profile: { industry: string; identity: string; audience: string }
   ) => ipcRenderer.invoke('trend:match', projectPath, trends, profile),
+
+  trendAddToPool: (projectPath: string, trends: unknown[]) =>
+    ipcRenderer.invoke('trend:addToPool', projectPath, trends),
 
   // ── Persona ──
   personaBuild: (projectPath: string) =>

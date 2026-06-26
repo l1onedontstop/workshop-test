@@ -77,6 +77,25 @@ function formatDate(iso: string): string {
   } catch { return iso }
 }
 
+function getTrendFreshness(lastRunAt: string | null): {
+  label: string
+  colorClass: string
+} {
+  if (!lastRunAt) {
+    return { label: '从未抓取', colorClass: 'text-ink-disabled' }
+  }
+  const msPerDay = 86400000
+  const days = (Date.now() - new Date(lastRunAt).getTime()) / msPerDay
+  if (days < 1) {
+    return { label: '今天已更新', colorClass: 'text-success-text' }
+  }
+  const n = Math.floor(days)
+  if (n <= 7) {
+    return { label: `${n}天前`, colorClass: 'text-ink-secondary' }
+  }
+  return { label: `${n}天前 — 建议刷新`, colorClass: 'text-warning-text' }
+}
+
 // ── Component ────────────────────────────────────────────────────────
 
 export default function StatusPage({ onBack }: { onBack: () => void }) {
@@ -187,24 +206,27 @@ export default function StatusPage({ onBack }: { onBack: () => void }) {
   const confidence = getConfidence(calibrationSamples)
   const calColor = getCalibrationColor(calibrationSamples)
   const totalPool = poolSize ?? currentProjectStats?.poolSize ?? 0
+  const lastTrendsRunAt = (currentProjectStats as any)?.lastTrendsRunAt ?? null
+  const trendFreshness = getTrendFreshness(lastTrendsRunAt)
 
   // ── Health summary ────────────────────────────────────────────────
 
-  const healthLines: string[] = []
+  const healthLines: { label: string; colorClass?: string; key: string }[] = []
   if (buffer) {
-    healthLines.push(`Buffer: ${buffer.message}`)
+    healthLines.push({ label: `Buffer: ${buffer.message}`, key: 'buffer' })
   }
   if (pendingRetros > 0) {
-    healthLines.push(`Retro债务: ${pendingRetros}条`)
+    healthLines.push({ label: `Retro债务: ${pendingRetros}条`, key: 'retro' })
   }
   if (calibrationSamples > 0) {
-    healthLines.push(`校准: ${calibrationSamples}/5 → ${calibrationSamples >= 5 ? '校准完成' : '校准模式'}`)
+    healthLines.push({ label: `校准: ${calibrationSamples}/5 → ${calibrationSamples >= 5 ? '校准完成' : '校准模式'}`, key: 'calib' })
   } else {
-    healthLines.push('校准: 尚未开始')
+    healthLines.push({ label: '校准: 尚未开始', key: 'calib' })
   }
   if (report?.generatedAt) {
-    healthLines.push(`上次报告: ${formatDate(report.generatedAt)}`)
+    healthLines.push({ label: `上次报告: ${formatDate(report.generatedAt)}`, key: 'report' })
   }
+  healthLines.push({ label: `热点新鲜度: ${trendFreshness.label}`, colorClass: trendFreshness.colorClass, key: 'trends' })
 
   // ── Render ────────────────────────────────────────────────────────
 
@@ -348,9 +370,9 @@ export default function StatusPage({ onBack }: { onBack: () => void }) {
         </div>
         <div className="space-y-1.5">
           {healthLines.length > 0 ? (
-            healthLines.map((line, i) => (
-              <p key={i} className="text-sm text-ink-primary">
-                {line}
+            healthLines.map((line) => (
+              <p key={line.key} className={`text-sm ${line.colorClass || 'text-ink-primary'}`}>
+                {line.label}
               </p>
             ))
           ) : (

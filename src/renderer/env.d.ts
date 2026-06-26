@@ -120,12 +120,13 @@ interface Window {
 
     // Trend
     trendSources: () => Promise<unknown[]>
-    trendFetch: (sourceId: string) => Promise<unknown>
+    trendFetch: (sourceId: string, projectPath?: string) => Promise<unknown>
     trendMatch: (
       projectPath: string,
       trends: unknown[],
       profile: { industry: string; identity: string; audience: string }
     ) => Promise<unknown>
+    trendAddToPool: (projectPath: string, trends: unknown[]) => Promise<unknown>
 
     // Search / Archive / Tags
     searchProjects: (query: string) => Promise<unknown[]>

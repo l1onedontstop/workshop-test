@@ -8,7 +8,10 @@ import {
   Loader2,
   AlertTriangle,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  Check,
+  Square,
+  CheckSquare
 } from 'lucide-react'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
@@ -47,6 +50,15 @@ interface MatchItem {
 interface MatchResult {
   matches: MatchItem[]
   summary: string
+}
+
+interface PoolCandidate {
+  title: string
+  category: string
+  source: string
+  description: string
+  difficulty: number
+  addedAt: string
 }
 
 // ── Source config ──
@@ -122,6 +134,12 @@ export default function TrendMatchPage({
   const [matchError, setMatchError] = useState('')
   const [matchResult, setMatchResult] = useState<MatchResult | null>(null)
 
+  // Selection & pool
+  const [selectedIndices, setSelectedIndices] = useState<Set<number>>(new Set())
+  const [addedIndices, setAddedIndices] = useState<Set<number>>(new Set())
+  const [addingToPool, setAddingToPool] = useState(false)
+  const [successMsg, setSuccessMsg] = useState('')
+
   // ── Load sources on mount ──
   useEffect(() => {
     (async () => {
@@ -148,7 +166,7 @@ export default function TrendMatchPage({
     setMatchError('')
 
     try {
-      const raw = await window.api.trendFetch(sourceId)
+      const raw = await window.api.trendFetch(sourceId, activeProject?.path)
       const result = raw as unknown as TrendFetchResult
       if (!result?.success) {
         setFetchError('获取热点失败，请稍后重试')
@@ -197,6 +215,68 @@ export default function TrendMatchPage({
 
     doMatch()
   }, [fetchResult, activeProject])
+
+  // ── Selection helpers ──
+  const toggleSelect = useCallback((index: number) => {
+    setSelectedIndices((prev) => {
+      const next = new Set(prev)
+      if (next.has(index)) next.delete(index)
+      else next.add(index)
+      return next
+    })
+  }, [])
+
+  const selectAll = useCallback(() => {
+    if (!matchResult?.matches.length) return
+    setSelectedIndices(new Set(matchResult.matches.map((_, i) => i)))
+  }, [matchResult])
+
+  const deselectAll = useCallback(() => {
+    setSelectedIndices(new Set())
+  }, [])
+
+  // ── Add selected matches to pool ──
+  const addToPool = useCallback(async () => {
+    if (!activeProject || !matchResult || selectedIndices.size === 0) return
+    setAddingToPool(true)
+    setSuccessMsg('')
+
+    const selectedMatches = Array.from(selectedIndices)
+      .sort((a, b) => a - b)
+      .map((i) => matchResult.matches[i])
+      .filter(Boolean)
+
+    const candidates: PoolCandidate[] = selectedMatches.map((m) => ({
+      title: m.suggestedAngle,
+      category: '趋势解读',
+      source: m.reason,
+      description: m.reason,
+      difficulty: 3,
+      addedAt: new Date().toISOString()
+    }))
+
+    try {
+      await window.api.poolAdd(activeProject.path, candidates as unknown[])
+      // Mark as added
+      setAddedIndices((prev) => {
+        const next = new Set(prev)
+        for (const i of selectedIndices) next.add(i)
+        return next
+      })
+      setSelectedIndices(new Set())
+      setSuccessMsg(`已添加 ${candidates.length} 条到选题池`)
+      // Also update trend state
+      await window.api.updateProjectState(activeProject.path, {
+        lastTrendsAddedCount: candidates.length
+      })
+      setTimeout(() => setSuccessMsg(''), 2000)
+    } catch (err) {
+      setSuccessMsg(`添加失败：${err instanceof Error ? err.message : '未知错误'}`)
+      setTimeout(() => setSuccessMsg(''), 3000)
+    } finally {
+      setAddingToPool(false)
+    }
+  }, [activeProject, matchResult, selectedIndices])
 
   // ── No project guard ──
   if (!activeProject) {
@@ -360,6 +440,39 @@ export default function TrendMatchPage({
                 <h2 className="text-sm font-medium text-ink-secondary">为你匹配的热点</h2>
               </div>
 
+              {/* ── Bulk actions bar ── */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={selectAll}
+                >
+                  全选
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={deselectAll}
+                >
+                  取消全选
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<Check size={14} />}
+                  disabled={selectedIndices.size === 0}
+                  loading={addingToPool}
+                  onClick={addToPool}
+                >
+                  添加到选题池 ({selectedIndices.size})
+                </Button>
+                {successMsg && (
+                  <span className={`text-xs ${successMsg.includes('失败') ? 'text-danger-text' : 'text-success-text'}`}>
+                    {successMsg}
+                  </span>
+                )}
+              </div>
+
               {matchResult.summary && (
                 <Card level="elevated" className="!border-brand-200 !bg-brand-50 p-4">
                   <p className="text-sm text-ink-secondary leading-relaxed">{matchResult.summary}</p>
@@ -369,17 +482,36 @@ export default function TrendMatchPage({
               <div className="grid grid-cols-1 gap-3">
                 {matchResult.matches.map((match, i) => {
                   const badge = relevanceBadge(match.relevance)
+                  const isSelected = selectedIndices.has(i)
+                  const isAdded = addedIndices.has(i)
                   return (
                     <Card
                       key={i}
                       level="subtle"
                       interactive
-                      className="p-5 group"
+                      className={`p-5 group ${isAdded ? 'opacity-50' : ''}`}
                     >
                       <div className="flex items-start gap-4">
-                        <span className="shrink-0 w-7 text-sm font-bold text-ink-disabled font-mono">
-                          {String(i + 1).padStart(2, '0')}
-                        </span>
+                        {/* Checkbox */}
+                        <button
+                          className={`shrink-0 mt-0.5 rounded transition-colors ${
+                            isAdded
+                              ? 'text-ink-disabled cursor-not-allowed'
+                              : isSelected
+                                ? 'text-brand-600 hover:text-brand-700'
+                                : 'text-ink-disabled hover:text-brand-500'
+                          }`}
+                          disabled={isAdded}
+                          onClick={() => toggleSelect(i)}
+                        >
+                          {isAdded ? (
+                            <CheckSquare size={20} />
+                          ) : isSelected ? (
+                            <CheckSquare size={20} />
+                          ) : (
+                            <Square size={20} />
+                          )}
+                        </button>
 
                         <div className="flex-1 min-w-0 space-y-2">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -391,6 +523,11 @@ export default function TrendMatchPage({
                             >
                               {badge.label}
                             </span>
+                            {isAdded && (
+                              <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full bg-success-surface text-success-text border border-success-border">
+                                已添加
+                              </span>
+                            )}
                           </div>
 
                           <p className="text-xs text-ink-tertiary flex gap-2">
