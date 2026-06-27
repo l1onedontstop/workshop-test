@@ -275,9 +275,10 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
                 <h3 className="text-sm font-medium text-ink-secondary mb-3 flex items-center gap-2">
                   <Tag size={14} className="text-warning-text" />
                   高热话题标签
+                  <span className="text-[10px] text-ink-disabled bg-black/[0.03] px-1.5 py-0.5 rounded">抖音上限5个</span>
                 </h3>
                 <div className="flex flex-wrap gap-2">
-                  {pack.tags.map((t, i) => (
+                  {(pack.tags || []).slice(0, 5).map((t, i) => (
                     <span
                       key={i}
                       className="px-3 py-1.5 rounded-full bg-black/[0.03] border border-rule text-xs text-ink-secondary"
@@ -285,9 +286,14 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
                       #{t}
                     </span>
                   ))}
+                  {(pack.tags || []).length > 5 && (
+                    <span className="px-3 py-1.5 rounded-full bg-danger-bg border border-danger-border text-xs text-danger-text">
+                      AI 多生成了 {pack.tags.length - 5} 个标签已截断
+                    </span>
+                  )}
                 </div>
                 <button
-                  onClick={() => handleCopy(pack.tags.map((t) => `#${t}`).join(' '), -3)}
+                  onClick={() => handleCopy((pack.tags || []).slice(0, 5).map((t) => `#${t}`).join(' '), -3)}
                   className="mt-3 flex items-center gap-1.5 text-xs text-ink-tertiary hover:text-ink-secondary transition-colors"
                 >
                   {copiedIndex === -3 ? (
@@ -296,7 +302,7 @@ export default function PublishPage({ onBack }: { onBack: () => void }) {
                     </>
                   ) : (
                     <>
-                      <Copy size={12} /> 一键复制所有标签
+                      <Copy size={12} /> 一键复制标签（5个）
                     </>
                   )}
                 </button>
